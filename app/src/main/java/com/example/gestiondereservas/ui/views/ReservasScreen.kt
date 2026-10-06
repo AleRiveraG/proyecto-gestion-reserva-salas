@@ -28,12 +28,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
 fun ReservasScreen() {
-
     Scaffold(
-        topBar = { TopAppBar(
+        topBar = { TopBar() }
+    ) { padding ->
+        Box(modifier = Modifier.padding(padding)) {
+
+            Text("Contenido de reservas")
+        }
+    }
+
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopBar() {
+        TopAppBar(
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 titleContentColor = MaterialTheme.colorScheme.secondary
@@ -95,11 +107,4 @@ fun ReservasScreen() {
 
             }
         )
-        }
-    ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
-
-            Text("Contenido de reservas")
-        }
-    }
 }
