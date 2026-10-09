@@ -79,7 +79,7 @@ fun ReservasScreen() {
         topBar = { TopBar() },
         bottomBar = { NavBar() }
     ) { padding ->
-        ContentPaso2(padding)
+        ContentPaso1(padding)
     }
 
 }
@@ -214,6 +214,10 @@ fun NavBar() {
 
 @Composable
 fun ContentPaso1(padding: PaddingValues) {
+    var nombre by remember({mutableStateOf("")})
+    var responsable by remember({mutableStateOf("")})
+    var telefono by remember({mutableStateOf("")})
+    var correo by remember({mutableStateOf("")})
 
     Column(
         modifier = Modifier
@@ -364,7 +368,7 @@ fun ContentPaso1(padding: PaddingValues) {
         ) {
             Column() {
 
-                campoNombre()
+                campoTexto("Nombre de la actividad *", nombre, { nombre = it })
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -380,7 +384,7 @@ fun ContentPaso1(padding: PaddingValues) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                campoResponsable()
+                campoTexto("Responsable de la actividad *", responsable, { responsable = it})
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -393,7 +397,7 @@ fun ContentPaso1(padding: PaddingValues) {
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        campoTelefono()
+                        campoTexto("Teléfono de contacto", telefono, { telefono = it})
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -401,7 +405,7 @@ fun ContentPaso1(padding: PaddingValues) {
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        campoCorreo()
+                        campoTexto("Correo electrónico", correo, { correo = it })
                     }
                 }
 
@@ -719,16 +723,15 @@ fun ContentPaso2(padding: PaddingValues) {
 }
 
 @Composable
-fun campoNombre() {
-    var nombre by remember { mutableStateOf("") }
-    Text("Nombre de la actividad *",
+fun campoTexto(titulo: String, variable: String, onValorChange: (String) -> Unit) {
+    Text(text = titulo,
         color = MaterialTheme.colorScheme.primary)
 
     Spacer(modifier = Modifier.height(8.dp))
 
     OutlinedTextField(
-        value = nombre,
-        onValueChange = { nombre = it },
+        value = variable,
+        onValueChange = onValorChange ,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = TextFieldDefaults.colors(
@@ -764,76 +767,6 @@ fun campoDescripcion() {
     )
 }
 
-@Composable
-fun campoResponsable() {
-    var responsable by remember { mutableStateOf("") }
-
-    Text("Responsable de la actividad *",
-        color = MaterialTheme.colorScheme.primary)
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    OutlinedTextField(
-        value = responsable,
-        onValueChange = { responsable = it },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.primary,
-            unfocusedTextColor = MaterialTheme.colorScheme.primary,
-            unfocusedContainerColor = Color(0xFFF5F5F5),
-            focusedContainerColor = Color(0xFFF5F5F5)
-        )
-    )
-}
-
-@Composable
-fun campoTelefono() {
-    var telefono by remember { mutableStateOf("") }
-    Text(
-        "Teléfono de contacto *",
-        color = MaterialTheme.colorScheme.primary
-    )
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    OutlinedTextField(
-        value = telefono,
-        onValueChange = { telefono = it },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.primary,
-            unfocusedTextColor = MaterialTheme.colorScheme.primary,
-            unfocusedContainerColor = Color(0xFFF5F5F5),
-            focusedContainerColor = Color(0xFFF5F5F5)
-        )
-    )
-}
-
-@Composable
-fun campoCorreo() {
-    var correo by remember { mutableStateOf("") }
-    Text(
-        "Correo electrónico *",
-        color = MaterialTheme.colorScheme.primary
-    )
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    OutlinedTextField(
-        value = correo,
-        onValueChange = { correo = it },
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = MaterialTheme.colorScheme.primary,
-            unfocusedTextColor = MaterialTheme.colorScheme.primary,
-            unfocusedContainerColor = Color(0xFFF5F5F5),
-            focusedContainerColor = Color(0xFFF5F5F5)
-        )
-    )
-}
 
 @Composable
 fun tipoActividad() {
