@@ -76,7 +76,6 @@ import java.util.Locale
 import java.util.TimeZone
 import kotlin.collections.listOf
 
-
 @Composable
 fun ReservasScreen() {
     var paso by remember{ mutableIntStateOf(1)}
@@ -90,9 +89,7 @@ fun ReservasScreen() {
             2 -> ContentPaso2(padding, onAtras = { paso = 1}, onSiguiente = { paso = 3} )
             else -> ContentPaso3(padding, onAtras = { paso = 2 }, onEnviar = { } )
         }
-
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -119,7 +116,6 @@ fun TopBar() {
             },
             actions = {
                 Row() {
-
                     Box(
                         modifier = Modifier
                             .size(50.dp)
@@ -133,10 +129,8 @@ fun TopBar() {
                             contentDescription = "Icono notificaciones",
                             tint = Color.White,
                             modifier = Modifier.size(30.dp)
-
                         )
                     }
-
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Box(
@@ -157,14 +151,12 @@ fun TopBar() {
 
                     Spacer(modifier = Modifier.width(12.dp))
                 }
-
             }
         )
 }
 
 @Composable
 fun NavBar() {
-
     var seleccion by remember { mutableIntStateOf(0) }
 
     NavigationBar(
@@ -184,7 +176,6 @@ fun NavBar() {
                 selectedIconColor = MaterialTheme.colorScheme.secondary,
                 selectedTextColor = MaterialTheme.colorScheme.tertiary,
                 indicatorColor = MaterialTheme.colorScheme.tertiary
-
             )
         )
         NavigationBarItem(
@@ -201,7 +192,6 @@ fun NavBar() {
                 selectedIconColor = MaterialTheme.colorScheme.secondary,
                 selectedTextColor = MaterialTheme.colorScheme.tertiary,
                 indicatorColor = MaterialTheme.colorScheme.tertiary
-
             )
         )
         NavigationBarItem(
@@ -265,7 +255,7 @@ fun ContentPaso1(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
             color = Color(0xFF3B3B3B),
             fontSize = 15.sp,
             fontWeight = FontWeight.Light,
-            modifier = Modifier.padding(start = 48.dp)
+            modifier = Modifier.padding(start = 56.dp)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -291,7 +281,6 @@ fun ContentPaso1(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     Box(
                         modifier = Modifier
                             .size(40.dp)
@@ -338,7 +327,6 @@ fun ContentPaso1(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
-
                 ) {
                     Box(
                         modifier = Modifier
@@ -377,8 +365,7 @@ fun ContentPaso1(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                 .background(Color.White)
                 .padding(24.dp)
         ) {
-            Column() {
-
+            Column {
                 campoTexto("Nombre de la actividad *", nombre, { nombre = it })
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -437,26 +424,12 @@ fun ContentPaso1(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .height(60.dp)
-
-
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "Siguiente",
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Icon(
-                    painter = painterResource(R.drawable.arrow_right),
-                    contentDescription = "Icono Siguiente"
-                )
-            }
+            Text(
+                "Siguiente",
+                color = MaterialTheme.colorScheme.primary
+            )
         }
-
     }
 }
 
@@ -497,7 +470,7 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
             color = Color(0xFF3B3B3B),
             fontSize = 15.sp,
             fontWeight = FontWeight.Light,
-            modifier = Modifier.padding(start = 48.dp)
+            modifier = Modifier.padding(start = 56.dp)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -528,20 +501,20 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFEEEEEE)),
+                            .background(MaterialTheme.colorScheme.tertiary),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            "1",
-                            color = Color(0xFFAAAAAA),
-                            fontSize = 12.sp
+                        Icon(
+                            painter = painterResource(R.drawable.check),
+                            contentDescription = "Icono Check",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(14.dp)
                         )
                     }
                     Text(
                         "Actividad",
-                        color = Color(0xFFAAAAAA),
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold
                     )
                 }
 
@@ -564,13 +537,13 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                     Text(
                         "Salas",
                         color = MaterialTheme.colorScheme.primary,
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
-
                 ) {
                     Box(
                         modifier = Modifier
@@ -609,10 +582,7 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                 .background(Color.White)
                 .padding(24.dp)
         ) {
-
-            Column(
-
-            ) {
+            Column {
                 recinto()
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -672,7 +642,6 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-
                 publico()
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -687,15 +656,12 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
 
                 campoArchivo("Adjunte el programa, pauta, libreto y/o layout de la" +
                         " actividad")
-
             }
-
         }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
-
-
         ) {
             Button(
                 onClick = { onAtras() },
@@ -729,8 +695,6 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
             }
         }
     }
-
-
 }
 
 @Composable
@@ -773,7 +737,7 @@ fun ContentPaso3(padding: PaddingValues, onAtras: () -> Unit, onEnviar: () -> Un
             color = Color(0xFF3B3B3B),
             fontSize = 15.sp,
             fontWeight = FontWeight.Light,
-            modifier = Modifier.padding(start = 48.dp)
+            modifier = Modifier.padding(start = 56.dp)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -804,18 +768,19 @@ fun ContentPaso3(padding: PaddingValues, onAtras: () -> Unit, onEnviar: () -> Un
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFEEEEEE)),
+                            .background(MaterialTheme.colorScheme.tertiary),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            "1",
-                            color = Color(0xFFAAAAAA),
-                            fontSize = 12.sp
+                        Icon(
+                            painter = painterResource(R.drawable.check),
+                            contentDescription = "Icono Check",
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                     Text(
                         "Actividad",
-                        color = Color(0xFFAAAAAA),
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 12.sp
                     )
                 }
@@ -827,18 +792,19 @@ fun ContentPaso3(padding: PaddingValues, onAtras: () -> Unit, onEnviar: () -> Un
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFEEEEEE)),
+                            .background(MaterialTheme.colorScheme.tertiary),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            "2",
-                            color = Color(0xFFAAAAAA),
-                            fontSize = 12.sp
+                        Icon(
+                            painter = painterResource(R.drawable.check),
+                            contentDescription = "Icono Check",
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                     Text(
                         "Salas",
-                        color = Color(0xFFAAAAAA),
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 12.sp
                     )
                 }
@@ -931,8 +897,6 @@ fun ContentPaso3(padding: PaddingValues, onAtras: () -> Unit, onEnviar: () -> Un
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
-
-
         ) {
             Button(
                 onClick = { onAtras() },
@@ -1012,7 +976,6 @@ fun campoDescripcion() {
         )
     )
 }
-
 
 @Composable
 fun tipoActividad() {
@@ -1150,8 +1113,7 @@ fun menuEscuelas() {
     var expanded by remember { mutableStateOf(false) }
     var opcion by remember { mutableStateOf(opciones[0]) }
 
-
-    Column () {
+    Column {
         Text(
             "Área o Escuela que organiza la actividad",
             color = MaterialTheme.colorScheme.primary
@@ -1321,7 +1283,7 @@ fun formatoFecha(millis: Long): String {
 fun seleccionarHora(titulo: String) {
     var mostrar by remember { mutableStateOf(false) }
     var hora by remember { mutableStateOf("") }
-    Column() {
+    Column{
         Text(text = titulo,
             color = MaterialTheme.colorScheme.primary,
             fontSize = 15.sp)
@@ -1352,8 +1314,6 @@ fun seleccionarHora(titulo: String) {
                 initialMinute = 0,
                 is24Hour = true
             )
-
-
             AlertDialog(
                 onDismissRequest = { mostrar = false },
                 title = { Text("Ingresar hora") },
@@ -1531,8 +1491,7 @@ fun nombres(){
 
 @Composable
 fun campoArchivo(titulo: String){
-
-    Column() {
+    Column {
         Text(text = titulo,
             color = MaterialTheme.colorScheme.primary)
 
