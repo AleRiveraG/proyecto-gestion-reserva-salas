@@ -34,6 +34,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -57,6 +59,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -71,6 +74,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import kotlin.collections.listOf
 
 
 @Composable
@@ -79,7 +83,7 @@ fun ReservasScreen() {
         topBar = { TopBar() },
         bottomBar = { NavBar() }
     ) { padding ->
-        ContentPaso1(padding)
+        ContentPaso3(padding)
     }
 
 }
@@ -723,6 +727,241 @@ fun ContentPaso2(padding: PaddingValues) {
 }
 
 @Composable
+fun ContentPaso3(padding: PaddingValues) {
+    var complemento by remember { mutableStateOf("") }
+    var proveedores by remember { mutableStateOf("")}
+
+    Column(
+        modifier = Modifier
+            .background(Color(0xFFFFFFFF))
+            .fillMaxSize()
+            .padding(padding)
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = {}) {
+                Icon(
+                    painter = painterResource(id = R.drawable.arrow_left),
+                    contentDescription = "Icono volver atras",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(
+                "Reservar sala",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Text(
+            "Paso 3 de 3",
+            color = Color(0xFF3B3B3B),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Light,
+            modifier = Modifier.padding(start = 48.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 48.dp)
+        ) {
+            HorizontalDivider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp, start = 16.dp, end = 16.dp),
+                color = Color(0xFFEEEEEE),
+                thickness = 2.dp
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFEEEEEE)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "1",
+                            color = Color(0xFFAAAAAA),
+                            fontSize = 12.sp
+                        )
+                    }
+                    Text(
+                        "Actividad",
+                        color = Color(0xFFAAAAAA),
+                        fontSize = 12.sp
+                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFEEEEEE)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "2",
+                            color = Color(0xFFAAAAAA),
+                            fontSize = 12.sp
+                        )
+                    }
+                    Text(
+                        "Salas",
+                        color = Color(0xFFAAAAAA),
+                        fontSize = 12.sp
+                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.tertiary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "3",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 12.sp
+                        )
+                    }
+                    Text(
+                        "Requisitos",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        menuOpciones("Área de Comunicaciones",
+                listOf("Registro de Fotos & Videos",
+                    "Difusión en RRSS(previa y posterior)")
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        menuOpciones("Área de Extensión",
+            listOf("Manteles",
+                "Vaso de Agua",
+                "Banderas")
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        menuOpciones("Servicios Generales",
+            listOf("Aseo y montaje",
+                "Mesas Plegables",
+                "Toldos")
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        menuOpciones("Servicios Digitales y CTA",
+            listOf("Amplificación",
+                "Microfonos",
+                "Iluminación Parrilla",
+                "Proyección",
+                "Streaming",
+                "Podium")
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .border(
+                    width = 1.dp,
+                    color = Color(0xFFE5E7EB),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White)
+                .padding(24.dp)
+        ) {
+            Column{
+
+                campoTexto("Señale información que complemente los requerimientos y montaje de la actividad", complemento, { complemento = it})
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                campoTexto("Contratación de proveedores externos", proveedores, { proveedores = it })
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+
+
+        ) {
+            Button(
+                onClick = {  },
+                modifier = Modifier.fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+                    .height(60.dp)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(48.dp)
+                    ),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                )
+            ) {
+                Text("Atrás",
+                    color = MaterialTheme.colorScheme.primary)
+            }
+            Button(onClick = {  },
+                modifier = Modifier.fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+                    .height(60.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary
+                )
+            ) {
+                Text("Enviar",
+                    color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    }
+}
+
+@Composable
 fun campoTexto(titulo: String, variable: String, onValorChange: (String) -> Unit) {
     Text(text = titulo,
         color = MaterialTheme.colorScheme.primary)
@@ -1315,6 +1554,75 @@ fun campoArchivo(titulo: String){
                     unfocusedContainerColor = Color(0xFFF5F5F5)
                 )
             )
+        }
+    }
+}
+
+@Composable
+fun menuOpciones(titulo: String, opciones: List<String>){
+    var seleccionado = remember { mutableStateListOf<String>() }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+            .border(
+                width = 1.dp,
+                color = Color(0xFFE5E7EB),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White)
+            .padding(24.dp)
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = titulo, color = MaterialTheme.colorScheme.primary)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            opciones.forEach { opcion ->
+                var estaSeleccionado = seleccionado.contains(opcion)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                        .background(
+                            color = if (estaSeleccionado) Color(0xFFFFF9E6) else Color(
+                                0xFFF5F5F5
+                            )
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                ) {
+                    Checkbox(
+                        checked = estaSeleccionado,
+                        onCheckedChange = { isChecked ->
+                            if (isChecked) {
+                                seleccionado.add(opcion)
+                            } else {
+                                seleccionado.remove(opcion)
+                            }
+                        },
+                        colors = CheckboxDefaults.colors(
+                            uncheckedColor = MaterialTheme.colorScheme.tertiary,
+                            checkedColor = Color(0xFFFFF9E6),
+                            checkmarkColor = MaterialTheme.colorScheme.primary,
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = opcion,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
     }
 }
