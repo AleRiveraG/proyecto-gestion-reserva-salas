@@ -79,11 +79,18 @@ import kotlin.collections.listOf
 
 @Composable
 fun ReservasScreen() {
+    var paso by remember{ mutableIntStateOf(1)}
+
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { NavBar() }
     ) { padding ->
-        ContentPaso3(padding)
+        when (paso) {
+            1 -> ContentPaso1(padding, onAtras = { }, onSiguiente = { paso = 2})
+            2 -> ContentPaso2(padding, onAtras = { paso = 1}, onSiguiente = { paso = 3} )
+            else -> ContentPaso3(padding, onAtras = { paso = 2 }, onEnviar = { } )
+        }
+
     }
 
 }
@@ -217,7 +224,7 @@ fun NavBar() {
 }
 
 @Composable
-fun ContentPaso1(padding: PaddingValues) {
+fun ContentPaso1(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () -> Unit ) {
     var nombre by remember({mutableStateOf("")})
     var responsable by remember({mutableStateOf("")})
     var telefono by remember({mutableStateOf("")})
@@ -235,7 +242,7 @@ fun ContentPaso1(padding: PaddingValues) {
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = {}) {
+            IconButton(onClick = { onAtras() }) {
                 Icon(
                     painter = painterResource(id = R.drawable.arrow_left),
                     contentDescription = "Icono volver atras",
@@ -422,7 +429,7 @@ fun ContentPaso1(padding: PaddingValues) {
         }
 
         Button(
-            onClick = { },
+            onClick = { onSiguiente() },
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.tertiary
             ),
@@ -454,7 +461,7 @@ fun ContentPaso1(padding: PaddingValues) {
 }
 
 @Composable
-fun ContentPaso2(padding: PaddingValues) {
+fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () -> Unit) {
     Column(
         modifier = Modifier
             .background(Color(0xFFFFFFFF))
@@ -467,7 +474,7 @@ fun ContentPaso2(padding: PaddingValues) {
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = {}) {
+            IconButton(onClick = { onAtras() } ) {
                 Icon(
                     painter = painterResource(id = R.drawable.arrow_left),
                     contentDescription = "Icono volver atras",
@@ -691,7 +698,7 @@ fun ContentPaso2(padding: PaddingValues) {
 
         ) {
             Button(
-                onClick = {  },
+                onClick = { onAtras() },
                 modifier = Modifier.fillMaxWidth()
                     .weight(1f)
                     .padding(horizontal = 16.dp)
@@ -708,7 +715,7 @@ fun ContentPaso2(padding: PaddingValues) {
                 Text("Atrás",
                     color = MaterialTheme.colorScheme.primary)
             }
-            Button(onClick = {  },
+            Button(onClick = { onSiguiente() },
                 modifier = Modifier.fillMaxWidth()
                     .weight(1f)
                     .padding(horizontal = 16.dp)
@@ -727,7 +734,7 @@ fun ContentPaso2(padding: PaddingValues) {
 }
 
 @Composable
-fun ContentPaso3(padding: PaddingValues) {
+fun ContentPaso3(padding: PaddingValues, onAtras: () -> Unit, onEnviar: () -> Unit) {
     var complemento by remember { mutableStateOf("") }
     var proveedores by remember { mutableStateOf("")}
 
@@ -743,7 +750,7 @@ fun ContentPaso3(padding: PaddingValues) {
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = {}) {
+            IconButton(onClick = { onAtras() }) {
                 Icon(
                     painter = painterResource(id = R.drawable.arrow_left),
                     contentDescription = "Icono volver atras",
@@ -928,7 +935,7 @@ fun ContentPaso3(padding: PaddingValues) {
 
         ) {
             Button(
-                onClick = {  },
+                onClick = { onAtras() },
                 modifier = Modifier.fillMaxWidth()
                     .weight(1f)
                     .padding(horizontal = 16.dp)
@@ -945,7 +952,7 @@ fun ContentPaso3(padding: PaddingValues) {
                 Text("Atrás",
                     color = MaterialTheme.colorScheme.primary)
             }
-            Button(onClick = {  },
+            Button(onClick = { onEnviar() },
                 modifier = Modifier.fillMaxWidth()
                     .weight(1f)
                     .padding(horizontal = 16.dp)
