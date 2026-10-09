@@ -31,8 +31,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -41,12 +44,17 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TimeInput
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +67,10 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 
 @Composable
@@ -67,7 +79,7 @@ fun ReservasScreen() {
         topBar = { TopBar() },
         bottomBar = { NavBar() }
     ) { padding ->
-        content(padding)
+        ContentPaso2(padding)
     }
 
 }
@@ -201,7 +213,7 @@ fun NavBar() {
 }
 
 @Composable
-fun content(padding: PaddingValues) {
+fun ContentPaso1(padding: PaddingValues) {
 
     Column(
         modifier = Modifier
@@ -215,13 +227,14 @@ fun content(padding: PaddingValues) {
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.arrow_left),
-                contentDescription = "Icono volver atras",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(40.dp)
-            )
-
+            IconButton(onClick = {}) {
+                Icon(
+                    painter = painterResource(id = R.drawable.arrow_left),
+                    contentDescription = "Icono volver atras",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
             Spacer(modifier = Modifier.width(8.dp))
 
             Text(
@@ -432,6 +445,278 @@ fun content(padding: PaddingValues) {
     }
 }
 
+@Composable
+fun ContentPaso2(padding: PaddingValues) {
+    Column(
+        modifier = Modifier
+            .background(Color(0xFFFFFFFF))
+            .fillMaxSize()
+            .padding(padding)
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = {}) {
+                Icon(
+                    painter = painterResource(id = R.drawable.arrow_left),
+                    contentDescription = "Icono volver atras",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Text(
+                "Reservar sala",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 25.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Text(
+            "Paso 2 de 3",
+            color = Color(0xFF3B3B3B),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Light,
+            modifier = Modifier.padding(start = 48.dp)
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 48.dp)
+        ) {
+            HorizontalDivider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 20.dp, start = 16.dp, end = 16.dp),
+                color = Color(0xFFEEEEEE),
+                thickness = 2.dp
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFEEEEEE)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "1",
+                            color = Color(0xFFAAAAAA),
+                            fontSize = 12.sp
+                        )
+                    }
+                    Text(
+                        "Actividad",
+                        color = Color(0xFFAAAAAA),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.tertiary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "2",
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 12.sp
+                        )
+                    }
+                    Text(
+                        "Salas",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 12.sp
+                    )
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFEEEEEE)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "3",
+                            color = Color(0xFFAAAAAA),
+                            fontSize = 12.sp
+                        )
+                    }
+                    Text(
+                        "Requisitos",
+                        color = Color(0xFFAAAAAA),
+                        fontSize = 12.sp
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .border(
+                    width = 1.dp,
+                    color = Color(0xFFE5E7EB),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White)
+                .padding(24.dp)
+        ) {
+
+            Column(
+
+            ) {
+                recinto()
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text("Fecha y horario *", color = MaterialTheme.colorScheme.primary)
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                seleccionarFecha("Fecha de la actividad")
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        seleccionarHora("Hora de inicio")
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        seleccionarHora("Hora de termino")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text("Montaje *",
+                    color = MaterialTheme.colorScheme.primary)
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        seleccionarFecha("Fecha")
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        seleccionarHora("Hora")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+
+                publico()
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                necesitaForm()
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                nombres()
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                campoArchivo("Adjunte el programa, pauta, libreto y/o layout de la" +
+                        " actividad")
+
+            }
+
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+
+
+        ) {
+            Button(
+                onClick = {  },
+                modifier = Modifier.fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+                    .height(60.dp)
+                    .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = RoundedCornerShape(48.dp)
+                    ),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                )
+            ) {
+                Text("Atrás",
+                    color = MaterialTheme.colorScheme.primary)
+            }
+            Button(onClick = {  },
+                modifier = Modifier.fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 16.dp)
+                    .height(60.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary
+                )
+            ) {
+                Text("Siguiente",
+                    color = MaterialTheme.colorScheme.primary)
+            }
+        }
+    }
+
+
+}
 
 @Composable
 fun campoNombre() {
@@ -737,3 +1022,366 @@ fun menuEscuelas() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun recinto() {
+    var expanded by remember { mutableStateOf(false) }
+    var opcion by remember { mutableStateOf("") }
+
+    Column() {
+        Text("Recinto *",
+            color = MaterialTheme.colorScheme.primary)
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it }
+        ) {
+            OutlinedTextField(
+                value = opcion,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                },
+                modifier = Modifier
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
+                    unfocusedTrailingIconColor = MaterialTheme.colorScheme.primary
+                )
+            )
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(MaterialTheme.colorScheme.secondary)
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Salas", color = MaterialTheme.colorScheme.primary) },
+                    onClick = {}
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun seleccionarFecha(titulo: String) {
+    var mostrar by remember { mutableStateOf(false) }
+    var fecha by remember { mutableStateOf("") }
+
+    Column {
+        Text(
+            text = titulo,
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 15.sp
+        )
+
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                value = fecha,
+                onValueChange = { },
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { mostrar = !mostrar }) {
+                        Icon(
+                            painter = painterResource(R.drawable.calendar),
+                            contentDescription = "Icono calendario",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            if (mostrar) {
+                val datePickerState = rememberDatePickerState()
+
+                DatePickerDialog(
+                    onDismissRequest = { mostrar = false },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                mostrar = false
+                                datePickerState.selectedDateMillis?.let { millis ->
+                                    fecha = formatoFecha(millis)
+                                }
+                            }
+                        ) {
+                            Text("Aceptar")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { mostrar = false }
+                        ) {
+                            Text("Cancelar")
+                        }
+                    }
+                ) {
+                    DatePicker(state = datePickerState)
+                }
+            }
+        }
+    }
+}
+
+fun formatoFecha(millis: Long): String {
+    val formatter = SimpleDateFormat("dd/MM", Locale.getDefault())
+    formatter.timeZone = TimeZone.getTimeZone("UTC")
+    return formatter.format(Date(millis))
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun seleccionarHora(titulo: String) {
+    var mostrar by remember { mutableStateOf(false) }
+    var hora by remember { mutableStateOf("") }
+    Column() {
+        Text(text = titulo,
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 15.sp)
+
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                value = hora,
+                onValueChange = { },
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { mostrar = !mostrar }) {
+                        Icon(
+                            painter = painterResource(R.drawable.clock),
+                            contentDescription = "Icono calendario",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        if (mostrar) {
+            val timePickerState = rememberTimePickerState(
+                initialHour = 12,
+                initialMinute = 0,
+                is24Hour = true
+            )
+
+
+            AlertDialog(
+                onDismissRequest = { mostrar = false },
+                title = { Text("Ingresar hora") },
+                text = {
+                    TimeInput(state = timePickerState)
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        mostrar = false
+                        hora = String.format(
+                            Locale.getDefault(),
+                            "%02d:%02d",
+                            timePickerState.hour,
+                            timePickerState.minute
+                        )
+                    }
+                    ) {
+                        Text("Aceptar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { mostrar = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun publico() {
+    val opciones = listOf(
+        "",
+        "Estudiantes",
+        "Docentes",
+        "Administrativos",
+        "Externos"
+    )
+
+    var opcion by remember{ mutableStateOf(setOf<String>())}
+
+    Column {
+        Text("Público Invitado",
+            color = MaterialTheme.colorScheme.primary)
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        opciones.drop(1).forEach { seleccion ->
+            val isSelected = opcion.contains(seleccion)
+
+            FilterChip(
+                selected = isSelected,
+                onClick = {
+                    opcion = if (isSelected) {
+                        opcion - seleccion
+                    } else {
+                        opcion + seleccion
+                    }
+                },
+                label = { Text(seleccion)},
+                leadingIcon = if(isSelected) {
+                    {
+                        Icon(
+                            painter = painterResource(R.drawable.check),
+                            contentDescription = "Icono Check"
+                        )
+                    }
+                } else null,
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = Color(0xFFFFF9E6),
+                    selectedLabelColor = MaterialTheme.colorScheme.primary,
+                    selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    labelColor = Color(0xFF4B5563)
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    borderColor = Color(0xFFE5E7EB),
+                    selectedBorderColor = MaterialTheme.colorScheme.tertiary
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun necesitaForm(){
+    val opciones = listOf(
+        "",
+        "Si",
+        "No"
+    )
+
+    var opcion by remember { mutableStateOf(opciones[0]) }
+
+    Column{
+        Text(
+            "¿Requiere formulario de inscripción de público asistente?",
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+
+    Spacer(modifier = Modifier.height(4.dp))
+
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        opciones.drop(1).forEach { seleccion ->
+            var isSelected = seleccion == opcion
+            FilterChip(
+                selected = isSelected,
+                onClick = { opcion = seleccion},
+                label = { Text(seleccion)},
+                leadingIcon = if(isSelected) {
+                    {
+                        Icon(
+                            painter = painterResource(R.drawable.check),
+                            contentDescription = "Icono Check"
+                        )
+                    }
+                } else null,
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = Color(0xFFFFF9E6),
+                    selectedLabelColor = MaterialTheme.colorScheme.primary,
+                    selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    labelColor = Color(0xFF4B5563)
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    borderColor = Color(0xFFE5E7EB),
+                    selectedBorderColor = MaterialTheme.colorScheme.tertiary
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun nombres(){
+    var descripcion by remember { mutableStateOf("") }
+    Text("Especifique nombres de expositores, charlistas, y autoridades invitadas, internas y externas",
+        color = MaterialTheme.colorScheme.primary)
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    OutlinedTextField(
+        value = descripcion,
+        onValueChange = { descripcion = it },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(120.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = TextFieldDefaults.colors(
+            focusedTextColor = MaterialTheme.colorScheme.primary,
+            unfocusedTextColor = MaterialTheme.colorScheme.primary,
+            unfocusedContainerColor = Color(0xFFF5F5F5),
+            focusedContainerColor = Color(0xFFF5F5F5)
+        )
+    )
+}
+
+@Composable
+fun campoArchivo(titulo: String){
+
+    Column() {
+        Text(text = titulo,
+            color = MaterialTheme.colorScheme.primary)
+
+        Box(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            OutlinedTextField(
+                value = "",
+                onValueChange = { },
+                readOnly = true,
+                label = { Text("Seleccionar archivos - máx 5 MB, hasta 20",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 12.sp) },
+                trailingIcon = {
+                    IconButton(onClick = { }) {
+                        Icon(
+                            painter = painterResource(R.drawable.paperclip),
+                            contentDescription = "Icono adjuntar",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color(0xFFF5F5F5),
+                    unfocusedContainerColor = Color(0xFFF5F5F5)
+                )
+            )
+        }
+    }
+}
