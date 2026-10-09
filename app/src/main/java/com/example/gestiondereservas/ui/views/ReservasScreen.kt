@@ -1,5 +1,6 @@
 package com.example.gestiondereservas.ui.views
 
+import android.widget.Space
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -69,6 +70,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -87,7 +89,8 @@ fun ReservasScreen() {
         when (paso) {
             1 -> ContentPaso1(padding, onAtras = { }, onSiguiente = { paso = 2})
             2 -> ContentPaso2(padding, onAtras = { paso = 1}, onSiguiente = { paso = 3} )
-            else -> ContentPaso3(padding, onAtras = { paso = 2 }, onEnviar = { } )
+            3 -> ContentPaso3(padding, onAtras = { paso = 2 }, onEnviar = { paso = 4} )
+            4 -> Final(padding, onInicio = { })
         }
     }
 }
@@ -932,6 +935,151 @@ fun ContentPaso3(padding: PaddingValues, onAtras: () -> Unit, onEnviar: () -> Un
     }
 }
 
+@Composable
+fun Final(padding: PaddingValues, onInicio: () -> Unit){
+    Column(
+        modifier = Modifier.fillMaxSize()
+            .background(Color(0xFFFFFFFF))
+            .padding(padding)
+            .padding( 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .clip(CircleShape)
+                .size(160.dp)
+                .background(Color(0xFFFFF9E6)),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(modifier = Modifier
+                .clip(CircleShape)
+                .size(120.dp)
+                .background(Color(0xFFFFF9E6)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.hourglass),
+                    contentDescription = "Icono reloj de arena",
+                    tint = MaterialTheme.colorScheme.tertiary,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text("SOLICITUD ENVIADA",
+            color = Color(0xFF424242),
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold)
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text("¡Ya casi está!",
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold)
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text("Tu solicitud quedó pendiente de validación por el " +
+                "coordinador del área",
+            color = Color(0xFF424242),
+            fontSize = 16.sp,
+            textAlign = TextAlign.Center)
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+                .border(
+                    width = 1.dp,
+                    color = Color(0xFFE5E7EB),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White)
+                .padding(16.dp)
+        ) {
+            Column{
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.door),
+                        contentDescription = "Icono puerta",
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(18.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text("Recinto: ",
+                        color = MaterialTheme.colorScheme.primary)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.calendar),
+                        contentDescription = "Icono calendario",
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(18.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text("Montaje: ",
+                        color = MaterialTheme.colorScheme.primary)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.clock),
+                        contentDescription = "Icono reloj",
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(18.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text("Fecha: ",
+                        color = MaterialTheme.colorScheme.primary)
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text("Servicios solicitados",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold)
+            }
+        }
+
+        Button(
+            onClick = { onInicio() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.tertiary
+            )
+        ) {
+            Text("Volver al inicio",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 18.sp
+            )
+        }
+    }
+}
 @Composable
 fun campoTexto(titulo: String, variable: String, onValorChange: (String) -> Unit) {
     Text(text = titulo,
