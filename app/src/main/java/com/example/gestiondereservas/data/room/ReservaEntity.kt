@@ -11,7 +11,7 @@ data class ReservaEntity(
     val tipoActividad: String,
     val tieneValidacion: Boolean,
     val nombreResponsable: String,
-    val telefonoResponsable: Int,
+    val telefonoResponsable: String,
     val correoResponsable: String,
     val organizador: String,
 
@@ -27,5 +27,5 @@ data class ReservaEntity(
 
     val servicios: String,
 
-    val estado: String = "PENDIENTE"
+    val estado: EstadoReserva = EstadoReserva.PENDIENTE
 )

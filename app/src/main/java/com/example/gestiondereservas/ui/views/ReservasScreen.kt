@@ -63,15 +63,22 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.room.EstadoReserva
+import com.example.gestiondereservas.data.room.ReservaEntity
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -79,7 +86,7 @@ import java.util.TimeZone
 import kotlin.collections.listOf
 
 @Composable
-fun ReservasScreen() {
+fun ReservasScreen(appState: AppState) {
     var paso by remember{ mutableIntStateOf(1)}
 
     var nombre by remember({mutableStateOf("")})
@@ -104,6 +111,44 @@ fun ReservasScreen() {
     var servicios by remember { mutableStateOf<Map<String, Set<String>>>(emptyMap()) }
     var complemento by remember { mutableStateOf("") }
     var proveedores by remember { mutableStateOf("")}
+
+    val scope = rememberCoroutineScope()
+
+    fun crearReserva(): ReservaEntity {
+        return ReservaEntity(
+            nombreActividad = nombre,
+            descripcion = descripcion,
+            tipoActividad = tipoActividad,
+            tieneValidacion = tieneValidacion == "Si",
+            nombreResponsable = responsable,
+            telefonoResponsable = telefono,
+            correoResponsable = correo,
+            organizador = organizador,
+
+            salaId = salaId?: 1L,
+            fechaActividad = fechaActividad,
+            horaInicio = horaInicio,
+            horaTermino = horaTermino,
+            fechaMontaje = fechaMontaje,
+            horaMontaje = horaMontaje,
+            publico = publicoSelecionado.joinToString {", "},
+            requiereFormulario = requiereForm == "Si",
+            nombreExternos = nombres,
+
+            servicios = servicios.entries.joinToString("; ") { (categoria, opciones) ->
+                "$categoria: ${opciones.joinToString(", ")}" },
+        )
+    }
+
+    fun guardarReserva() {
+        val reserva = crearReserva()
+
+        scope.launch {
+            appState.registrarReserva(reserva)
+        }
+    }
+
+
 
     Scaffold(
         topBar = { TopBar() },
@@ -162,7 +207,7 @@ fun ReservasScreen() {
                 { categoria, nuevosServicios -> servicios = servicios + ( categoria to nuevosServicios)},
                 onAtras = { paso = 2 },
                 onEnviar = { paso = 4} )
-            4 -> Final(padding, onInicio = { })
+            4 -> Final(padding, onEnviar = { guardarReserva() })
         }
     }
 }
@@ -1059,7 +1104,7 @@ fun ContentPaso3(padding: PaddingValues,
 }
 
 @Composable
-fun Final(padding: PaddingValues, onInicio: () -> Unit){
+fun Final(padding: PaddingValues, onEnviar: () -> Unit){
     Column(
         modifier = Modifier.fillMaxSize()
             .background(Color(0xFFFFFFFF))
@@ -1188,7 +1233,7 @@ fun Final(padding: PaddingValues, onInicio: () -> Unit){
         }
 
         Button(
-            onClick = { onInicio() },
+            onClick = { onEnviar() },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp),
