@@ -82,14 +82,86 @@ import kotlin.collections.listOf
 fun ReservasScreen() {
     var paso by remember{ mutableIntStateOf(1)}
 
+    var nombre by remember({mutableStateOf("")})
+    var responsable by remember({mutableStateOf("")})
+    var telefono by remember({mutableStateOf("")})
+    var correo by remember({mutableStateOf("")})
+    var descripcion by remember { mutableStateOf("") }
+    var tipoActividad by remember { mutableStateOf("") }
+    var tieneValidacion by remember { mutableStateOf("") }
+    var organizador by remember { mutableStateOf("") }
+
+    var fechaActividad by remember { mutableStateOf("") }
+    var horaInicio by remember { mutableStateOf("") }
+    var horaTermino by remember { mutableStateOf("") }
+    var fechaMontaje by remember { mutableStateOf("") }
+    var horaMontaje by remember { mutableStateOf("") }
+    var publicoSelecionado by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var requiereForm by remember { mutableStateOf("") }
+    var salaId by remember { mutableStateOf<Long?>(null) }
+    var nombres by remember { mutableStateOf("") }
+
+    var servicios by remember { mutableStateOf<Map<String, Set<String>>>(emptyMap()) }
+    var complemento by remember { mutableStateOf("") }
+    var proveedores by remember { mutableStateOf("")}
+
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { NavBar() }
     ) { padding ->
         when (paso) {
-            1 -> ContentPaso1(padding, onAtras = { }, onSiguiente = { paso = 2})
-            2 -> ContentPaso2(padding, onAtras = { paso = 1}, onSiguiente = { paso = 3} )
-            3 -> ContentPaso3(padding, onAtras = { paso = 2 }, onEnviar = { paso = 4} )
+            1 -> ContentPaso1(
+                padding,
+                nombre,
+                { nombre = it },
+                responsable,
+                { responsable = it },
+                telefono,
+                { telefono = it},
+                correo,
+                { correo = it },
+                descripcion,
+                { descripcion = it},
+                tipoActividad,
+                { tipoActividad = it},
+                tieneValidacion,
+                { tieneValidacion = it },
+                organizador,
+                { organizador = it },
+                onAtras = { },
+                onSiguiente = { paso = 2})
+            2 -> ContentPaso2(
+                padding,
+                fechaActividad,
+                { fechaActividad = it },
+                horaInicio,
+                { horaInicio = it},
+                horaTermino,
+                { horaTermino = it},
+                fechaMontaje,
+                { fechaMontaje = it},
+                horaMontaje,
+                { horaMontaje = it},
+                publicoSelecionado,
+                { publicoSelecionado = it },
+                requiereForm,
+                { requiereForm = it},
+                salaId,
+                { salaId = it},
+                nombres,
+                { nombre = it },
+                onAtras = { paso = 1},
+                onSiguiente = { paso = 3}
+                )
+            3 -> ContentPaso3(padding,
+                complemento,
+                { complemento = it },
+                proveedores,
+                { proveedores = it },
+                servicios,
+                { categoria, nuevosServicios -> servicios = servicios + ( categoria to nuevosServicios)},
+                onAtras = { paso = 2 },
+                onEnviar = { paso = 4} )
             4 -> Final(padding, onInicio = { })
         }
     }
@@ -217,12 +289,25 @@ fun NavBar() {
 }
 
 @Composable
-fun ContentPaso1(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () -> Unit ) {
-    var nombre by remember({mutableStateOf("")})
-    var responsable by remember({mutableStateOf("")})
-    var telefono by remember({mutableStateOf("")})
-    var correo by remember({mutableStateOf("")})
-
+fun ContentPaso1(padding: PaddingValues,
+                 nombre: String,
+                 onNombreChange: (String) -> Unit,
+                 responsable: String,
+                 onResponsableChange: (String) -> Unit,
+                 telefono: String,
+                 onTelefonoChange: (String) -> Unit,
+                 correo: String,
+                 onCorreoChange: (String) -> Unit,
+                 descripcion: String,
+                 onDescripcionChange: (String) -> Unit,
+                 actividad: String,
+                 onActividadChange: (String) -> Unit,
+                 tieneAutorizacion: String,
+                 onTieneAutorizacionChange: (String) -> Unit,
+                 organizador: String,
+                 onOrganizadorChange: (String) -> Unit,
+                 onAtras: () -> Unit,
+                 onSiguiente: () -> Unit ) {
     Column(
         modifier = Modifier
             .background(Color(0xFFFFFFFF))
@@ -369,23 +454,23 @@ fun ContentPaso1(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                 .padding(24.dp)
         ) {
             Column {
-                campoTexto("Nombre de la actividad *", nombre, { nombre = it })
+                campoTexto("Nombre de la actividad *", nombre, onNombreChange)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                campoDescripcion()
+                campoDescripcion("Descripción de la actividad", descripcion, onDescripcionChange)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                tipoActividad()
+                tipoActividad("Tipo de actividad *", actividad, onActividadChange)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                tieneAutorizacion()
+                tieneAutorizacion("¿Tu actividad tiene la validación de la dirección de la sede o de la subdirección de tu área?", tieneAutorizacion, onTieneAutorizacionChange)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                campoTexto("Responsable de la actividad *", responsable, { responsable = it})
+                campoTexto("Responsable de la actividad *", responsable, onResponsableChange)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -398,7 +483,7 @@ fun ContentPaso1(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        campoTexto("Teléfono de contacto", telefono, { telefono = it})
+                        campoTexto("Teléfono de contacto", telefono, onTelefonoChange)
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -406,13 +491,13 @@ fun ContentPaso1(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        campoTexto("Correo electrónico", correo, { correo = it })
+                        campoTexto("Correo electrónico", correo, onCorreoChange)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                menuEscuelas()
+                menuEscuelas("Área o Escuela que organiza la actividad", organizador, onOrganizadorChange)
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -437,7 +522,28 @@ fun ContentPaso1(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
 }
 
 @Composable
-fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () -> Unit) {
+fun ContentPaso2(padding: PaddingValues,
+                 fechaActividad:String,
+                 onFechaChange: (String) -> Unit,
+                 horaInicio:String,
+                 onHoraInicioChange: (String) -> Unit,
+                 horaTermino: String,
+                 onHoraTerminoChange: (String) -> Unit,
+                 fechaMontaje: String,
+                 onFechaMontajeChange: (String) -> Unit,
+                 horaMontaje: String,
+                 onHoraMontajeChange: (String) -> Unit,
+                 publicoSeleccionado: Set<String>,
+                 onPublicoChange: (Set<String>) -> Unit,
+                 requiereForm: String,
+                 onRequiereFormChange: (String) -> Unit,
+                 salaId: Long?,
+                 onSalaIdChange: (Long) -> Unit,
+                 nombres: String,
+                 onNombresChange: (String) -> Unit,
+                 onAtras: () -> Unit,
+                 onSiguiente: () -> Unit)
+{
     Column(
         modifier = Modifier
             .background(Color(0xFFFFFFFF))
@@ -586,7 +692,7 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                 .padding(24.dp)
         ) {
             Column {
-                recinto()
+                recinto("Recinto *", salaId, onSalaIdChange)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -594,7 +700,9 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                seleccionarFecha("Fecha de la actividad")
+                seleccionarFecha("Fecha de la actividad",
+                    fechaActividad,
+                    onFechaChange)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -605,7 +713,7 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        seleccionarHora("Hora de inicio")
+                        seleccionarHora("Hora de inicio", horaInicio, onHoraInicioChange)
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -613,7 +721,7 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        seleccionarHora("Hora de termino")
+                        seleccionarHora("Hora de termino", horaTermino, onHoraTerminoChange)
                     }
                 }
 
@@ -631,7 +739,7 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        seleccionarFecha("Fecha")
+                        seleccionarFecha("Fecha", fechaMontaje, onFechaMontajeChange)
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -639,21 +747,21 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        seleccionarHora("Hora")
+                        seleccionarHora("Hora", horaMontaje, onHoraMontajeChange)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                publico()
+                publico("Público Invitado", publicoSeleccionado, onPublicoChange)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                necesitaForm()
+                necesitaForm(requiereForm, onRequiereFormChange)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                nombres()
+                nombres(nombres, onNombresChange)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -701,9 +809,15 @@ fun ContentPaso2(padding: PaddingValues, onAtras: () -> Unit, onSiguiente: () ->
 }
 
 @Composable
-fun ContentPaso3(padding: PaddingValues, onAtras: () -> Unit, onEnviar: () -> Unit) {
-    var complemento by remember { mutableStateOf("") }
-    var proveedores by remember { mutableStateOf("")}
+fun ContentPaso3(padding: PaddingValues,
+                 complemento: String,
+                 onComplementoChange: (String) -> Unit,
+                 proveedores: String,
+                 onProvedooresChange: (String) -> Unit,
+                 servicios: Map<String, Set<String>>,
+                 onServiciosChange: (String, Set<String>) -> Unit,
+                 onAtras: () -> Unit,
+                 onEnviar: () -> Unit) {
 
     Column(
         modifier = Modifier
@@ -842,36 +956,45 @@ fun ContentPaso3(padding: PaddingValues, onAtras: () -> Unit, onEnviar: () -> Un
         Spacer(modifier = Modifier.height(12.dp))
 
         menuOpciones("Área de Comunicaciones",
+            "comunicaciones",
                 listOf("Registro de Fotos & Videos",
-                    "Difusión en RRSS(previa y posterior)")
-        )
+                    "Difusión en RRSS(previa y posterior)"),
+                    servicios["comunicaciones"] ?: emptySet(),
+                    onServiciosChange)
+
 
         Spacer(modifier = Modifier.height(12.dp))
 
         menuOpciones("Área de Extensión",
+            "extension",
             listOf("Manteles",
                 "Vaso de Agua",
-                "Banderas")
-        )
+                "Banderas"),
+            servicios["extension"] ?: emptySet(),
+            onServiciosChange)
 
         Spacer(modifier = Modifier.height(12.dp))
 
         menuOpciones("Servicios Generales",
+            "generales",
             listOf("Aseo y montaje",
                 "Mesas Plegables",
-                "Toldos")
-        )
+                "Toldos"),
+            servicios["generales"] ?: emptySet(),
+            onServiciosChange)
 
         Spacer(modifier = Modifier.height(12.dp))
 
         menuOpciones("Servicios Digitales y CTA",
+            "digitales",
             listOf("Amplificación",
                 "Microfonos",
                 "Iluminación Parrilla",
                 "Proyección",
                 "Streaming",
-                "Podium")
-        )
+                "Podium"),
+            servicios["digitales"] ?: emptySet(),
+            onServiciosChange)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -890,11 +1013,11 @@ fun ContentPaso3(padding: PaddingValues, onAtras: () -> Unit, onEnviar: () -> Un
         ) {
             Column{
 
-                campoTexto("Señale información que complemente los requerimientos y montaje de la actividad", complemento, { complemento = it})
+                campoTexto("Señale información que complemente los requerimientos y montaje de la actividad", complemento, onComplementoChange)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                campoTexto("Contratación de proveedores externos", proveedores, { proveedores = it })
+                campoTexto("Contratación de proveedores externos", proveedores, onProvedooresChange)
             }
         }
         Row(
@@ -1102,16 +1225,15 @@ fun campoTexto(titulo: String, variable: String, onValorChange: (String) -> Unit
 }
 
 @Composable
-fun campoDescripcion() {
-    var descripcion by remember { mutableStateOf("") }
-    Text("Descripción de la actividad *",
+fun campoDescripcion(titulo: String, variable: String, onValorChange: (String) -> Unit) {
+    Text(text = titulo,
         color = MaterialTheme.colorScheme.primary)
 
     Spacer(modifier = Modifier.height(8.dp))
 
     OutlinedTextField(
-        value = descripcion,
-        onValueChange = { descripcion = it },
+        value = variable,
+        onValueChange = onValorChange,
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp),
@@ -1126,7 +1248,7 @@ fun campoDescripcion() {
 }
 
 @Composable
-fun tipoActividad() {
+fun tipoActividad(titulo: String, opcion: String, onOpcionChange: (String) -> Unit) {
     val opciones = listOf(
         "",
         "Ceremonia Institucional",
@@ -1136,11 +1258,8 @@ fun tipoActividad() {
         "Actividad Sede",
         "Actividad de Externo (no organizada por Duoc UC)"
     )
-
-    var opcion by remember{ mutableStateOf(opciones[0])}
-
     Column {
-        Text("Tipo de actividad",
+        Text(text = titulo,
             color = MaterialTheme.colorScheme.primary)
     }
 
@@ -1156,7 +1275,7 @@ fun tipoActividad() {
 
             FilterChip(
                 selected = isSelected,
-                onClick = { opcion = seleccion},
+                onClick = { onOpcionChange(seleccion) },
                 label = { Text(seleccion)},
                 leadingIcon = if(isSelected) {
                     {
@@ -1186,19 +1305,16 @@ fun tipoActividad() {
 }
 
 @Composable
-fun tieneAutorizacion() {
+fun tieneAutorizacion(titulo: String, opcion: String, onTieneAutorizacionChange: (String) -> Unit) {
     val opciones = listOf(
         "",
         "Si",
         "No"
     )
 
-    var opcion by remember { mutableStateOf(opciones[0]) }
-
     Column{
         Text(
-            "¿Tu actividad tiene la validación de la dirección de la sede o de la " +
-                    "subdirección de tu área?",
+            text = titulo,
             color = MaterialTheme.colorScheme.primary
         )
     }
@@ -1214,7 +1330,7 @@ fun tieneAutorizacion() {
             var isSelected = seleccion == opcion
             FilterChip(
                 selected = isSelected,
-                onClick = { opcion = seleccion},
+                onClick = { onTieneAutorizacionChange(seleccion) },
                 label = { Text(seleccion)},
                 leadingIcon = if(isSelected) {
                     {
@@ -1244,7 +1360,7 @@ fun tieneAutorizacion() {
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun menuEscuelas() {
+fun menuEscuelas(titulo: String, opcion: String, onOrganizadorChange: (String) -> Unit) {
     val opciones = listOf(
         "",
         "Administración y Negocios",
@@ -1259,11 +1375,10 @@ fun menuEscuelas() {
     )
 
     var expanded by remember { mutableStateOf(false) }
-    var opcion by remember { mutableStateOf(opciones[0]) }
 
     Column {
         Text(
-            "Área o Escuela que organiza la actividad",
+            text = titulo,
             color = MaterialTheme.colorScheme.primary
         )
 
@@ -1275,7 +1390,7 @@ fun menuEscuelas() {
         ) {
             OutlinedTextField(
                 value = opcion,
-                onValueChange = {},
+                onValueChange = { },
                 readOnly = true,
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
@@ -1301,7 +1416,7 @@ fun menuEscuelas() {
                                color = MaterialTheme.colorScheme.primary
                         )},
                         onClick = {
-                            opcion = seleccion
+                            onOrganizadorChange(seleccion)
                             expanded = false
                         }
                     )
@@ -1313,12 +1428,12 @@ fun menuEscuelas() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun recinto() {
+fun recinto(titulo: String, salaId: Long?, onRecintoChange: (Long) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var opcion by remember { mutableStateOf("") }
 
-    Column() {
-        Text("Recinto *",
+    Column {
+        Text(text = titulo,
             color = MaterialTheme.colorScheme.primary)
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -1359,9 +1474,8 @@ fun recinto() {
 }
 
 @Composable
-fun seleccionarFecha(titulo: String) {
+fun seleccionarFecha(titulo: String, fecha:String, onFechaChange: (String) -> Unit) {
     var mostrar by remember { mutableStateOf(false) }
-    var fecha by remember { mutableStateOf("") }
 
     Column {
         Text(
@@ -1398,7 +1512,7 @@ fun seleccionarFecha(titulo: String) {
                             onClick = {
                                 mostrar = false
                                 datePickerState.selectedDateMillis?.let { millis ->
-                                    fecha = formatoFecha(millis)
+                                    onFechaChange(formatoFecha(millis))
                                 }
                             }
                         ) {
@@ -1428,9 +1542,9 @@ fun formatoFecha(millis: Long): String {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun seleccionarHora(titulo: String) {
+fun seleccionarHora(titulo: String, hora: String, onHoraChange: (String) -> Unit) {
     var mostrar by remember { mutableStateOf(false) }
-    var hora by remember { mutableStateOf("") }
+
     Column{
         Text(text = titulo,
             color = MaterialTheme.colorScheme.primary,
@@ -1471,11 +1585,13 @@ fun seleccionarHora(titulo: String) {
                 confirmButton = {
                     TextButton(onClick = {
                         mostrar = false
-                        hora = String.format(
-                            Locale.getDefault(),
-                            "%02d:%02d",
-                            timePickerState.hour,
-                            timePickerState.minute
+                        onHoraChange(
+                            String.format(
+                                Locale.getDefault(),
+                                "%02d:%02d",
+                                timePickerState.hour,
+                                timePickerState.minute
+                            )
                         )
                     }
                     ) {
@@ -1493,7 +1609,7 @@ fun seleccionarHora(titulo: String) {
 }
 
 @Composable
-fun publico() {
+fun publico(titulo: String, publicoSeleccionado: Set<String>, onPublicoChange: (Set<String>) -> Unit) {
     val opciones = listOf(
         "",
         "Estudiantes",
@@ -1502,10 +1618,8 @@ fun publico() {
         "Externos"
     )
 
-    var opcion by remember{ mutableStateOf(setOf<String>())}
-
     Column {
-        Text("Público Invitado",
+        Text(text = titulo  ,
             color = MaterialTheme.colorScheme.primary)
     }
 
@@ -1517,16 +1631,17 @@ fun publico() {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         opciones.drop(1).forEach { seleccion ->
-            val isSelected = opcion.contains(seleccion)
-
+            val isSelected = seleccion in publicoSeleccionado
             FilterChip(
                 selected = isSelected,
                 onClick = {
-                    opcion = if (isSelected) {
-                        opcion - seleccion
-                    } else {
-                        opcion + seleccion
-                    }
+                    onPublicoChange(
+                        if (seleccion in publicoSeleccionado) {
+                            publicoSeleccionado - seleccion
+                        } else {
+                            publicoSeleccionado + seleccion
+                        }
+                    )
                 },
                 label = { Text(seleccion)},
                 leadingIcon = if(isSelected) {
@@ -1557,14 +1672,12 @@ fun publico() {
 }
 
 @Composable
-fun necesitaForm(){
+fun necesitaForm(opcion: String, onOpcionChange: (String) -> Unit){
     val opciones = listOf(
         "",
         "Si",
         "No"
     )
-
-    var opcion by remember { mutableStateOf(opciones[0]) }
 
     Column{
         Text(
@@ -1584,7 +1697,7 @@ fun necesitaForm(){
             var isSelected = seleccion == opcion
             FilterChip(
                 selected = isSelected,
-                onClick = { opcion = seleccion},
+                onClick = { onOpcionChange(seleccion) },
                 label = { Text(seleccion)},
                 leadingIcon = if(isSelected) {
                     {
@@ -1614,16 +1727,15 @@ fun necesitaForm(){
 }
 
 @Composable
-fun nombres(){
-    var descripcion by remember { mutableStateOf("") }
+fun nombres(nombres: String, onNombresChange: (String) -> Unit){
     Text("Especifique nombres de expositores, charlistas, y autoridades invitadas, internas y externas",
         color = MaterialTheme.colorScheme.primary)
 
     Spacer(modifier = Modifier.height(8.dp))
 
     OutlinedTextField(
-        value = descripcion,
-        onValueChange = { descripcion = it },
+        value = nombres,
+        onValueChange = onNombresChange,
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp),
@@ -1673,8 +1785,12 @@ fun campoArchivo(titulo: String){
 }
 
 @Composable
-fun menuOpciones(titulo: String, opciones: List<String>){
-    var seleccionado = remember { mutableStateListOf<String>() }
+fun menuOpciones(titulo: String,
+                 categoria: String,
+                 opciones: List<String>,
+                 servicios: Set<String>,
+                 onServiciosChange: (String, Set<String>) -> Unit
+){
 
     Box(
         modifier = Modifier
@@ -1698,7 +1814,7 @@ fun menuOpciones(titulo: String, opciones: List<String>){
             Spacer(modifier = Modifier.height(8.dp))
 
             opciones.forEach { opcion ->
-                var estaSeleccionado = seleccionado.contains(opcion)
+                val estaSeleccionado = opcion in servicios
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -1707,20 +1823,17 @@ fun menuOpciones(titulo: String, opciones: List<String>){
                                 0xFFF5F5F5
                             )
                         )
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(12.dp)
-                        )
                 ) {
                     Checkbox(
                         checked = estaSeleccionado,
                         onCheckedChange = { isChecked ->
-                            if (isChecked) {
-                                seleccionado.add(opcion)
+                            val nuevosServicios = if (isChecked) {
+                                servicios + opcion
                             } else {
-                                seleccionado.remove(opcion)
+                                servicios - opcion
                             }
+
+                            onServiciosChange(categoria, nuevosServicios)
                         },
                         colors = CheckboxDefaults.colors(
                             uncheckedColor = MaterialTheme.colorScheme.tertiary,
