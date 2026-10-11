@@ -38,6 +38,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -134,6 +135,8 @@ fun ReservasScreen(appState: AppState) {
             publico = publicoSelecionado.joinToString {", "},
             requiereFormulario = requiereForm == "Si",
             nombreExternos = nombres,
+            complementos = complemento,
+            proveedores = proveedores,
 
             servicios = servicios.entries.joinToString("; ") { (categoria, opciones) ->
                 "$categoria: ${opciones.joinToString(", ")}" },
@@ -277,7 +280,7 @@ fun TopBar() {
 
 @Composable
 fun NavBar() {
-    var seleccion by remember { mutableIntStateOf(0) }
+    var seleccion by remember { mutableIntStateOf(1) }
 
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.primary
@@ -810,8 +813,8 @@ fun ContentPaso2(padding: PaddingValues,
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                campoArchivo("Adjunte el programa, pauta, libreto y/o layout de la" +
-                        " actividad")
+                /*campoArchivo("Adjunte el programa, pauta, libreto y/o layout de la" +
+                        " actividad") */
             }
         }
 
@@ -1445,6 +1448,8 @@ fun menuEscuelas(titulo: String, opcion: String, onOrganizadorChange: (String) -
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    unfocusedTextColor = MaterialTheme.colorScheme.primary,
                     focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
                     unfocusedTrailingIconColor = MaterialTheme.colorScheme.primary
                 )
@@ -1545,7 +1550,11 @@ fun seleccionarFecha(titulo: String, fecha:String, onFechaChange: (String) -> Un
                         )
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    unfocusedTextColor = MaterialTheme.colorScheme.primary
+                )
             )
             if (mostrar) {
                 val datePickerState = rememberDatePickerState()
@@ -1561,14 +1570,16 @@ fun seleccionarFecha(titulo: String, fecha:String, onFechaChange: (String) -> Un
                                 }
                             }
                         ) {
-                            Text("Aceptar")
+                            Text("Aceptar",
+                                color = MaterialTheme.colorScheme.secondary)
                         }
                     },
                     dismissButton = {
                         TextButton(
                             onClick = { mostrar = false }
                         ) {
-                            Text("Cancelar")
+                            Text("Cancelar",
+                                color = MaterialTheme.colorScheme.secondary)
                         }
                     }
                 ) {
@@ -1611,7 +1622,11 @@ fun seleccionarHora(titulo: String, hora: String, onHoraChange: (String) -> Unit
                         )
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    unfocusedTextColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
 
@@ -1640,12 +1655,14 @@ fun seleccionarHora(titulo: String, hora: String, onHoraChange: (String) -> Unit
                         )
                     }
                     ) {
-                        Text("Aceptar")
+                        Text("Aceptar",
+                            color = MaterialTheme.colorScheme.secondary)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { mostrar = false }) {
-                        Text("Cancelar")
+                        Text("Cancelar",
+                            color = MaterialTheme.colorScheme.secondary)
                     }
                 }
             )

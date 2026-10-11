@@ -26,6 +26,8 @@ data class ReservaEntity(
     val nombreExternos: String,
 
     val servicios: String,
+    val complementos: String,
+    val proveedores: String,
 
     val estado: EstadoReserva = EstadoReserva.PENDIENTE
 )
