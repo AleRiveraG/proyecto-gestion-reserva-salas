@@ -27,7 +27,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -35,9 +37,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -276,8 +280,12 @@ fun contador(pendientes: String, aprobadas: String, rechazadas: String) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun reserva() {
+    var mostrarModal by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
+
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
             defaultElevation =6.dp
@@ -468,7 +476,7 @@ fun reserva() {
                     .border(width = 1.dp,
                         shape = RoundedCornerShape(12.dp),
                         color = MaterialTheme.colorScheme.primary),
-                onClick = {},
+                onClick = { mostrarModal = true },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondary
                 )
@@ -477,6 +485,15 @@ fun reserva() {
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold)
             }
+        }
+    }
+    if (mostrarModal) {
+        ModalBottomSheet(
+            onDismissRequest = { mostrarModal = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.secondary
+        ) {
+            detalleSolicitud(onCerrar = { mostrarModal = false })
         }
     }
 }
@@ -569,5 +586,105 @@ fun etiquetaEstado(estado: String) {
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
             modifier = Modifier.padding(horizontal = 8.dp))
+    }
+}
+
+@Composable
+fun detalleSolicitud(onCerrar: () -> Unit) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically) {
+            Text("DETALLE DE LA SOLICITUD",
+                color = Color(0xFF3B3B3B),
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+            IconButton(
+                onClick = { onCerrar() }    ) {
+                Icon(
+                    painter = painterResource(R.drawable.x),
+                    contentDescription = "Icono Cerrar",
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text("Taller de programación",
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold)
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row{
+            Text("Recinto ",
+                color = Color(0xFF3B3B3B),
+                fontSize = 16.sp,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text("Fecha",
+                color = Color(0xFF3B3B3B),
+                fontSize = 16.sp
+                )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(
+                modifier = Modifier
+                    .weight(1f),
+                onClick = {},
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFD00236)
+                )
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.x),
+                    contentDescription = "Icono Cerrar",
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    "Denegar",
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                modifier = Modifier
+                    .weight(1f),
+                onClick = {},
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF3DB83B)
+                )
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.check),
+                    contentDescription = "Icono Aprobar",
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    "Aprobar",
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
     }
 }
