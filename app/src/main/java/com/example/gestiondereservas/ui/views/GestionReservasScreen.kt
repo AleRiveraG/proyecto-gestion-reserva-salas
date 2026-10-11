@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,7 +50,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
@@ -164,7 +162,7 @@ fun TopBar() {
 
 @Composable
 fun NavBar() {
-    var seleccion by remember { mutableIntStateOf(0) }
+    var seleccion by remember { mutableIntStateOf(3) }
 
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.primary
@@ -211,6 +209,22 @@ fun NavBar() {
                 )
             },
             label = { Text("Salas")},
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.secondary,
+                selectedTextColor = MaterialTheme.colorScheme.tertiary,
+                indicatorColor = MaterialTheme.colorScheme.tertiary
+            )
+        )
+        NavigationBarItem(
+            selected = seleccion == 3,
+            onClick = { seleccion = 3 },
+            icon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.task),
+                    contentDescription = "Icono reserva",
+                )
+            },
+            label = { Text("Reservas")},
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = MaterialTheme.colorScheme.secondary,
                 selectedTextColor = MaterialTheme.colorScheme.tertiary,
