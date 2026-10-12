@@ -1,6 +1,7 @@
 
 package com.example.gestiondereservas.ui.views
 
+import android.R.attr.text
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -118,7 +119,7 @@ fun UsoSalaScreen(
         )
 
         Text(
-            text = "Workshop de experiencia digital",
+            text = viewModel.nombreActividad.ifBlank { "Actividad Reservada" },
             style = MaterialTheme.typography.bodySmall,
             color = Black,
             textAlign = TextAlign.Center

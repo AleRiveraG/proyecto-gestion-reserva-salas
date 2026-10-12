@@ -11,13 +11,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
-
+import com.example.gestiondereservas.data.room.ReservaEntity
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 class UsoSalaViewModel : ViewModel() {
 
     var estadoActividad by mutableStateOf(EstadoActividad.PENDIENTE)
         private set
 
-    // Datos de prueba hasta conectar la reserva real
+    var nombreActividad by mutableStateOf("")
+        private set
     var inicioReserva by mutableStateOf(LocalDateTime.now())
         private set
 
@@ -28,6 +32,24 @@ class UsoSalaViewModel : ViewModel() {
         private set
 
     private var trabajoCronometro: Job? = null
+
+    fun cargarReserva(reserva: ReservaEntity) {
+
+        nombreActividad = reserva.nombreActividad
+
+        val anioActual = LocalDate.now().year
+        val fechaCompleta = "${reserva.fechaActividad}/$anioActual"
+        val fecha = LocalDate.parse(
+            fechaCompleta,
+        DateTimeFormatter.ofPattern("dd/MM/yyyy")
+        )
+        val horaInicioFormateada = LocalTime.parse(reserva.horaInicio)
+        val horaTerminoFormateada = LocalTime.parse(reserva.horaTermino)
+        val inicio = fecha.atTime(horaInicioFormateada)
+        val fin = fecha.atTime(horaTerminoFormateada)
+
+        configurarReserva(inicio, fin)
+    }
 
     fun configurarReserva(
         inicio: LocalDateTime,
@@ -54,6 +76,11 @@ class UsoSalaViewModel : ViewModel() {
             trabajoCronometro = viewModelScope.launch {
                 while (estadoActividad == EstadoActividad.EN_CURSO) {
                     actualizarTiempoRestante()
+
+                    if (segundosRestantes == 0L) {
+                        finalizarActividad()
+                        break
+                    }
                     delay(1000)
                 }
             }
