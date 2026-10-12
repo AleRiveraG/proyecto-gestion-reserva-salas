@@ -18,9 +18,9 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = Black,
+    secondary = White,
+    tertiary = Yellow
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -37,7 +37,7 @@ private val LightColorScheme = lightColorScheme(
 fun GestionDeReservasTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = false,
+    dynamicColor: Boolean = false,  //Mantener en 'false', evita que Android 12+ sobreescriba los colores
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -47,7 +47,7 @@ fun GestionDeReservasTheme(
         }
 
         darkTheme -> DarkColorScheme
-        else -> DarkColorScheme
+        else -> LightColorScheme  //Utiliza los mismos colores negro-blanco-amarillo
     }
 
     MaterialTheme(
