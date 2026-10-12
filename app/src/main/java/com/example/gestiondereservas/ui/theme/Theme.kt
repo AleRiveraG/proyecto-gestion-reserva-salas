@@ -43,7 +43,7 @@ fun GestionDeReservasTheme(
         }
 
         darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        else -> DarkColorScheme
     }
 
     MaterialTheme(
