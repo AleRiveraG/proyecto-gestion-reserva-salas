@@ -10,13 +10,13 @@ interface ReservaDao {
     @Insert
     suspend fun registrar(reserva: ReservaEntity)
 
-    @Query("UPDATE reserva SET estado = :estadoNuevo WHERE :idReserva")
-    suspend fun modificarEstado(idReserva: Long, estadoNuevo: EstadoReserva)
+    @Query("UPDATE reserva SET estado = :estadoNuevo WHERE id = :idReserva")
+    suspend fun modificarEstado(idReserva: Long, estadoNuevo: String)
 
     @Query("SELECT * FROM reserva WHERE estado = 'PENDIENTE'")
     suspend fun obtenerReservasPendientes(): List<ReservaEntity>
 
-    @Query("SELECT COUNT(*) FROM reserva WHERE estado = 'APROBADAS' ")
+    @Query("SELECT COUNT(*) FROM reserva WHERE estado = 'APROBADA' ")
     suspend fun obtenerAprobadas(): Int
 
     @Query("SELECT COUNT(*) FROM reserva WHERE estado = 'RECHAZADA'")
@@ -24,4 +24,5 @@ interface ReservaDao {
 
     @Query("SELECT COUNT(*) FROM reserva WHERE estado = 'PENDIENTE'")
     suspend fun obtenerPendientes(): Int
+
 }

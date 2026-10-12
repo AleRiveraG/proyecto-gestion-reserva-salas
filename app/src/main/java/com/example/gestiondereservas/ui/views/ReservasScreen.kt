@@ -592,8 +592,7 @@ fun ContentPaso2(padding: PaddingValues,
                  nombres: String,
                  onNombresChange: (String) -> Unit,
                  onAtras: () -> Unit,
-                 onSiguiente: () -> Unit)
-{
+                 onSiguiente: () -> Unit) {
     Column(
         modifier = Modifier
             .background(Color(0xFFFFFFFF))
@@ -868,7 +867,6 @@ fun ContentPaso3(padding: PaddingValues,
                  onServiciosChange: (String, Set<String>) -> Unit,
                  onAtras: () -> Unit,
                  onEnviar: () -> Unit) {
-
     Column(
         modifier = Modifier
             .background(Color(0xFFFFFFFF))

@@ -92,6 +92,7 @@ private fun Contenido(padding: PaddingValues) {
     }
 }
 
+
 @Composable
 fun infoReserva() {
     var checked by remember { mutableStateOf(false) }
@@ -227,7 +228,7 @@ fun infoReserva() {
 }
 
 @Composable
-fun accesosDirectos() {
+private fun accesosDirectos() {
     Text("Accesos directos",
         color = MaterialTheme.colorScheme.primary,
         fontSize = 20.sp,
