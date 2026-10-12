@@ -13,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,8 +26,9 @@ import com.example.gestiondereservas.ui.theme.NotificationRed
 import com.example.gestiondereservas.ui.theme.NotificationSecondaryText
 import com.example.gestiondereservas.ui.theme.White
 import com.example.gestiondereservas.ui.theme.Yellow
-import com.example.gestiondereservas.ui.theme.NotificationDarkYellow
 import com.example.gestiondereservas.ui.theme.NotificationDivider
+import com.example.gestiondereservas.ui.components.TopBar
+import com.example.gestiondereservas.ui.components.NavBar
 
 // Representa una notificación
 private data class NotificacionUI(
@@ -50,7 +50,7 @@ private enum class TipoNotificacion {
 
 @Composable
 fun NotificacionesScreen(
-    onVolver: () -> Unit = {}
+    onVolver: () -> Unit
 ) {
     // Datos de ejemplo para esta primera versión
     val notificaciones = remember {
@@ -92,87 +92,94 @@ fun NotificacionesScreen(
 
     val pendientes = notificaciones.count { !it.leida }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(White)
-            .padding(horizontal = 16.dp)
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
+    Scaffold(
+        topBar = { TopBar() },
+        bottomBar = { NavBar() }
+    ) { paddingScaffold ->
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingScaffold)
+                .background(White)
+                .padding(horizontal = 16.dp)
         ) {
-            IconButton(onClick = onVolver) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver"
-                )
-            }
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Column {
-                Text(
-                    text = "Notificaciones",
-                    fontSize = 23.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Black
-                )
-
-                Text(
-                    text = "Actualizaciones y recordatorios",
-                    fontSize = 12.sp,
-                    color = NotificationSecondaryText
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            Text(
-                text = "Marcar todas como leídas",
-                fontSize = 12.sp,
-                color = NotificationDarkYellow,
-                modifier = Modifier.clickable {
-                    notificaciones.indices.forEach { indice ->
-                        notificaciones[indice] =
-                            notificaciones[indice].copy(leida = true)
-                    }
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onVolver) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Volver"
+                    )
                 }
-            )
-        }
 
-        Spacer(modifier = Modifier.height(14.dp))
+                Column {
+                    Text(
+                        text = "Notificaciones",
+                        fontSize = 23.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Black
+                    )
 
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(
-                items = notificaciones,
-                key = { it.id }
-            ) { notificacion ->
+                    Text(
+                        text = "Actualizaciones y recordatorios",
+                        fontSize = 12.sp,
+                        color = NotificationSecondaryText
+                    )
+                }
+            }
 
-                TarjetaNotificacion(
-                    notificacion = notificacion,
-                    onClick = {
-                        val indice = notificaciones.indexOfFirst {
-                            it.id == notificacion.id
-                        }
+            Spacer(modifier = Modifier.height(12.dp))
 
-                        if (indice != -1) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                Text(
+                    text = "Marcar todas como leídas",
+                    fontSize = 12.sp,
+                    color = NotificationDarkYellow,
+                    modifier = Modifier.clickable {
+                        notificaciones.indices.forEach { indice ->
                             notificaciones[indice] =
                                 notificaciones[indice].copy(leida = true)
                         }
                     }
                 )
+            }
 
-                HorizontalDivider(
-                    color = NotificationDivider,
-                    thickness = 1.dp
-                )
+            Spacer(modifier = Modifier.height(14.dp))
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(
+                    items = notificaciones,
+                    key = { it.id }
+                ) { notificacion ->
+
+                    TarjetaNotificacion(
+                        notificacion = notificacion,
+                        onClick = {
+                            val indice = notificaciones.indexOfFirst {
+                                it.id == notificacion.id
+                            }
+
+                            if (indice != -1) {
+                                notificaciones[indice] =
+                                    notificaciones[indice].copy(leida = true)
+                            }
+                        }
+                    )
+
+                    HorizontalDivider(
+                        color = NotificationDivider,
+                        thickness = 1.dp
+                    )
+                }
             }
         }
     }

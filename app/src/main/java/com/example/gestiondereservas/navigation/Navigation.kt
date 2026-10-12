@@ -10,6 +10,7 @@ import com.example.gestiondereservas.ui.views.LoginBody
 import com.example.gestiondereservas.ui.views.RelatorScreen
 import com.example.gestiondereservas.ui.views.ReservasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
+import com.example.gestiondereservas.ui.views.NotificacionesScreen
 
 
 @Composable
@@ -23,6 +24,7 @@ fun appNavigation(navController: NavHostController, appState: AppState) {
         composable("calendario"){  }
         composable("salasRelator"){  }
         composable("reservas"){ ReservasScreen(navController, appState) }
+        composable("notificaciones") { NotificacionesScreen(onVolver = { navController.popBackStack() }) }
 
         composable("paginaSupervisor"){ SupervisorScreen(appState) }
         composable("gestionReservas"){ GestionReservasScreen(appState) }

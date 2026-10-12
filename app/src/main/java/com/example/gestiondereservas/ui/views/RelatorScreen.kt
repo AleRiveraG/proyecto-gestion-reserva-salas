@@ -44,11 +44,12 @@ import androidx.navigation.NavController
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.utils.formatearFecha
+import com.example.gestiondereservas.ui.components.TopBar
 
 @Composable
 fun RelatorScreen(navController: NavController, appState: AppState) {
     Scaffold(
-        topBar = { TopBar() },
+        topBar = { TopBar(onNotificacionesClick = {navController.navigate("notificaciones")}) },
         bottomBar = { NavBar() }
     ) { padding ->
         Contenido(padding, navController, appState)
