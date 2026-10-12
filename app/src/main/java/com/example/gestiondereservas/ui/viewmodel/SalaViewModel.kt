@@ -23,7 +23,7 @@ data class SalasUiState(
 @OptIn(ExperimentalCoroutinesApi::class)
 class SalasViewModel(
     private val repositorio: SalaRepository,
-    private val area: Area = Area.INFORMATICA
+    private val area: Area
 ) : ViewModel() {
 
     private val busqueda = MutableStateFlow("")

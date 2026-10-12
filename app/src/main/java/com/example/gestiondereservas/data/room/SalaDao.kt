@@ -48,7 +48,6 @@ interface SalaDao {
     suspend fun contarSalas(): Int
 
     @Transaction
-    //aqui si algo falla por x motivo, la sala
     suspend fun guardar(sala: Sala, equipos: List<Equipamiento>): Long {
         val id = if (sala.id == 0L) {
             insertarSala(sala)

@@ -48,19 +48,24 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.ProveedorDatos
 import com.example.gestiondereservas.data.repository.SalaRepository
-import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.Sala
 import com.example.gestiondereservas.ui.components.AreaChip
 import com.example.gestiondereservas.ui.viewmodel.SalasViewModel
+import com.example.gestiondereservas.data.room.entidades.Area
 
 @Composable
-fun rememberSalasViewModel(): SalasViewModel {
+fun rememberSalasViewModel(areaCoordinador: Area): SalasViewModel {
     val contexto = LocalContext.current.applicationContext
     return viewModel(
+        key = "salas-${areaCoordinador.name}",
         factory = viewModelFactory {
             initializer {
-                SalasViewModel(SalaRepository(AppDatabase.obtener(contexto).salaDao()))
+                SalasViewModel(
+                    SalaRepository(ProveedorDatos.salaDao(contexto)),
+                    areaCoordinador
+                )
             }
         }
     )
@@ -68,9 +73,10 @@ fun rememberSalasViewModel(): SalasViewModel {
 
 @Composable
 fun SalasScreen(
+    areaCoordinador: Area = Area.INFORMATICA,
     onNuevaSala: () -> Unit = {},
     onEditarSala: (Long) -> Unit = {},
-    viewModel: SalasViewModel = rememberSalasViewModel()
+    viewModel: SalasViewModel = rememberSalasViewModel(areaCoordinador)
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     var salaPorCambiar by remember { mutableStateOf<Sala?>(null) }
