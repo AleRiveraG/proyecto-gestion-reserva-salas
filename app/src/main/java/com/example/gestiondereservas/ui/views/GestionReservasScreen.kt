@@ -65,7 +65,7 @@ fun GestionReservasScreen() {
 }
 
 @Composable
-fun Contenido(padding: PaddingValues) {
+private fun Contenido(padding: PaddingValues) {
     Column(
         modifier = Modifier
             .fillMaxSize()
