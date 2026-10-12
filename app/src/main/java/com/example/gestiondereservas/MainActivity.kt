@@ -16,10 +16,21 @@ import com.example.gestiondereservas.ui.views.RelatorScreen
 import com.example.gestiondereservas.ui.views.UsoSalaScreen
 import com.example.gestiondereservas.ui.views.ReservasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
+import android.graphics.Color
+import androidx.activity.SystemBarStyle
+import com.example.gestiondereservas.navigation.GestionSalasNavigation
+
+//este import es por para probar la vista de las distintas areas
+import com.example.gestiondereservas.data.room.entidades.Area
+import com.example.gestiondereservas.navigation.GestionSalasNavigation
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
+        )
         enableEdgeToEdge()
         val db = AppDatabase.getInstance(applicationContext)
         val appState = AppState(db)
