@@ -1,7 +1,7 @@
 
 package com.example.gestiondereservas.ui.views
 
-import android.R.attr.text
+
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -17,7 +17,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-
 import com.example.gestiondereservas.ui.viewmodel.EstadoActividad
 import com.example.gestiondereservas.ui.viewmodel.UsoSalaViewModel
 import com.example.gestiondereservas.ui.theme.Black
