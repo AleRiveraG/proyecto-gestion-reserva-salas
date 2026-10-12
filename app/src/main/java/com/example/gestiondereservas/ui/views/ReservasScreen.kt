@@ -75,10 +75,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.EstadoReserva
 import com.example.gestiondereservas.data.room.ReservaEntity
+import com.example.gestiondereservas.utils.formatoFecha
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -87,7 +89,7 @@ import java.util.TimeZone
 import kotlin.collections.listOf
 
 @Composable
-fun ReservasScreen(appState: AppState) {
+fun ReservasScreen(navController: NavController, appState: AppState) {
     var paso by remember{ mutableIntStateOf(1)}
 
     var nombre by remember({mutableStateOf("")})
@@ -148,6 +150,7 @@ fun ReservasScreen(appState: AppState) {
 
         scope.launch {
             appState.registrarReserva(reserva)
+            navController.navigate("paginaRelator")
         }
     }
 
@@ -176,7 +179,7 @@ fun ReservasScreen(appState: AppState) {
                 { tieneValidacion = it },
                 organizador,
                 { organizador = it },
-                onAtras = { },
+                onAtras = { navController.navigate("paginaRelator") },
                 onSiguiente = { paso = 2})
             2 -> ContentPaso2(
                 padding,
@@ -590,8 +593,7 @@ fun ContentPaso2(padding: PaddingValues,
                  nombres: String,
                  onNombresChange: (String) -> Unit,
                  onAtras: () -> Unit,
-                 onSiguiente: () -> Unit)
-{
+                 onSiguiente: () -> Unit) {
     Column(
         modifier = Modifier
             .background(Color(0xFFFFFFFF))
@@ -866,7 +868,6 @@ fun ContentPaso3(padding: PaddingValues,
                  onServiciosChange: (String, Set<String>) -> Unit,
                  onAtras: () -> Unit,
                  onEnviar: () -> Unit) {
-
     Column(
         modifier = Modifier
             .background(Color(0xFFFFFFFF))
@@ -1588,12 +1589,6 @@ fun seleccionarFecha(titulo: String, fecha:String, onFechaChange: (String) -> Un
             }
         }
     }
-}
-
-fun formatoFecha(millis: Long): String {
-    val formatter = SimpleDateFormat("dd/MM", Locale.getDefault())
-    formatter.timeZone = TimeZone.getTimeZone("UTC")
-    return formatter.format(Date(millis))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -1,5 +1,7 @@
 package com.example.gestiondereservas.ui.views
 
+import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,16 +35,19 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,19 +59,49 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.data.room.EstadoReserva
+import com.example.gestiondereservas.data.room.ReservaEntity
+import com.example.gestiondereservas.utils.formatearFechaPerso
+import kotlinx.coroutines.launch
 
 @Composable
-fun GestionReservasScreen() {
+fun GestionReservasScreen(appState: AppState) {
+    var reservas by remember { mutableStateOf<List<ReservaEntity>>(emptyList()) }
+    var aprobadas by remember { mutableIntStateOf(0) }
+    var pendientes by remember { mutableIntStateOf(0) }
+    var rechazadas by remember { mutableIntStateOf(0) }
+
+    val scope = rememberCoroutineScope()
+
+    fun consultaReservas() {
+        scope.launch {
+            reservas = appState.consultarReservas()
+            aprobadas = appState.consultarAprobadas()
+            pendientes = appState.consultarPendientes()
+            rechazadas =  appState.consultarRechazadas()
+        }
+    }
+
+    LaunchedEffect(appState) {
+        consultaReservas()
+    }
     Scaffold(
         topBar = { TopBarAdmin() },
         bottomBar = { NavBarAdmin() }
     ) { padding ->
-        Contenido(padding)
+        Contenido(padding,reservas, aprobadas, rechazadas, pendientes, appState)
     }
 }
 
 @Composable
-fun Contenido(padding: PaddingValues) {
+private fun Contenido(padding: PaddingValues,
+                      reservas: List<ReservaEntity>,
+                      aprobadas: Int,
+                      rechazadas: Int,
+                      pendientes: Int,
+                      appState: AppState
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -89,11 +125,14 @@ fun Contenido(padding: PaddingValues) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        contador("2", "8", "1")
+        contador(pendientes, aprobadas, rechazadas)
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        reserva()
+        reservas.forEach { reserva ->
+            reserva(reserva, appState)
+            Spacer(modifier = Modifier.height(12.dp))
+        }
     }
 }
 
@@ -126,7 +165,7 @@ fun TopBarAdmin() {
                         .size(50.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF3B3B3B))
-                        .clickable{ },
+                        .clickable { },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -143,7 +182,7 @@ fun TopBarAdmin() {
                         .size(50.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF3B3B3B))
-                        .clickable{ },
+                        .clickable { },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -235,7 +274,7 @@ fun NavBarAdmin() {
 }
 
 @Composable
-fun contador(pendientes: String, aprobadas: String, rechazadas: String) {
+fun contador(pendientes: Int, aprobadas: Int, rechazadas: Int) {
 
     Box(
         modifier = Modifier
@@ -252,7 +291,7 @@ fun contador(pendientes: String, aprobadas: String, rechazadas: String) {
             Column (
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.weight(1f)){
-                Text(text = pendientes,
+                Text(text = pendientes.toString(),
                     color = MaterialTheme.colorScheme.tertiary,
                     fontSize = 24.sp)
 
@@ -266,7 +305,7 @@ fun contador(pendientes: String, aprobadas: String, rechazadas: String) {
             Column (
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.weight(1f)){
-                Text(text = aprobadas,
+                Text(text = aprobadas.toString(),
                     color = MaterialTheme.colorScheme.tertiary,
                     fontSize = 24.sp)
 
@@ -280,7 +319,7 @@ fun contador(pendientes: String, aprobadas: String, rechazadas: String) {
             Column (
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.weight(1f)){
-                Text(text = rechazadas,
+                Text(text = rechazadas.toString(),
                     color = MaterialTheme.colorScheme.tertiary,
                     fontSize = 24.sp)
 
@@ -296,7 +335,7 @@ fun contador(pendientes: String, aprobadas: String, rechazadas: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun reserva() {
+fun reserva(reserva: ReservaEntity, appState: AppState) {
     var mostrarModal by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
@@ -317,13 +356,13 @@ fun reserva() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ){
-                etiquetaOrganizador("Informática y Telecomunicaciones")
-                etiquetaEstado("PENDIENTE")
+                etiquetaOrganizador(reserva.organizador)
+                etiquetaEstado(reserva.estado.name)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text("Nombre de la actividad",
+            Text(text = reserva.nombreActividad,
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold)
@@ -333,11 +372,11 @@ fun reserva() {
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                etiquetaTipoActividad("Actividad Academica")
+                etiquetaTipoActividad(reserva.tipoActividad)
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                etiquetaTieneAutorizacion("No")
+                etiquetaTieneAutorizacion(if (reserva.tieneValidacion) "Si" else "No")
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -345,18 +384,18 @@ fun reserva() {
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Responsable: nombre -",
+                Text("Responsable: ${reserva.nombreResponsable}",
                     color = Color(0xFF3B3B3B),
                     fontSize = 12.sp)
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Text("+59 1234 5678",
+                Text(text = reserva.telefonoResponsable,
                     color = Color(0xFF3B3B3B),
                     fontSize = 12.sp)
             }
 
-            Text("Correo responsable",
+            Text(text = reserva.correoResponsable,
                 color = Color(0xFF3B3B3B),
                 fontSize = 12.sp)
 
@@ -385,7 +424,7 @@ fun reserva() {
                         Text("Recinto",
                             color = Color(0xFF63788C),
                             fontSize = 14.sp)
-                        Text("LC12",
+                        Text(text = reserva.salaId.toString(),
                             color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold)
@@ -413,7 +452,7 @@ fun reserva() {
                         Text("Inicio y término",
                             color = Color(0xFF63788C),
                             fontSize = 14.sp)
-                        Text("10:00 - 11:00",
+                        Text("${reserva.horaInicio} - ${reserva.horaTermino}",
                             color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold)
@@ -446,7 +485,7 @@ fun reserva() {
                         Text("Montaje",
                             color = Color(0xFF63788C),
                             fontSize = 14.sp)
-                        Text("09:30",
+                        Text(text = reserva.horaMontaje,
                             color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold)
@@ -474,7 +513,7 @@ fun reserva() {
                         Text("Público",
                             color = Color(0xFF63788C),
                             fontSize = 14.sp)
-                        Text("Estudiantes",
+                        Text(text = reserva.publico,
                             color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold)
@@ -487,9 +526,11 @@ fun reserva() {
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(width = 1.dp,
+                    .border(
+                        width = 1.dp,
                         shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.primary),
+                        color = MaterialTheme.colorScheme.primary
+                    ),
                 onClick = { mostrarModal = true },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.secondary
@@ -507,7 +548,7 @@ fun reserva() {
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.secondary
         ) {
-            detalleSolicitud(onCerrar = { mostrarModal = false })
+            detalleSolicitud(onCerrar = { mostrarModal = false }, reserva, appState)
         }
     }
 }
@@ -517,9 +558,11 @@ fun etiquetaTipoActividad(tipo: String){
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(32.dp))
-            .border(width = 1.dp,
+            .border(
+                width = 1.dp,
                 shape = RoundedCornerShape(32.dp),
-                color = MaterialTheme.colorScheme.tertiary)
+                color = MaterialTheme.colorScheme.tertiary
+            )
             .background(Color(0xFFFFF9E6))
     ){
         Text(text = tipo,
@@ -550,16 +593,17 @@ fun etiquetaOrganizador(organizador: String){
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(color =
-            if (organizador == "Informática y Telecomunicaciones") Color(0xFF8BB8E8)
-            else if (organizador == "Administración y Negocios") Color(0xFFC98BDB)
-            else if (organizador == "Comunicación") Color(0xFFDF4661)
-            else if (organizador == "Construcción") Color(0xFFECA154)
-            else if (organizador == "Diseño") Color(0xFFDBE442)
-            else if (organizador == "Gastronomía") Color(0xFFFF808B)
-            else if (organizador == "Ingeniería y Recursos Naturales") Color(0xFFA1D884)
-            else if (organizador == "Salud y Bienestar") Color(0xFF99D6EA)
-            else Color(0xFF2AD2C9)
+            .background(
+                color =
+                    if (organizador == "Informática y Telecomunicaciones") Color(0xFF8BB8E8)
+                    else if (organizador == "Administración y Negocios") Color(0xFFC98BDB)
+                    else if (organizador == "Comunicación") Color(0xFFDF4661)
+                    else if (organizador == "Construcción") Color(0xFFECA154)
+                    else if (organizador == "Diseño") Color(0xFFDBE442)
+                    else if (organizador == "Gastronomía") Color(0xFFFF808B)
+                    else if (organizador == "Ingeniería y Recursos Naturales") Color(0xFFA1D884)
+                    else if (organizador == "Salud y Bienestar") Color(0xFF99D6EA)
+                    else Color(0xFF2AD2C9)
             )
     ) {
         Row(
@@ -586,15 +630,16 @@ fun etiquetaEstado(estado: String) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(color =
-            if (estado == "PENDIENTE") Color(0xFFFFF9E6)
-            else if (estado == "APROBADO") Color(0xFFE5F2E1)
-            else Color(0xFFFCE7EC)
+            .background(
+                color =
+                    if (estado == "PENDIENTE") Color(0xFFFFF9E6)
+                    else if (estado == "APROBADA") Color(0xFFE5F2E1)
+                    else Color(0xFFFCE7EC)
             )
     ) {
         Text(text =
             if (estado == "PENDIENTE") "Pendiente"
-            else if (estado == "APROBADO") "Aprobado"
+            else if (estado == "APROBADA") "Aprobada"
             else "Rechazado",
             color = Color(0xFF6B5403),
             fontWeight = FontWeight.Bold,
@@ -604,7 +649,9 @@ fun etiquetaEstado(estado: String) {
 }
 
 @Composable
-fun detalleSolicitud(onCerrar: () -> Unit) {
+fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, appState: AppState) {
+    val scope = rememberCoroutineScope()
+
     Column(modifier = Modifier.padding(16.dp)) {
         Row(
             modifier = Modifier
@@ -617,7 +664,7 @@ fun detalleSolicitud(onCerrar: () -> Unit) {
                 fontSize = 14.sp
             )
             IconButton(
-                onClick = { onCerrar() }    ) {
+                onClick = { onCerrar() } ) {
                 Icon(
                     painter = painterResource(R.drawable.x),
                     contentDescription = "Icono Cerrar",
@@ -629,7 +676,7 @@ fun detalleSolicitud(onCerrar: () -> Unit) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text("Taller de programación",
+        Text(text = reserva.nombreActividad,
             color = MaterialTheme.colorScheme.primary,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold)
@@ -637,16 +684,20 @@ fun detalleSolicitud(onCerrar: () -> Unit) {
         Spacer(modifier = Modifier.height(12.dp))
 
         Row{
-            Text("Recinto ",
+            Text("Recinto ${reserva.salaId}",
                 color = Color(0xFF3B3B3B),
                 fontSize = 16.sp,
                 modifier = Modifier.padding(end = 8.dp)
             )
-            Text("Fecha",
+            Text(text = formatearFechaPerso(reserva.fechaActividad),
                 color = Color(0xFF3B3B3B),
                 fontSize = 16.sp
                 )
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        servicios(reserva)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -657,7 +708,11 @@ fun detalleSolicitud(onCerrar: () -> Unit) {
             Button(
                 modifier = Modifier
                     .weight(1f),
-                onClick = {},
+                onClick = {
+                    scope.launch {
+                        appState.cambiarEstado(reserva.id, EstadoReserva.RECHAZADA.name)
+                    }
+                    onCerrar() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFD00236)
                 )
@@ -681,7 +736,12 @@ fun detalleSolicitud(onCerrar: () -> Unit) {
             Button(
                 modifier = Modifier
                     .weight(1f),
-                onClick = {},
+                onClick = {
+                    scope.launch {
+                        appState.cambiarEstado(reserva.id, EstadoReserva.APROBADA.name)
+                    }
+                    onCerrar()
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF3DB83B)
                 )
@@ -701,4 +761,47 @@ fun detalleSolicitud(onCerrar: () -> Unit) {
             }
         }
     }
+}
+
+@Composable
+fun servicios(reserva: ReservaEntity) {
+    val servicios = reserva.servicios
+
+    servicios.split("; ").forEach { area ->
+
+        val partes = area.split(": ")
+
+        val categoria = partes[0]
+        val opciones = partes[1].split(",")
+
+        OutlinedCard (
+            modifier = Modifier
+                .fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondary),
+            border = BorderStroke(1.dp, Color(0xFFE5E5E5))
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = categoria.replaceFirstChar { it.uppercase() },
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+
+                Text(
+                    text = opciones.joinToString(", "),
+                    color = Color(0xFF3B3B3B),
+                    fontSize = 12.sp,
+                )
+            }
+        }
+    }
+
+
+
+
+
 }

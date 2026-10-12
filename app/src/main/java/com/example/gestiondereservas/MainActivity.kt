@@ -4,12 +4,18 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.navigation.compose.rememberNavController
 import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.navigation.appNavigation
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
 import com.example.gestiondereservas.ui.views.GestionReservasScreen
+import com.example.gestiondereservas.ui.views.RelatorScreen
 import com.example.gestiondereservas.ui.views.UsoSalaScreen
 import com.example.gestiondereservas.ui.views.ReservasScreen
+import com.example.gestiondereservas.ui.views.SupervisorScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,9 +26,21 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             GestionDeReservasTheme {
-                ReservasScreen(appState)
-                GestionReservasScreen()
+                //ReservasScreen(appState)
+                //GestionReservasScreen(appState)
+                //RelatorScreen()
+                //SupervisorScreen(appState)
+                myApp(appState)
             }
         }
+    }
+}
+
+@Composable
+fun myApp(appState: AppState) {
+    val navController =  rememberNavController()
+
+    MaterialTheme{
+        appNavigation(navController, appState)
     }
 }
