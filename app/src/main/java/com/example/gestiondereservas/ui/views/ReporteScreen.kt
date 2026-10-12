@@ -1,16 +1,23 @@
 package com.example.gestiondereservas.ui.views
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -21,25 +28,171 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.gestiondereservas.R
+import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
+
+//- - - - - - - - - - - - - - - - - - - - - - - - -
+//Encabezado
+//- - - - - - - - - - - - - - - - - - - - - - - - -
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReporteTopBar() {
+    TopAppBar(
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            titleContentColor = MaterialTheme.colorScheme.secondary
+        ),
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(id = R.drawable.logo),
+                    contentDescription = "Logo Duoc Uc",
+                    modifier = Modifier.size(100.dp),
+                    colorFilter = ColorFilter.tint(Color.White)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text("Reserva", color = MaterialTheme.colorScheme.secondary)
+                Text("Salas", color = MaterialTheme.colorScheme.tertiary)
+            }
+        },
+        actions = {
+            Row() {
+                Box(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF3B3B3B))
+                        .clickable {},
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.bell),
+                        contentDescription = "Icono notificaciones",
+                        tint = Color.White,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF3B3B3B))
+                        .clickable {},
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.user_circle),
+                        contentDescription = "Icono usuario",
+                        tint = Color.White,
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+            }
+        }
+    )
+}
+
+//- - - - - - - - - - - - - - - - - - - - - - - - -
+//Pie de página
+//- - - - - - - - - - - - - - - - - - - - - - - - -
+
+@Composable
+fun ReporteNavBar() {
+    var seleccion by remember { mutableIntStateOf(0) }
+
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.primary
+    ) {
+        NavigationBarItem(
+            selected = seleccion == 0,
+            onClick = { seleccion = 0 },
+            icon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.home),
+                    contentDescription = "Icono inicio"
+                )
+            },
+            label = { Text("Inicio") },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.secondary,
+                selectedTextColor = MaterialTheme.colorScheme.tertiary,
+                indicatorColor = MaterialTheme.colorScheme.tertiary
+            )
+        )
+        NavigationBarItem(
+            selected = seleccion == 1,
+            onClick = { seleccion = 1 },
+            icon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.calendar),
+                    contentDescription = "Icono calendario"
+                )
+            },
+            label = { Text("Calendario") },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.secondary,
+                selectedTextColor = MaterialTheme.colorScheme.tertiary,
+                indicatorColor = MaterialTheme.colorScheme.tertiary
+            )
+        )
+        NavigationBarItem(
+            selected = seleccion == 2,
+            onClick = { seleccion = 2 },
+            icon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.door),
+                    contentDescription = "Icono puerta"
+                )
+            },
+            label = { Text("Salas") },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = MaterialTheme.colorScheme.secondary,
+                selectedTextColor = MaterialTheme.colorScheme.tertiary,
+                indicatorColor = MaterialTheme.colorScheme.tertiary
+            )
+        )
+    }
+}
+
+
+//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 //Modelo de datos representativo para un elemento del reporte consolidado (RF16)
-data class ItemReporteSala (
+data class ItemReporteSala(
     val codigoSala: String,
     val tipoEspacio: String,
     val totalReservas: Int,
@@ -48,24 +201,18 @@ data class ItemReporteSala (
 )
 
 //Periodos académicos predefinidos para la auditoría y consolidación
-enum class PeriodoAcademico (val etiqueta: String) {
+enum class PeriodoAcademico(val etiqueta: String) {
     SEMANAL("Esta semana"),
     MENSUAL("Mes actual"),
     SEMESTRAL("Semestre 2026-1")
 }
 
-/*
-Componente Body para ReporteScreen:
-Diseñado bajo Material 3 con métricas jerárquicas, tarjetas informativas,
-filtros dinámicos y opciones de exportación (RF16).
-
-@param modifier --> Modificador de diseño.
-@param estaExportando --> Estado que indica si se está generando el archivo de exportación.
-@param alExportarPlanilla --> Callback disparado para generar o descargar el reporte consolidado.
-*/
+//- - - - - - - - - - - - - - - - - - - - - - - - -
+//Cuerpo
+//- - - - - - - - - - - - - - - - - - - - - - - - -
 
 @Composable
-fun ReporteBody (
+fun ReporteBody(
     modifier: Modifier = Modifier,
     estaExportando: Boolean = false,
     alExportarPlanilla: (periodo: PeriodoAcademico) -> Unit = {}
@@ -80,11 +227,11 @@ fun ReporteBody (
             ItemReporteSala("LAB-COM-02", "Laboratorio de Computación", 18, 54, 70),
             ItemReporteSala("AUD-MAGNO", "Espacio Multipropósito", 12, 36, 60),
             ItemReporteSala("SALA-204", "Sala de Clases", 15, 45, 65)
-            )
+        )
     }
 
     LazyColumn(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
         contentPadding = PaddingValues(vertical = 16.dp),
@@ -149,13 +296,13 @@ fun ReporteBody (
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                TarjetaMetrica (
+                TarjetaMetrica(
                     titulo = "Total Reservas",
                     valor = "62",
                     icono = Icons.Default.DateRange,
                     modifier = Modifier.weight(1f)
                 )
-                TarjetaMetrica (
+                TarjetaMetrica(
                     titulo = "Horas de Uso",
                     valor = "207 hrs",
                     icono = Icons.Default.MeetingRoom,
@@ -329,12 +476,34 @@ fun TarjetaDetalleSala(
     }
 }
 
+//Pantalla completa que une TopBar, NavBar y ReporteBody
+@Composable
+fun ReporteScreen(
+    estaExportando: Boolean = false,
+    alExportarPlanilla: (periodo: PeriodoAcademico) -> Unit = {}
+) {
+    Scaffold(
+        topBar = { ReporteTopBar() },
+        bottomBar = { ReporteNavBar() }
+    ) { paddingValues ->
+        ReporteBody(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            estaExportando = estaExportando,
+            alExportarPlanilla = alExportarPlanilla
+        )
+    }
+}
+
 //Preview local
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ReporteBodyPreview() {
-    ReporteBody(
-        estaExportando = false,
-        alExportarPlanilla = {}
-    )
+    GestionDeReservasTheme {
+        ReporteScreen(
+            estaExportando = false,
+            alExportarPlanilla = {}
+        )
+    }
 }
