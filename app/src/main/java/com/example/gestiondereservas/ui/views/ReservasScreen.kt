@@ -150,6 +150,7 @@ fun ReservasScreen(navController: NavController, appState: AppState) {
 
         scope.launch {
             appState.registrarReserva(reserva)
+            navController.navigate("paginaRelator")
         }
     }
 
@@ -178,7 +179,7 @@ fun ReservasScreen(navController: NavController, appState: AppState) {
                 { tieneValidacion = it },
                 organizador,
                 { organizador = it },
-                onAtras = { },
+                onAtras = { navController.navigate("paginaRelator") },
                 onSiguiente = { paso = 2})
             2 -> ContentPaso2(
                 padding,

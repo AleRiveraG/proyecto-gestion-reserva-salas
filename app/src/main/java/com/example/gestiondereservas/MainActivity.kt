@@ -4,8 +4,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.navigation.compose.rememberNavController
 import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.navigation.appNavigation
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
 import com.example.gestiondereservas.ui.views.GestionReservasScreen
 import com.example.gestiondereservas.ui.views.RelatorScreen
@@ -23,10 +27,20 @@ class MainActivity : ComponentActivity() {
         setContent {
             GestionDeReservasTheme {
                 //ReservasScreen(appState)
-                GestionReservasScreen(appState)
+                //GestionReservasScreen(appState)
                 //RelatorScreen()
                 //SupervisorScreen(appState)
+                myApp(appState)
             }
         }
+    }
+}
+
+@Composable
+fun myApp(appState: AppState) {
+    val navController =  rememberNavController()
+
+    MaterialTheme{
+        appNavigation(navController, appState)
     }
 }

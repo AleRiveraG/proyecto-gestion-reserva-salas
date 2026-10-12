@@ -40,21 +40,23 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.utils.formatearFecha
 
 @Composable
-fun RelatorScreen() {
+fun RelatorScreen(navController: NavController, appState: AppState) {
     Scaffold(
         topBar = { TopBar() },
         bottomBar = { NavBar() }
     ) { padding ->
-        Contenido(padding)
+        Contenido(padding, navController, appState)
     }
 }
 
 @Composable
-private fun Contenido(padding: PaddingValues) {
+private fun Contenido(padding: PaddingValues, navController: NavController, appState: AppState) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -84,11 +86,11 @@ private fun Contenido(padding: PaddingValues) {
         Spacer(modifier = Modifier.height(12.dp))
 
         //infoReserva()
-        noInfoReserva()
+        noInfoReserva(navController, appState)
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        accesosDirectos()
+        accesosDirectos(navController, appState)
     }
 }
 
@@ -228,7 +230,7 @@ fun infoReserva() {
 }
 
 @Composable
-private fun accesosDirectos() {
+private fun accesosDirectos(navController: NavController, appState: AppState) {
     Text("Accesos directos",
         color = MaterialTheme.colorScheme.primary,
         fontSize = 20.sp,
@@ -334,7 +336,7 @@ private fun accesosDirectos() {
 }
 
 @Composable
-fun noInfoReserva() {
+fun noInfoReserva(navController: NavController, appState: AppState) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -349,7 +351,7 @@ fun noInfoReserva() {
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
-                onClick = {},
+                onClick = { navController.navigate("reservas")},
                 modifier = Modifier
                     .fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
