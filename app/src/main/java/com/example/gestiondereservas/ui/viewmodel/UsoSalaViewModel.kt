@@ -33,9 +33,12 @@ class UsoSalaViewModel : ViewModel() {
 
     private var trabajoCronometro: Job? = null
 
+    var salaId by mutableStateOf<Long?>(null)
+        private set
     fun cargarReserva(reserva: ReservaEntity) {
 
         nombreActividad = reserva.nombreActividad
+        salaId = reserva.salaId
 
         val anioActual = LocalDate.now().year
         val fechaCompleta = "${reserva.fechaActividad}/$anioActual"
@@ -66,7 +69,9 @@ class UsoSalaViewModel : ViewModel() {
 
     fun iniciarActividad() {
         if (estadoActividad == EstadoActividad.PENDIENTE &&
+            !LocalDateTime.now().isBefore(inicioReserva) &&
             LocalDateTime.now().isBefore(finReserva)
+
         ) {
             estadoActividad = EstadoActividad.EN_CURSO
             actualizarTiempoRestante()

@@ -43,12 +43,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.ui.components.TopBar
 import com.example.gestiondereservas.utils.formatearFecha
 
 @Composable
 fun RelatorScreen(navController: NavController, appState: AppState) {
     Scaffold(
-        topBar = { TopBar() },
+        topBar = { TopBar(navController) },
         bottomBar = { NavBar() }
     ) { padding ->
         Contenido(padding, navController, appState)
@@ -313,7 +314,7 @@ private fun accesosDirectos(navController: NavController, appState: AppState) {
         Column(verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = {},
+            IconButton(onClick = {     navController.navigate("usoSala/0")}, //temporal mientras se conecta a reservas reales
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F5)

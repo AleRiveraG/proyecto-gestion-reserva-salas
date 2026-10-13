@@ -17,14 +17,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.ui.viewmodel.EstadoActividad
 import com.example.gestiondereservas.ui.viewmodel.UsoSalaViewModel
 import com.example.gestiondereservas.ui.theme.Black
 import com.example.gestiondereservas.ui.theme.White
 import com.example.gestiondereservas.ui.theme.Yellow
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.example.gestiondereservas.data.room.EstadoReserva
 
 @Composable
 fun UsoSalaScreen(
+    reservaId : Long,
+    appState: AppState,
     viewModel: UsoSalaViewModel = viewModel()
 ) {
 
@@ -64,11 +73,41 @@ fun UsoSalaScreen(
     val actividadEnCurso =
         estadoActividad == EstadoActividad.EN_CURSO
 
-    val colorProgreso =
-        if (actividadEnCurso) Color(0xFF4CAF17) else Yellow
 
     val colorBoton =
         if (actividadEnCurso) Color(0xFFD50032) else Yellow
+
+    var reservaAprobada by remember(reservaId) { mutableStateOf(false) }
+
+    var cargando by remember(reservaId) {
+        mutableStateOf(true)
+    }
+
+    LaunchedEffect(reservaId) {
+        cargando = true
+        reservaAprobada = false
+
+        try {
+            val reserva = appState.consultarReservaPorId(reservaId)
+
+            if (reserva != null && reserva.estado == EstadoReserva.APROBADA) {
+                viewModel.cargarReserva(reserva)
+                reservaAprobada = true
+            }
+        } finally {
+            cargando = false
+        }
+    }
+
+    if (cargando) {
+        Text("Cargando actividad...")
+        return
+    }
+
+    if (!reservaAprobada) {
+        Text("No hay una reserva aprobada para mostrar")
+        return
+    }
 
     Column(
         modifier = Modifier
@@ -85,7 +124,7 @@ fun UsoSalaScreen(
             shape = RoundedCornerShape(50.dp)
         ) {
             Text(
-                text = "Sala C204",
+                text = viewModel.salaId?.let { "Sala $it" } ?: "Sala no disponible",
                 modifier = Modifier.padding(
                     horizontal = 16.dp,
                     vertical = 8.dp
@@ -110,16 +149,9 @@ fun UsoSalaScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Título de la actividad",
+            text = viewModel.nombreActividad,
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
-            color = Black,
-            textAlign = TextAlign.Center
-        )
-
-        Text(
-            text = viewModel.nombreActividad.ifBlank { "Actividad Reservada" },
-            style = MaterialTheme.typography.bodySmall,
             color = Black,
             textAlign = TextAlign.Center
         )
@@ -157,7 +189,7 @@ fun UsoSalaScreen(
                     text = if (actividadEnCurso)
                         "Tiempo restante"
                     else
-                        "Comienza cuando estés listo",
+                        "Duración de la reserva",
                     style = MaterialTheme.typography.bodySmall,
                     color = Black,
                     textAlign = TextAlign.Center
@@ -196,6 +228,7 @@ fun UsoSalaScreen(
 
                 Button(
                     onClick = { viewModel.iniciarActividad() },
+                    enabled = reservaAprobada,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Yellow,
@@ -203,7 +236,7 @@ fun UsoSalaScreen(
                     ),
                     shape = RoundedCornerShape(10.dp)
                 ) {
-                    Text("▷  Inicio de Actividad")
+                    Text("Inicio de Actividad")
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
