@@ -56,7 +56,7 @@ fun GestionDeReservasTheme(
         }
 
         darkTheme -> DarkColorScheme
-        else -> DarkColorScheme
+        //else -> DarkColorScheme
         else -> EsquemaDuoc
     }
 

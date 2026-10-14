@@ -18,11 +18,10 @@ import com.example.gestiondereservas.ui.views.ReservasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
 import android.graphics.Color
 import androidx.activity.SystemBarStyle
-import com.example.gestiondereservas.navigation.GestionSalasNavigation
 
 //este import es por para probar la vista de las distintas areas
 import com.example.gestiondereservas.data.room.entidades.Area
-import com.example.gestiondereservas.navigation.GestionSalasNavigation
+import com.example.gestiondereservas.ui.views.SalasScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,6 +40,7 @@ class MainActivity : ComponentActivity() {
                 //GestionReservasScreen(appState)
                 //RelatorScreen()
                 //SupervisorScreen(appState)
+                //SalasScreen()
                 myApp(appState)
             }
         }

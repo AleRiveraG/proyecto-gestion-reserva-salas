@@ -1,6 +1,5 @@
 package com.example.gestiondereservas.ui.views
 
-import android.widget.Space
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -38,7 +37,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -61,7 +59,6 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -70,26 +67,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.gestiondereservas.data.AppState
-import com.example.gestiondereservas.data.room.AppDatabase
-import com.example.gestiondereservas.data.room.EstadoReserva
-import com.example.gestiondereservas.data.room.ReservaEntity
+import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.utils.formatoFecha
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
-import java.util.TimeZone
 import kotlin.collections.listOf
 
 @Composable
-fun ReservasScreen(navController: NavController, appState: AppState) {
+fun ReservasScreen(appState: AppState,
+                   onAtras: () -> Unit,
+                   onEnviar: () -> Unit) {
     var paso by remember{ mutableIntStateOf(1)}
 
     var nombre by remember({mutableStateOf("")})
@@ -150,7 +142,7 @@ fun ReservasScreen(navController: NavController, appState: AppState) {
 
         scope.launch {
             appState.registrarReserva(reserva)
-            navController.navigate("paginaRelator")
+            onEnviar()
         }
     }
 
@@ -179,7 +171,7 @@ fun ReservasScreen(navController: NavController, appState: AppState) {
                 { tieneValidacion = it },
                 organizador,
                 { organizador = it },
-                onAtras = { navController.navigate("paginaRelator") },
+                onAtras = { onAtras() },
                 onSiguiente = { paso = 2})
             2 -> ContentPaso2(
                 padding,

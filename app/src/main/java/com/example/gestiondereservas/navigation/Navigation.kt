@@ -5,32 +5,28 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.gestiondereservas.data.AppState
-import com.example.gestiondereservas.ui.views.GestionReservasScreen
-import com.example.gestiondereservas.ui.views.LoginBody
+import com.example.gestiondereservas.ui.components.PantallaBase
 import com.example.gestiondereservas.ui.views.RelatorScreen
 import com.example.gestiondereservas.ui.views.ReservasScreen
-import com.example.gestiondereservas.ui.views.SupervisorScreen
-
 
 @Composable
 fun appNavigation(navController: NavHostController, appState: AppState) {
+
     NavHost(
-        navController = navController, startDestination =  "paginaRelator" //"login"
+        navController = navController, startDestination =  "baseSupervisor" //"login"
     ) {
         composable ("login"){ }
 
-        composable("paginaRelator") { RelatorScreen(navController, appState) }
+        composable("paginaRelator") { RelatorScreen(appState,
+            onReservas = {navController.navigate("reservas")}) }
         composable("calendario"){  }
         composable("salasRelator"){  }
-        composable("reservas"){ ReservasScreen(navController, appState) }
+        composable("reservas"){ ReservasScreen(appState,
+            onAtras = { navController.navigate("paginaRelator") },
+            onEnviar = { navController.navigate("paginaRelator")} ) }
 
-        composable("paginaSupervisor"){ SupervisorScreen(appState) }
-        composable("gestionReservas"){ GestionReservasScreen(appState) }
-        composable("calendarioSupervisor"){ }
-        composable("salasSupervisor"){  }
-        composable("auditoria"){ }
-        composable("reportes"){  }
-        composable("horarios"){  }
+        composable("baseSupervisor"){
+            PantallaBase(navController, appState) }
 
     }
 }

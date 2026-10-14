@@ -1,6 +1,5 @@
 package com.example.gestiondereservas.ui.views
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -9,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,11 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -60,8 +53,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.AppState
-import com.example.gestiondereservas.data.room.EstadoReserva
-import com.example.gestiondereservas.data.room.ReservaEntity
+import com.example.gestiondereservas.data.room.entidades.EstadoReserva
+import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.utils.formatearFechaPerso
 import kotlinx.coroutines.launch
 
@@ -86,17 +79,12 @@ fun GestionReservasScreen(appState: AppState) {
     LaunchedEffect(appState) {
         consultaReservas()
     }
-    Scaffold(
-        topBar = { TopBarAdmin() },
-        bottomBar = { NavBarAdmin() }
-    ) { padding ->
-        Contenido(padding,reservas, aprobadas, rechazadas, pendientes, appState)
-    }
+
+    Contenido(reservas,aprobadas, rechazadas, pendientes, appState)
 }
 
 @Composable
-private fun Contenido(padding: PaddingValues,
-                      reservas: List<ReservaEntity>,
+private fun Contenido(reservas: List<ReservaEntity>,
                       aprobadas: Int,
                       rechazadas: Int,
                       pendientes: Int,
@@ -106,7 +94,6 @@ private fun Contenido(padding: PaddingValues,
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.secondary)
-            .padding(padding)
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
@@ -199,79 +186,7 @@ fun TopBarAdmin() {
     )
 }
 
-@Composable
-fun NavBarAdmin() {
-    var seleccion by remember { mutableIntStateOf(3) }
 
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.primary
-    ) {
-        NavigationBarItem(
-            selected = seleccion == 0,
-            onClick = { seleccion = 0 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.home),
-                    contentDescription = "Icono inicio"
-                )
-            },
-            label = { Text("Inicio")},
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-        NavigationBarItem(
-            selected = seleccion == 1,
-            onClick = { seleccion = 1 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.calendar),
-                    contentDescription = "Icono calendario",
-                )
-            },
-            label = { Text("Calendario")},
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-        NavigationBarItem(
-            selected = seleccion == 2,
-            onClick = { seleccion = 2 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.door),
-                    contentDescription = "Icono puerta",
-                )
-            },
-            label = { Text("Salas")},
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-        NavigationBarItem(
-            selected = seleccion == 3,
-            onClick = { seleccion = 3 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.task),
-                    contentDescription = "Icono reserva",
-                )
-            },
-            label = { Text("Reservas")},
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-    }
-}
 
 @Composable
 fun contador(pendientes: Int, aprobadas: Int, rechazadas: Int) {

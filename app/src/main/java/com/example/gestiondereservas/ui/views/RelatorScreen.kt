@@ -22,7 +22,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -30,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,28 +40,30 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.utils.formatearFecha
 
 @Composable
-fun RelatorScreen(navController: NavController, appState: AppState) {
-    Scaffold(
-        topBar = { TopBar() },
-        bottomBar = { NavBar() }
-    ) { padding ->
-        Contenido(padding, navController, appState)
-    }
+fun RelatorScreen(appState: AppState, onReservas: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    val reservas by remember { mutableStateOf<List<ReservaEntity>>(emptyList()) }
+    //Falta id usuario proveniente del Login
+
+    Contenido(appState, onReservas)
 }
 
 @Composable
-private fun Contenido(padding: PaddingValues, navController: NavController, appState: AppState) {
+private fun Contenido(
+    //reservas: List<ReservaEntity>,
+    appState: AppState,
+    onReservas: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.secondary)
-            .padding(padding)
             .padding(horizontal = 16.dp, vertical = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
@@ -86,17 +88,17 @@ private fun Contenido(padding: PaddingValues, navController: NavController, appS
         Spacer(modifier = Modifier.height(12.dp))
 
         //infoReserva()
-        noInfoReserva(navController, appState)
+        noInfoReserva(onReservas, appState)
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        accesosDirectos(navController, appState)
+        accesosDirectos(appState)
     }
 }
 
 
 @Composable
-fun infoReserva() {
+fun infoReserva(onReservas: () -> Unit) {
     var checked by remember { mutableStateOf(false) }
 
     Box(
@@ -230,7 +232,7 @@ fun infoReserva() {
 }
 
 @Composable
-private fun accesosDirectos(navController: NavController, appState: AppState) {
+private fun accesosDirectos(appState: AppState) {
     Text("Accesos directos",
         color = MaterialTheme.colorScheme.primary,
         fontSize = 20.sp,
@@ -336,7 +338,7 @@ private fun accesosDirectos(navController: NavController, appState: AppState) {
 }
 
 @Composable
-fun noInfoReserva(navController: NavController, appState: AppState) {
+fun noInfoReserva(onReservas: () -> Unit, appState: AppState) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -351,7 +353,7 @@ fun noInfoReserva(navController: NavController, appState: AppState) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
-                onClick = { navController.navigate("reservas")},
+                onClick = { onReservas },
                 modifier = Modifier
                     .fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(

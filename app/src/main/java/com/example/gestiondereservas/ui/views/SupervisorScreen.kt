@@ -27,22 +27,25 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.ui.components.NavBarAdmin
 import com.example.gestiondereservas.utils.formatearFecha
 
 @Composable
-fun SupervisorScreen(appState: AppState) {
-    Scaffold(
-        topBar = { TopBarAdmin() },
-        bottomBar = { NavBarAdmin() }
-    ) { padding ->
-        Contenido(padding)
-    }
+fun SupervisorScreen(appState: AppState,
+                     onHorarios: () -> Unit,
+                     onGestionSalas: () -> Unit,
+                     onAuditoria: () -> Unit,
+                     onReportes: () -> Unit) {
+        Contenido(
+            padding = PaddingValues(0.dp),
+            onGestionSalas)
 }
 
 @Composable
-private fun Contenido(padding: PaddingValues) {
+private fun Contenido(padding: PaddingValues, onGestionSalas: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -69,7 +72,7 @@ private fun Contenido(padding: PaddingValues) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        accesosDirectos()
+        accesosDirectos(onGestionSalas)
     }
 }
 
@@ -95,7 +98,7 @@ fun reservasPendientes(){
 }
 
 @Composable
-private fun accesosDirectos() {
+private fun accesosDirectos(onGestionSalas: () -> Unit) {
     Text("Accesos directos",
         color = MaterialTheme.colorScheme.primary,
         fontSize = 20.sp,
@@ -178,7 +181,7 @@ private fun accesosDirectos() {
         Column(verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = {},
+            IconButton(onClick = { onGestionSalas() },
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F5)
