@@ -53,18 +53,16 @@ import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.data.room.entidades.Sala
 import com.example.gestiondereservas.ui.components.AreaChip
 import com.example.gestiondereservas.ui.viewmodel.SalasViewModel
-import com.example.gestiondereservas.data.room.entidades.Area
 
 @Composable
-fun rememberSalasViewModel(areaCoordinador: Area): SalasViewModel {
+fun rememberSalasViewModel(): SalasViewModel {
     val contexto = LocalContext.current.applicationContext
     return viewModel(
-        key = "salas-${areaCoordinador.name}",
+        key = "salas-coordinador-infraestructura",
         factory = viewModelFactory {
             initializer {
                 SalasViewModel(
-                    SalaRepository(ProveedorDatos.salaDao(contexto)),
-                    areaCoordinador
+                    SalaRepository(ProveedorDatos.salaDao(contexto))
                 )
             }
         }
@@ -73,10 +71,9 @@ fun rememberSalasViewModel(areaCoordinador: Area): SalasViewModel {
 
 @Composable
 fun SalasScreen(
-    areaCoordinador: Area = Area.INFORMATICA,
     onNuevaSala: () -> Unit = {},
     onEditarSala: (Long) -> Unit = {},
-    viewModel: SalasViewModel = rememberSalasViewModel(areaCoordinador)
+    viewModel: SalasViewModel = rememberSalasViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     var salaPorCambiar by remember { mutableStateOf<Sala?>(null) }
@@ -93,7 +90,7 @@ fun SalasScreen(
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "Gestiona los recintos de tu área",
+            text = "Gestiona los recintos de todas las áreas",
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF666666)
         )

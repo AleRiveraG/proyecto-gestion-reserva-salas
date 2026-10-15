@@ -6,21 +6,20 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.gestiondereservas.data.room.entidades.Area
 import com.example.gestiondereservas.ui.components.PantallaBase
 import com.example.gestiondereservas.ui.views.FormularioSalaScreen
 import com.example.gestiondereservas.ui.views.SalasScreen
 
+//rutas para las funcionalidades de gestion de salas
 object GestionSalasRutas {
     const val SALAS = "gestion_salas"
     const val FORMULARIO_SALA = "gestion_salas/formulario/{salaId}"
 
-    fun formularioSala(salaId: Long) =
-        "gestion_salas/formulario/$salaId"
+    fun formularioSala(salaId: Long) = "gestion_salas/formulario/$salaId"
 }
 
 @Composable
-fun GestionSalasNavigation(areaCoordinador: Area = Area.INFORMATICA) {
+fun GestionSalasNavigation() {
     val navController = rememberNavController()
 
     NavHost(
@@ -30,38 +29,24 @@ fun GestionSalasNavigation(areaCoordinador: Area = Area.INFORMATICA) {
         composable(GestionSalasRutas.SALAS) {
             PantallaBase(itemSeleccionado = 2) {
                 SalasScreen(
-                    areaCoordinador = areaCoordinador,
                     onNuevaSala = {
-                        navController.navigate(
-                            GestionSalasRutas.formularioSala(0L)
-                        )
+                        navController.navigate(GestionSalasRutas.formularioSala(0L))
                     },
                     onEditarSala = { id ->
-                        navController.navigate(
-                            GestionSalasRutas.formularioSala(id)
-                        )
+                        navController.navigate(GestionSalasRutas.formularioSala(id))
                     }
                 )
             }
         }
-
         composable(
             route = GestionSalasRutas.FORMULARIO_SALA,
-            arguments = listOf(
-                navArgument("salaId") {
-                    type = NavType.LongType
-                }
-            )
+            arguments = listOf(navArgument("salaId") { type = NavType.LongType })
         ) { entrada ->
             val salaId = entrada.arguments?.getLong("salaId") ?: 0L
-
             PantallaBase(itemSeleccionado = 2) {
                 FormularioSalaScreen(
                     salaId = salaId,
-                    areaCoordinador = areaCoordinador,
-                    onVolver = {
-                        navController.popBackStack()
-                    }
+                    onVolver = { navController.popBackStack() }
                 )
             }
         }

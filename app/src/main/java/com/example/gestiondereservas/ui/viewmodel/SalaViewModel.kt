@@ -3,7 +3,6 @@ package com.example.gestiondereservas.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.repository.SalaRepository
-import com.example.gestiondereservas.data.room.entidades.Area
 import com.example.gestiondereservas.data.room.entidades.Sala
 import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,8 +21,7 @@ data class SalasUiState(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SalasViewModel(
-    private val repositorio: SalaRepository,
-    private val area: Area
+    private val repositorio: SalaRepository
 ) : ViewModel() {
 
     private val busqueda = MutableStateFlow("")
@@ -34,7 +32,7 @@ class SalasViewModel(
 
     val uiState: StateFlow<SalasUiState> = busqueda
         .flatMapLatest { texto ->
-            repositorio.observarPorArea(area, texto).map { SalasUiState(texto, it) }
+            repositorio.observarTodas(texto).map { SalasUiState(texto, it) }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SalasUiState())
 
