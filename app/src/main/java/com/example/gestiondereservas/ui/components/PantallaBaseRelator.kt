@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
+import com.example.gestiondereservas.ui.views.BusquedaSalasScreen
 import com.example.gestiondereservas.ui.views.RelatorScreen
 import com.example.gestiondereservas.ui.views.ReservasScreen
 
@@ -42,7 +43,7 @@ fun PantallaBaseRelator(
                 opcionSeleccionada,
                 onInicio = { tabNavController.navigate("paginaRelator") },
                 onCalendario = { tabNavController.navigate("") },
-                onSalas = { tabNavController.navigate("") },
+                onSalas = { tabNavController.navigate("salasRelator") },
             ) },
         containerColor = MaterialTheme.colorScheme.secondary
     ) { padding ->
@@ -53,7 +54,7 @@ fun PantallaBaseRelator(
         ){
             NavHost(
                 navController = tabNavController,
-                startDestination = "paginaRelator"
+                startDestination = "salasRelator"
             ) {
                 composable("paginaRelator") {
                     RelatorScreen(
@@ -61,12 +62,18 @@ fun PantallaBaseRelator(
                     )
                 }
 
+                composable("salasRelator") {
+                    BusquedaSalasScreen(
+                        onReservas = { tabNavController.navigate("reservas")}
+                    )
+                }
                 composable("reservas") {
                     ReservasScreen(
                         onAtras = { tabNavController.navigate("paginaRelator")},
                         onEnviar = { tabNavController.navigate("paginaRelator")} // TIENE QUE DEVOLVER A CALENDARIO
                     )
                 }
+
             }
         }
     }

@@ -48,7 +48,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.data.ProveedorDatos
 import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.SalaEntity

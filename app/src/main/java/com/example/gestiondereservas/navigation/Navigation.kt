@@ -15,7 +15,7 @@ import com.example.gestiondereservas.ui.views.ReservasScreen
 fun appNavigation(navController: NavHostController) {
 
     NavHost(
-        navController = navController, startDestination = "baseSupervisor" //"baseRelator" //"login"
+        navController = navController, startDestination = "baseRelator" //"baseRelator" //"login"
     ) {
         composable ("login"){ }
 
