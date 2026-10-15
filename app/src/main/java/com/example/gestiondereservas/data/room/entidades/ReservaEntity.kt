@@ -1,4 +1,4 @@
-package com.example.gestiondereservas.data.room
+package com.example.gestiondereservas.data.room.entidades
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

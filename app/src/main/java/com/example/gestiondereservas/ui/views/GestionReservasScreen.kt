@@ -1,10 +1,8 @@
 package com.example.gestiondereservas.ui.views
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -31,13 +28,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -46,41 +40,51 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.data.repository.ReservaRepository
+import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
+import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.utils.formatearFechaPerso
-import kotlinx.coroutines.launch
 
 @Composable
-fun GestionReservasScreen(appState: AppState) {
-    var reservas by remember { mutableStateOf<List<ReservaEntity>>(emptyList()) }
-    var aprobadas by remember { mutableIntStateOf(0) }
-    var pendientes by remember { mutableIntStateOf(0) }
-    var rechazadas by remember { mutableIntStateOf(0) }
-
-    val scope = rememberCoroutineScope()
-
-    fun consultaReservas() {
-        scope.launch {
-            reservas = appState.consultarReservas()
-            aprobadas = appState.consultarAprobadas()
-            pendientes = appState.consultarPendientes()
-            rechazadas =  appState.consultarRechazadas()
+fun rememberGestionReservasViewModel(): GestionReservasViewModel {
+    val contexto = LocalContext.current.applicationContext
+    return viewModel(
+        factory = viewModelFactory {
+            initializer {
+                val dao = AppDatabase.getInstance(contexto).reservaDao()
+                val daoSalas = AppDatabase.getInstance(contexto).salaDao()
+                val repository = ReservaRepository(dao, daoSalas)
+                GestionReservasViewModel(repository)
+            }
         }
-    }
+    )
+}
+@Composable
+fun GestionReservasScreen(viewModel: GestionReservasViewModel = rememberGestionReservasViewModel()
+) {
+    val reservas by viewModel.reservasPendientes.collectAsState()
+    val aprobadas by viewModel.aprobadas.collectAsState()
+    val pendientes by viewModel.pendientes.collectAsState()
+    val rechazadas by viewModel.rechazadas.collectAsState()
 
-    LaunchedEffect(appState) {
-        consultaReservas()
-    }
-
-    Contenido(reservas,aprobadas, rechazadas, pendientes, appState)
+    Contenido(reservas,
+        aprobadas,
+        rechazadas,
+        pendientes,
+        onAprobar = { id -> viewModel.modificarEstado(id, EstadoReserva.APROBADA.name) } ,
+        onRechazar = { id -> viewModel.modificarEstado(id, EstadoReserva.RECHAZADA.name)}
+        )
 }
 
 @Composable
@@ -88,7 +92,8 @@ private fun Contenido(reservas: List<ReservaEntity>,
                       aprobadas: Int,
                       rechazadas: Int,
                       pendientes: Int,
-                      appState: AppState
+                      onAprobar: (Long) -> Unit,
+                      onRechazar: (Long) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -117,76 +122,14 @@ private fun Contenido(reservas: List<ReservaEntity>,
         Spacer(modifier = Modifier.height(12.dp))
 
         reservas.forEach { reserva ->
-            reserva(reserva, appState)
+            reserva(
+                reserva,
+                onAprobar,
+                onRechazar)
             Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TopBarAdmin() {
-    TopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            titleContentColor = MaterialTheme.colorScheme.secondary
-        ),
-        title = {
-            Row (verticalAlignment = Alignment.CenterVertically){
-
-                Image(
-                    painter = painterResource(id = R.drawable.logo),
-                    contentDescription = "Logo Duoc Uc",
-                    modifier = Modifier.size(100.dp),
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text("Reserva" , color = MaterialTheme.colorScheme.secondary)
-                Text("Salas", color = MaterialTheme.colorScheme.tertiary)
-            }
-        },
-        actions = {
-            Row() {
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF3B3B3B))
-                        .clickable { },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.bell),
-                        contentDescription = "Icono notificaciones",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF3B3B3B))
-                        .clickable { },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.user_circle),
-                        contentDescription = "Icono usuario",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-            }
-        }
-    )
-}
-
-
 
 @Composable
 fun contador(pendientes: Int, aprobadas: Int, rechazadas: Int) {
@@ -250,7 +193,7 @@ fun contador(pendientes: Int, aprobadas: Int, rechazadas: Int) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun reserva(reserva: ReservaEntity, appState: AppState) {
+fun reserva(reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long) -> Unit) {
     var mostrarModal by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
@@ -463,7 +406,10 @@ fun reserva(reserva: ReservaEntity, appState: AppState) {
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.secondary
         ) {
-            detalleSolicitud(onCerrar = { mostrarModal = false }, reserva, appState)
+            detalleSolicitud(onCerrar = { mostrarModal = false },
+                reserva,
+                onAprobar,
+                onRechazar)
         }
     }
 }
@@ -564,7 +510,7 @@ fun etiquetaEstado(estado: String) {
 }
 
 @Composable
-fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, appState: AppState) {
+fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long) -> Unit) {
     val scope = rememberCoroutineScope()
 
     Column(modifier = Modifier.padding(16.dp)) {
@@ -624,9 +570,7 @@ fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, appState: App
                 modifier = Modifier
                     .weight(1f),
                 onClick = {
-                    scope.launch {
-                        appState.cambiarEstado(reserva.id, EstadoReserva.RECHAZADA.name)
-                    }
+                    onAprobar(reserva.id)
                     onCerrar() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFD00236)
@@ -652,9 +596,7 @@ fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, appState: App
                 modifier = Modifier
                     .weight(1f),
                 onClick = {
-                    scope.launch {
-                        appState.cambiarEstado(reserva.id, EstadoReserva.APROBADA.name)
-                    }
+                    onRechazar(reserva.id)
                     onCerrar()
                 },
                 colors = ButtonDefaults.buttonColors(

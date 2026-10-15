@@ -1,8 +1,7 @@
 package com.example.gestiondereservas.data
 
 import com.example.gestiondereservas.data.room.AppDatabase
-import com.example.gestiondereservas.data.room.EstadoReserva
-import com.example.gestiondereservas.data.room.ReservaEntity
+import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 
 class AppState(private val db: AppDatabase) {
 

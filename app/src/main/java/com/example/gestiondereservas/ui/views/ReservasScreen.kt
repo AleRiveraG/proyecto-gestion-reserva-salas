@@ -1,26 +1,21 @@
 package com.example.gestiondereservas.ui.views
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.gestiondereservas.R
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -47,9 +42,6 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextButton
@@ -57,29 +49,51 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TimeInput
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import com.example.gestiondereservas.data.AppState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.gestiondereservas.data.repository.ReservaRepository
+import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
+import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
+import com.example.gestiondereservas.utils.formatearFechaPerso
 import com.example.gestiondereservas.utils.formatoFecha
-import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.collections.listOf
 
 @Composable
-fun ReservasScreen(appState: AppState,
+fun rememberReservaViewModel(): ReservaViewModel {
+    val contexto = LocalContext.current.applicationContext
+    return viewModel(
+        factory = viewModelFactory {
+            initializer {
+                val dao = AppDatabase.getInstance(contexto).reservaDao()
+                val daoSalas = AppDatabase.getInstance(contexto).salaDao()
+                val repository = ReservaRepository(dao, daoSalas)
+                ReservaViewModel(repository)
+            }
+        }
+    )
+}
+
+@Composable
+fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                    onAtras: () -> Unit,
                    onEnviar: () -> Unit) {
     var paso by remember{ mutableIntStateOf(1)}
@@ -100,14 +114,13 @@ fun ReservasScreen(appState: AppState,
     var horaMontaje by remember { mutableStateOf("") }
     var publicoSelecionado by remember { mutableStateOf<Set<String>>(emptySet()) }
     var requiereForm by remember { mutableStateOf("") }
-    var salaId by remember { mutableStateOf<Long?>(null) }
+    var salaId by remember { mutableLongStateOf(0L) }
     var nombres by remember { mutableStateOf("") }
 
     var servicios by remember { mutableStateOf<Map<String, Set<String>>>(emptyMap()) }
     var complemento by remember { mutableStateOf("") }
     var proveedores by remember { mutableStateOf("")}
 
-    val scope = rememberCoroutineScope()
 
     fun crearReserva(): ReservaEntity {
         return ReservaEntity(
@@ -139,201 +152,77 @@ fun ReservasScreen(appState: AppState,
 
     fun guardarReserva() {
         val reserva = crearReserva()
-
-        scope.launch {
-            appState.registrarReserva(reserva)
-            onEnviar()
-        }
+        viewModel.registrarReserva(reserva )
+        onEnviar()
     }
 
+    val listaSalas by viewModel.listaSalas.collectAsState()
+    val sala by viewModel.salaSeleccionada.collectAsState()
 
-
-    Scaffold(
-        topBar = { TopBar() },
-        bottomBar = { NavBar() }
-    ) { padding ->
-        when (paso) {
-            1 -> ContentPaso1(
-                padding,
-                nombre,
-                { nombre = it },
-                responsable,
-                { responsable = it },
-                telefono,
-                { telefono = it},
-                correo,
-                { correo = it },
-                descripcion,
-                { descripcion = it},
-                tipoActividad,
-                { tipoActividad = it},
-                tieneValidacion,
-                { tieneValidacion = it },
-                organizador,
-                { organizador = it },
-                onAtras = { onAtras() },
-                onSiguiente = { paso = 2})
-            2 -> ContentPaso2(
-                padding,
-                fechaActividad,
-                { fechaActividad = it },
-                horaInicio,
-                { horaInicio = it},
-                horaTermino,
-                { horaTermino = it},
-                fechaMontaje,
-                { fechaMontaje = it},
-                horaMontaje,
-                { horaMontaje = it},
-                publicoSelecionado,
-                { publicoSelecionado = it },
-                requiereForm,
-                { requiereForm = it},
-                salaId,
-                { salaId = it},
-                nombres,
-                { nombre = it },
-                onAtras = { paso = 1},
-                onSiguiente = { paso = 3}
-                )
-            3 -> ContentPaso3(padding,
-                complemento,
-                { complemento = it },
-                proveedores,
-                { proveedores = it },
-                servicios,
-                { categoria, nuevosServicios -> servicios = servicios + ( categoria to nuevosServicios)},
-                onAtras = { paso = 2 },
-                onEnviar = { paso = 4} )
-            4 -> Final(padding, onEnviar = { guardarReserva() })
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun TopBar() {
-        TopAppBar(
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = MaterialTheme.colorScheme.secondary
-            ),
-            title = {
-                Row (verticalAlignment = Alignment.CenterVertically){
-
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = "Logo Duoc Uc",
-                        modifier = Modifier.size(100.dp),
-                        colorFilter = ColorFilter.tint(Color.White)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Reserva" , color = MaterialTheme.colorScheme.secondary)
-                    Text("Salas", color = MaterialTheme.colorScheme.tertiary)
-                }
-            },
-            actions = {
-                Row() {
-                    Box(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF3B3B3B))
-                            .clickable{ },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.bell),
-                            contentDescription = "Icono notificaciones",
-                            tint = Color.White,
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF3B3B3B))
-                            .clickable{ },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.user_circle),
-                            contentDescription = "Icono usuario",
-                            tint = Color.White,
-                            modifier = Modifier.size(30.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-                }
-            }
+    when (paso) {
+        1 -> ContentPaso1(
+            nombre,
+            { nombre = it },
+            responsable,
+            { responsable = it },
+            telefono,
+            { telefono = it},
+            correo,
+            { correo = it },
+            descripcion,
+            { descripcion = it},
+            tipoActividad,
+            { tipoActividad = it},
+            tieneValidacion,
+            { tieneValidacion = it },
+            organizador, { organizador = it },
+            onAtras = { onAtras() },
+            onSiguiente = { paso = 2})
+        2 -> ContentPaso2(
+            fechaActividad,
+            { fechaActividad = it },
+            horaInicio,
+            { horaInicio = it},
+            horaTermino,
+            { horaTermino = it},
+            fechaMontaje,
+            { fechaMontaje = it},
+            horaMontaje,
+            { horaMontaje = it},
+            publicoSelecionado,
+            { publicoSelecionado = it },
+            requiereForm,
+            { requiereForm = it},
+            { id ->
+                salaId = id
+                viewModel.buscarSala(id)},
+            listaSalas,
+            nombres,
+            { nombre = it },
+            onAtras = { paso = 1},
+            onSiguiente = { paso = 3}
         )
-}
-
-@Composable
-fun NavBar() {
-    var seleccion by remember { mutableIntStateOf(1) }
-
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.primary
-    ) {
-        NavigationBarItem(
-            selected = seleccion == 0,
-            onClick = { seleccion = 0 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.home),
-                    contentDescription = "Icono inicio"
-                )
-            },
-            label = { Text("Inicio")},
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-        NavigationBarItem(
-            selected = seleccion == 1,
-            onClick = { seleccion = 1 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.calendar),
-                    contentDescription = "Icono calendario",
-                )
-            },
-            label = { Text("Calendario")},
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-        NavigationBarItem(
-            selected = seleccion == 2,
-            onClick = { seleccion = 2 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.door),
-                    contentDescription = "Icono puerta",
-                )
-            },
-            label = { Text("Salas")},
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
+        3 -> ContentPaso3(
+            complemento,
+            { complemento = it },
+            proveedores,
+            { proveedores = it },
+            servicios,
+            { categoria, nuevosServicios -> servicios = servicios + ( categoria to nuevosServicios)},
+            onAtras = { paso = 2 },
+            onEnviar = { paso = 4} )
+        4 -> Final(onEnviar = { guardarReserva() },
+            sala,
+            fechaMontaje,
+            horaMontaje,
+            fechaActividad,
+            horaInicio,
+            horaTermino)
     }
 }
 
 @Composable
-fun ContentPaso1(padding: PaddingValues,
-                 nombre: String,
+fun ContentPaso1(nombre: String,
                  onNombreChange: (String) -> Unit,
                  responsable: String,
                  onResponsableChange: (String) -> Unit,
@@ -355,7 +244,6 @@ fun ContentPaso1(padding: PaddingValues,
         modifier = Modifier
             .background(Color(0xFFFFFFFF))
             .fillMaxSize()
-            .padding(padding)
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
@@ -565,8 +453,7 @@ fun ContentPaso1(padding: PaddingValues,
 }
 
 @Composable
-fun ContentPaso2(padding: PaddingValues,
-                 fechaActividad:String,
+fun ContentPaso2(fechaActividad:String,
                  onFechaChange: (String) -> Unit,
                  horaInicio:String,
                  onHoraInicioChange: (String) -> Unit,
@@ -580,8 +467,8 @@ fun ContentPaso2(padding: PaddingValues,
                  onPublicoChange: (Set<String>) -> Unit,
                  requiereForm: String,
                  onRequiereFormChange: (String) -> Unit,
-                 salaId: Long?,
                  onSalaIdChange: (Long) -> Unit,
+                 listaSalas: List<SalaEntity>,
                  nombres: String,
                  onNombresChange: (String) -> Unit,
                  onAtras: () -> Unit,
@@ -590,7 +477,6 @@ fun ContentPaso2(padding: PaddingValues,
         modifier = Modifier
             .background(Color(0xFFFFFFFF))
             .fillMaxSize()
-            .padding(padding)
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
@@ -734,7 +620,7 @@ fun ContentPaso2(padding: PaddingValues,
                 .padding(24.dp)
         ) {
             Column {
-                recinto("Recinto *", salaId, onSalaIdChange)
+                recinto("Recinto *", listaSalas, onSalaIdChange)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -851,8 +737,7 @@ fun ContentPaso2(padding: PaddingValues,
 }
 
 @Composable
-fun ContentPaso3(padding: PaddingValues,
-                 complemento: String,
+fun ContentPaso3(complemento: String,
                  onComplementoChange: (String) -> Unit,
                  proveedores: String,
                  onProvedooresChange: (String) -> Unit,
@@ -864,7 +749,6 @@ fun ContentPaso3(padding: PaddingValues,
         modifier = Modifier
             .background(Color(0xFFFFFFFF))
             .fillMaxSize()
-            .padding(padding)
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
@@ -1100,11 +984,17 @@ fun ContentPaso3(padding: PaddingValues,
 }
 
 @Composable
-fun Final(padding: PaddingValues, onEnviar: () -> Unit){
+fun Final(onEnviar: () -> Unit,
+          sala: SalaEntity?,
+          fechaMontaje: String,
+          horaMontaje: String,
+          fechaActividad: String,
+          horaInicio: String,
+          horaTermino: String
+){
     Column(
         modifier = Modifier.fillMaxSize()
             .background(Color(0xFFFFFFFF))
-            .padding(padding)
             .padding( 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -1179,7 +1069,7 @@ fun Final(padding: PaddingValues, onEnviar: () -> Unit){
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    Text("Recinto: ",
+                    Text("Recinto: ${sala?.codigo}",
                         color = MaterialTheme.colorScheme.primary)
                 }
 
@@ -1197,7 +1087,7 @@ fun Final(padding: PaddingValues, onEnviar: () -> Unit){
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    Text("Montaje: ",
+                    Text("Montaje: ${formatearFechaPerso(fechaMontaje)}, $horaMontaje",
                         color = MaterialTheme.colorScheme.primary)
                 }
 
@@ -1215,16 +1105,17 @@ fun Final(padding: PaddingValues, onEnviar: () -> Unit){
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    Text("Fecha: ",
+                    Text("Fecha: ${formatearFechaPerso(fechaActividad)}, $horaInicio a $horaTermino",
                         color = MaterialTheme.colorScheme.primary)
                 }
-
+/*
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text("Servicios solicitados",
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold)
+*/
             }
         }
 
@@ -1469,9 +1360,10 @@ fun menuEscuelas(titulo: String, opcion: String, onOrganizadorChange: (String) -
     }
 }
 
+@SuppressLint("InvalidColorHexValue")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun recinto(titulo: String, salaId: Long?, onRecintoChange: (Long) -> Unit) {
+fun recinto(titulo: String, listaSalas: List<SalaEntity>, onRecintoChange: (Long) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var opcion by remember { mutableStateOf("") }
 
@@ -1497,6 +1389,8 @@ fun recinto(titulo: String, salaId: Long?, onRecintoChange: (Long) -> Unit) {
                     .fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    unfocusedTextColor = MaterialTheme.colorScheme.primary,
                     focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
                     unfocusedTrailingIconColor = MaterialTheme.colorScheme.primary
                 )
@@ -1507,10 +1401,35 @@ fun recinto(titulo: String, salaId: Long?, onRecintoChange: (Long) -> Unit) {
                 onDismissRequest = { expanded = false },
                 modifier = Modifier.background(MaterialTheme.colorScheme.secondary)
             ) {
-                DropdownMenuItem(
-                    text = { Text("Salas", color = MaterialTheme.colorScheme.primary) },
-                    onClick = {}
-                )
+                listaSalas.forEach { sala ->
+                    DropdownMenuItem(
+                        onClick = { opcion = sala.nombre
+                                  onRecintoChange(sala.id)
+                                  expanded = false},
+                        text = {
+                            Row(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.door),
+                                    contentDescription = "Icono sala"
+                                )
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                Column() {
+                                    Text("${sala.codigo} - ${sala.nombre}",
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontSize = 16.sp)
+                                    Text("Cap.${sala.capacidad} - ${sala.area}",
+                                        color = Color(0xFF557A99))
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
     }

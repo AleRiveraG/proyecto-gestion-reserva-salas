@@ -34,23 +34,22 @@ import com.example.gestiondereservas.ui.components.NavBarAdmin
 import com.example.gestiondereservas.utils.formatearFecha
 
 @Composable
-fun SupervisorScreen(appState: AppState,
+fun SupervisorScreen(
                      onHorarios: () -> Unit,
                      onGestionSalas: () -> Unit,
                      onAuditoria: () -> Unit,
-                     onReportes: () -> Unit) {
+                     onReportes: () -> Unit)
+{
         Contenido(
-            padding = PaddingValues(0.dp),
             onGestionSalas)
 }
 
 @Composable
-private fun Contenido(padding: PaddingValues, onGestionSalas: () -> Unit) {
+private fun Contenido(onGestionSalas: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.secondary)
-            .padding(padding)
             .padding(16.dp)
     ) {
         Text(text = formatearFecha(),

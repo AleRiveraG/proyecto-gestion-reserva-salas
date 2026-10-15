@@ -43,21 +43,18 @@ import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
+import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
 import com.example.gestiondereservas.utils.formatearFecha
 
 @Composable
-fun RelatorScreen(appState: AppState, onReservas: () -> Unit) {
-    val scope = rememberCoroutineScope()
-    val reservas by remember { mutableStateOf<List<ReservaEntity>>(emptyList()) }
-    //Falta id usuario proveniente del Login
-
-    Contenido(appState, onReservas)
+fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
+                  onReservas: () -> Unit) {
+    //FALTA BUSCAR RESERVA POR USUARIO ID EXTRAIDO DEL LOGIN Y USA EL VIEWMODEL PARA ESO
+    Contenido(onReservas)
 }
 
 @Composable
 private fun Contenido(
-    //reservas: List<ReservaEntity>,
-    appState: AppState,
     onReservas: () -> Unit
 ) {
     Column(
@@ -88,11 +85,11 @@ private fun Contenido(
         Spacer(modifier = Modifier.height(12.dp))
 
         //infoReserva()
-        noInfoReserva(onReservas, appState)
+        noInfoReserva(onReservas)
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        accesosDirectos(appState)
+        accesosDirectos()
     }
 }
 
@@ -232,7 +229,7 @@ fun infoReserva(onReservas: () -> Unit) {
 }
 
 @Composable
-private fun accesosDirectos(appState: AppState) {
+private fun accesosDirectos() {
     Text("Accesos directos",
         color = MaterialTheme.colorScheme.primary,
         fontSize = 20.sp,
@@ -338,7 +335,7 @@ private fun accesosDirectos(appState: AppState) {
 }
 
 @Composable
-fun noInfoReserva(onReservas: () -> Unit, appState: AppState) {
+fun noInfoReserva(onReservas: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -353,7 +350,7 @@ fun noInfoReserva(onReservas: () -> Unit, appState: AppState) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
-                onClick = { onReservas },
+                onClick = { onReservas() },
                 modifier = Modifier
                     .fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(

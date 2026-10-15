@@ -7,7 +7,7 @@ import com.example.gestiondereservas.data.CatalogoEquipamientos
 import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.data.room.entidades.Area
 import com.example.gestiondereservas.data.room.entidades.Equipamiento
-import com.example.gestiondereservas.data.room.entidades.Sala
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.utils.ValidacionesSala
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -64,7 +64,7 @@ class FormularioSalaViewModel(
     )
     val estado: StateFlow<FormularioSalaState> = _estado.asStateFlow()
 
-    private var salaCargada: Sala? = null
+    private var salaEntityCargada: SalaEntity? = null
 
     init {
         cargar()
@@ -83,7 +83,7 @@ class FormularioSalaViewModel(
                 }
                 return@launch
             }
-            if (item.sala.area != areaCoordinador) {
+            if (item.salaEntity.area != areaCoordinador) {
                 _estado.update {
                     it.copy(
                         cargando = false,
@@ -92,15 +92,15 @@ class FormularioSalaViewModel(
                 }
                 return@launch
             }
-            salaCargada = item.sala
+            salaEntityCargada = item.salaEntity
             val datos = DatosSala(
-                codigo = item.sala.codigo,
-                nombre = item.sala.nombre,
-                capacidad = item.sala.capacidad,
-                area = item.sala.area,
-                encargado = item.sala.encargado,
+                codigo = item.salaEntity.codigo,
+                nombre = item.salaEntity.nombre,
+                capacidad = item.salaEntity.capacidad,
+                area = item.salaEntity.area,
+                encargado = item.salaEntity.encargado,
                 equipos = equiposParaFormulario(item.equipamiento),
-                imagenUri = item.sala.imagenUri
+                imagenUri = item.salaEntity.imagenUri
             )
             _estado.update {
                 it.copy(cargando = false, esNueva = false, datos = datos, original = datos)
@@ -178,27 +178,27 @@ class FormularioSalaViewModel(
             _estado.update { it.copy(guardando = true, errorGeneral = null) }
             try {
                 val codigo = d.codigo.trim()
-                val disponible = repositorio.codigoDisponible(codigo, salaCargada?.id ?: 0L)
+                val disponible = repositorio.codigoDisponible(codigo, salaEntityCargada?.id ?: 0L)
                 if (!disponible) {
                     _estado.update {
                         it.copy(guardando = false, errorCodigo = "Ya existe una sala con ese código")
                     }
                     return@launch
                 }
-                val sala = Sala(
-                    id = salaCargada?.id ?: 0L,
+                val salaEntity = SalaEntity(
+                    id = salaEntityCargada?.id ?: 0L,
                     codigo = codigo,
                     nombre = d.nombre.trim(),
                     area = areaCoordinador,
                     encargado = d.encargado.trim(),
                     capacidad = d.capacidad,
-                    activa = salaCargada?.activa ?: true,
+                    activa = salaEntityCargada?.activa ?: true,
                     imagenUri = d.imagenUri
                 )
                 val equipos = d.equipos.filter { it.seleccionado }.map {
-                    Equipamiento(salaId = sala.id, nombre = it.nombre, ocupado = it.ocupado)
+                    Equipamiento(salaId = salaEntity.id, nombre = it.nombre, ocupado = it.ocupado)
                 }
-                repositorio.guardar(sala, equipos)
+                repositorio.guardar(salaEntity, equipos)
                 _estado.update { it.copy(guardando = false, guardada = true) }
             } catch (e: Exception) {
                 _estado.update {

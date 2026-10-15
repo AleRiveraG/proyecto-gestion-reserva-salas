@@ -15,7 +15,12 @@ import androidx.compose.ui.res.painterResource
 import com.example.gestiondereservas.R
 
 @Composable
-fun NavBar(inicial: Int = 0) {
+fun NavBar(
+    inicial: Int,
+    onInicio: () -> Unit,
+    onCalendario: () -> Unit,
+    onSalas: () -> Unit
+    ) {
     var seleccion by remember { mutableIntStateOf(inicial) }
 
     val colores = NavigationBarItemDefaults.colors(
@@ -29,21 +34,24 @@ fun NavBar(inicial: Int = 0) {
     NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
         NavigationBarItem(
             selected = seleccion == 0,
-            onClick = { seleccion = 0 },
+            onClick = { seleccion = 0
+                      onInicio()},
             icon = { Icon(painterResource(R.drawable.home), "Icono inicio") },
             label = { Text("Inicio") },
             colors = colores
         )
         NavigationBarItem(
             selected = seleccion == 1,
-            onClick = { seleccion = 1 },
+            onClick = { seleccion = 1
+                      onCalendario()},
             icon = { Icon(painterResource(R.drawable.calendar), "Icono calendario") },
             label = { Text("Calendario") },
             colors = colores
         )
         NavigationBarItem(
             selected = seleccion == 2,
-            onClick = { seleccion = 2 },
+            onClick = { seleccion = 2
+                      onSalas()},
             icon = { Icon(painterResource(R.drawable.door), "Icono puerta") },
             label = { Text("Salas") },
             colors = colores

@@ -1,4 +1,4 @@
-package com.example.gestiondereservas.data.room
+package com.example.gestiondereservas.data.room.entidades
 
 enum class EstadoReserva {
     PENDIENTE,

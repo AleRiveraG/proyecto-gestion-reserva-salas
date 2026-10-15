@@ -11,7 +11,7 @@ import androidx.room.Relation
     tableName = "equipamientos",
     foreignKeys = [
         ForeignKey(
-            entity = Sala::class,
+            entity = SalaEntity::class,
             parentColumns = ["id"],
             childColumns = ["salaId"],
             onDelete = ForeignKey.CASCADE
@@ -30,7 +30,7 @@ data class Equipamiento(
 )
 
 data class SalaConEquipamiento(
-    @Embedded val sala: Sala,
+    @Embedded val salaEntity: SalaEntity,
     @Relation(parentColumn = "id", entityColumn = "salaId")
     val equipamiento: List<Equipamiento>
 )

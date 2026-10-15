@@ -3,7 +3,7 @@ package com.example.gestiondereservas.data.repository
 import com.example.gestiondereservas.data.room.SalaDao
 import com.example.gestiondereservas.data.room.entidades.Area
 import com.example.gestiondereservas.data.room.entidades.Equipamiento
-import com.example.gestiondereservas.data.room.entidades.Sala
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
 import kotlinx.coroutines.flow.Flow
 import com.example.gestiondereservas.data.DatosPrueba
@@ -17,8 +17,8 @@ class SalaRepository(private val dao: SalaDao) {
 
     suspend fun cambiarEstado(id: Long, activa: Boolean) = dao.cambiarEstado(id, activa)
 
-    suspend fun guardar(sala: Sala, equipos: List<Equipamiento>): Long =
-        dao.guardar(sala, equipos)
+    suspend fun guardar(salaEntity: SalaEntity, equipos: List<Equipamiento>): Long =
+        dao.guardar(salaEntity, equipos)
 
     suspend fun codigoDisponible(codigo: String, excluirId: Long): Boolean =
         dao.contarCodigo(codigo.trim(), excluirId) == 0

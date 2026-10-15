@@ -9,7 +9,7 @@ import androidx.room.PrimaryKey
     tableName = "salas",
     indices = [Index(value = ["codigo"], unique = true)]
 )
-data class Sala(
+data class SalaEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     @ColumnInfo(collate = ColumnInfo.NOCASE) val codigo: String,
     //el collate = nocase hace que por ejemplo si yo coloco sala C505 y c505 con miniscula las encuentre igual

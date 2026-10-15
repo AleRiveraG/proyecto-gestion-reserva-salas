@@ -31,8 +31,6 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
         )
         enableEdgeToEdge()
-        val db = AppDatabase.getInstance(applicationContext)
-        val appState = AppState(db)
 
         setContent {
             GestionDeReservasTheme {
@@ -41,17 +39,17 @@ class MainActivity : ComponentActivity() {
                 //RelatorScreen()
                 //SupervisorScreen(appState)
                 //SalasScreen()
-                myApp(appState)
+                myApp()
             }
         }
     }
 }
 
 @Composable
-fun myApp(appState: AppState) {
+fun myApp() {
     val navController =  rememberNavController()
 
     MaterialTheme{
-        appNavigation(navController, appState)
+        appNavigation(navController)
     }
 }

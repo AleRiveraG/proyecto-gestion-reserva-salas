@@ -8,21 +8,31 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.room.entidades.Area
+import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
+import com.example.gestiondereservas.ui.views.FormularioSalaScreen
 import com.example.gestiondereservas.ui.views.GestionReservasScreen
 import com.example.gestiondereservas.ui.views.SalasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
 
+object GestionSalasRutas {
+    const val SALAS = "gestion_salas"
+    const val FORMULARIO_SALA = "gestion_salas/formulario/{salaId}"
+
+    fun formularioSala(salaId: Long) = "gestion_salas/formulario/$salaId"
+}
 @Composable
-fun PantallaBase(
-    navController: NavHostController,
-    appState: AppState
+fun PantallaBaseAdmin(
+    navController: NavHostController
 ) {
     val tabNavController = rememberNavController()
 
@@ -61,7 +71,6 @@ fun PantallaBase(
             ) {
                 composable("paginaSupervisor") {
                     SupervisorScreen(
-                        appState = appState,
                         onHorarios = { },
                         onGestionSalas = { tabNavController.navigate("gestion_salas")},
                         onAuditoria = { },
@@ -78,22 +87,30 @@ fun PantallaBase(
                 }
 
                 composable("gestionReserva") {
-                    GestionReservasScreen(appState)
+                    GestionReservasScreen()
                 }
 
                 composable("gestion_salas") {
                     SalasScreen(
                         areaCoordinador = Area.INFORMATICA,
                         onNuevaSala = {
-                            navController.navigate(
-                                "gestion_salas"
-                            )
+                            tabNavController.navigate(GestionSalasRutas.formularioSala(0L))
                         },
                         onEditarSala = { id ->
-                            navController.navigate(
-                                "gestion_salas/formulario/$id"                          )
+                            tabNavController.navigate(GestionSalasRutas.formularioSala(id))
                         }
                     )
+                }
+
+                composable(
+                    route = GestionSalasRutas.FORMULARIO_SALA,
+                    arguments = listOf(navArgument("salaId") { type = NavType.LongType })
+                ) { entrada ->
+                    val salaId = entrada.arguments?.getLong("salaId") ?: 0L
+                        FormularioSalaScreen(
+                            salaId = salaId,
+                            onVolver = { navController.popBackStack() }
+                        )
                 }
             }
 

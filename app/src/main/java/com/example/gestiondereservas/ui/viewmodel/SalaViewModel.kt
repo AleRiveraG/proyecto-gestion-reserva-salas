@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.data.room.entidades.Area
-import com.example.gestiondereservas.data.room.entidades.Sala
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +42,7 @@ class SalasViewModel(
         busqueda.value = texto
     }
 
-    fun alternarEstado(sala: Sala) {
-        viewModelScope.launch { repositorio.cambiarEstado(sala.id, !sala.activa) }
+    fun alternarEstado(salaEntity: SalaEntity) {
+        viewModelScope.launch { repositorio.cambiarEstado(salaEntity.id, !salaEntity.activa) }
     }
 }

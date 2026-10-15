@@ -5,7 +5,9 @@ import android.content.Context
 import com.example.gestiondereservas.data.room.SalaDao
 import com.example.gestiondereservas.data.simulacionbd.SalaDaoPrueba
 
-object ProveedorDatos {
+object  ProveedorDatos {
+
+
     private val salaDaoSimulado by lazy { SalaDaoPrueba() }
     //con esto ya tengo la simulacion de la bd lista
     // despues cuando exista la AppDatabase central, reemplazar el cuerpo por
