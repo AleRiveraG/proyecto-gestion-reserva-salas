@@ -8,17 +8,18 @@ import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.ui.components.PantallaBase
 import com.example.gestiondereservas.ui.views.RelatorScreen
 import com.example.gestiondereservas.ui.views.ReservasScreen
+import com.example.gestiondereservas.ui.views.UsoSalaScreen
 
 @Composable
 fun appNavigation(navController: NavHostController, appState: AppState) {
 
     NavHost(
-        navController = navController, startDestination =  "baseSupervisor" //"login"
+        navController = navController, startDestination =  "paginaRelator" //"login" baseSupervisor
     ) {
         composable ("login"){ }
 
-        composable("paginaRelator") { RelatorScreen(appState,
-            onReservas = {navController.navigate("reservas")}) }
+        composable("paginaRelator") { RelatorScreen(appState = appState,
+            onReservas = {navController.navigate("reservas")}, onMiActividad = {navController.navigate("usoSalaDemo")}) }
         composable("calendario"){  }
         composable("salasRelator"){  }
         composable("reservas"){ ReservasScreen(appState,
@@ -28,6 +29,7 @@ fun appNavigation(navController: NavHostController, appState: AppState) {
         composable("baseSupervisor"){
             PantallaBase(navController, appState) }
 
+        composable("usoSalaDemo") { UsoSalaScreen()  }
     }
 }
 

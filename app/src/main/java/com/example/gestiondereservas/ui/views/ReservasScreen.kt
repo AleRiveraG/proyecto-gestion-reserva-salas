@@ -72,7 +72,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.data.AppState
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
+import com.example.gestiondereservas.data.room.ReservaEntity
 import com.example.gestiondereservas.utils.formatoFecha
 import kotlinx.coroutines.launch
 import java.util.Locale

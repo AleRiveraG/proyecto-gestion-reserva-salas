@@ -42,23 +42,24 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.AppState
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
+import com.example.gestiondereservas.data.room.ReservaEntity
 import com.example.gestiondereservas.utils.formatearFecha
 
 @Composable
-fun RelatorScreen(appState: AppState, onReservas: () -> Unit) {
+fun RelatorScreen(appState: AppState, onReservas: () -> Unit, onMiActividad: () -> Unit) {
     val scope = rememberCoroutineScope()
     val reservas by remember { mutableStateOf<List<ReservaEntity>>(emptyList()) }
     //Falta id usuario proveniente del Login
 
-    Contenido(appState, onReservas)
+    Contenido(appState, onReservas, onMiActividad)
 }
 
 @Composable
 private fun Contenido(
     //reservas: List<ReservaEntity>,
     appState: AppState,
-    onReservas: () -> Unit
+    onReservas: () -> Unit,
+    onMiActividad: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -92,7 +93,7 @@ private fun Contenido(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        accesosDirectos(appState)
+        accesosDirectos(appState, onMiActividad)
     }
 }
 
@@ -232,7 +233,7 @@ fun infoReserva(onReservas: () -> Unit) {
 }
 
 @Composable
-private fun accesosDirectos(appState: AppState) {
+private fun accesosDirectos(appState: AppState, onMiActividad: () -> Unit) {
     Text("Accesos directos",
         color = MaterialTheme.colorScheme.primary,
         fontSize = 20.sp,
@@ -249,7 +250,7 @@ private fun accesosDirectos(appState: AppState) {
         Column(verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = {},
+            IconButton(onClick = { },
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F5)
@@ -315,7 +316,7 @@ private fun accesosDirectos(appState: AppState) {
         Column(verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = {},
+            IconButton(onClick = {onMiActividad()},
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F5)
@@ -353,7 +354,7 @@ fun noInfoReserva(onReservas: () -> Unit, appState: AppState) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
-                onClick = { onReservas },
+                onClick = { onReservas ()},
                 modifier = Modifier
                     .fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(

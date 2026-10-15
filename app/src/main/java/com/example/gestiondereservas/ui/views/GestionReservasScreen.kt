@@ -53,8 +53,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.AppState
-import com.example.gestiondereservas.data.room.entidades.EstadoReserva
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
+import com.example.gestiondereservas.data.room.EstadoReserva
+import com.example.gestiondereservas.data.room.ReservaEntity
 import com.example.gestiondereservas.utils.formatearFechaPerso
 import kotlinx.coroutines.launch
 
