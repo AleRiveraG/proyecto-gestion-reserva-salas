@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.gestiondereservas.ui.theme.Black
 import com.example.gestiondereservas.ui.theme.NotificationBackground
 import com.example.gestiondereservas.ui.theme.NotificationBlue
@@ -50,51 +51,88 @@ private enum class TipoNotificacion {
 
 @Composable
 fun NotificacionesScreen(
-    onVolver: () -> Unit
+    onVolver: () -> Unit,
+    navController: NavController,
+    esSupervisor: Boolean
 ) {
     // Datos de ejemplo para esta primera versión
-    val notificaciones = remember {
-        mutableStateListOf(
-            NotificacionUI(
-                1,
-                "Nueva solicitud por validar",
-                "Taller de programación · Sala C204",
-                TipoNotificacion.SOLICITUD
-            ),
-            NotificacionUI(
-                2,
-                "Reserva aprobada",
-                "Workshop de experiencia digital",
-                TipoNotificacion.APROBADA
-            ),
-            NotificacionUI(
-                3,
-                "Tu actividad comienza en 1 hora",
-                "Sala C204 · 10:00",
-                TipoNotificacion.RECORDATORIO
-            ),
-            NotificacionUI(
-                4,
-                "Equipamiento liberado",
-                "Proyector disponible en Sala D302",
-                TipoNotificacion.EQUIPAMIENTO,
-                leida = true
-            ),
-            NotificacionUI(
-                5,
-                "Reserva rechazada",
-                "Revisa el motivo en tu solicitud",
-                TipoNotificacion.RECHAZADA,
-                leida = true
-            )
-        )
+
+
+
+    val notificaciones = remember(esSupervisor) {
+        mutableStateListOf<NotificacionUI>().apply {
+            if (esSupervisor) {
+                add(
+                    NotificacionUI(
+                        1,
+                        "Nueva solicitud por validar",
+                        "Taller de programación · Sala C204",
+                        TipoNotificacion.SOLICITUD
+                    )
+                )
+                add(
+                    NotificacionUI(
+                        2,
+                        "Solicitudes pendientes",
+                        "Tienes reservas por revisar",
+                        TipoNotificacion.SOLICITUD
+                    )
+                )
+            } else {
+                add(
+                    NotificacionUI(
+                        3,
+                        "Reserva aprobada",
+                        "Workshop de experiencia digital",
+                        TipoNotificacion.APROBADA
+                    )
+                )
+                add(
+                    NotificacionUI(
+                        4,
+                        "Tu actividad comienza en 1 hora",
+                        "Sala C204 · 10:00",
+                        TipoNotificacion.RECORDATORIO
+                    )
+                )
+                add(
+                    NotificacionUI(
+                        5,
+                        "Equipamiento liberado",
+                        "Proyector disponible en Sala D302",
+                        TipoNotificacion.EQUIPAMIENTO
+                    )
+                )
+                add(
+                    NotificacionUI(
+                        6,
+                        "Reserva rechazada",
+                        "Revisa el motivo de tu solicitud",
+                        TipoNotificacion.RECHAZADA
+                    )
+                )
+            }
+        }
     }
 
     val pendientes = notificaciones.count { !it.leida }
 
     Scaffold(
         topBar = { TopBar() },
-        bottomBar = { NavBar() }
+        bottomBar = {
+            NavBar(
+                inicial = 0,
+                onInicio = {
+                    navController.popBackStack()
+                },
+                onCalendario = {
+                    // TODO: Conectar con la ruta del calendario
+                },
+                onSalas = {
+                    // TODO: Conectar con la ruta de salas
+                }
+            )
+        }
     ) { paddingScaffold ->
 
         Column(
@@ -118,7 +156,7 @@ fun NotificacionesScreen(
 
                 Column {
                     Text(
-                        text = "Notificaciones",
+                        text = "Notificaciones ($pendientes)",
                         fontSize = 23.sp,
                         fontWeight = FontWeight.Bold,
                         color = Black

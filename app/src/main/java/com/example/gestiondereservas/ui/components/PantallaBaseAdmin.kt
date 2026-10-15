@@ -49,7 +49,7 @@ fun PantallaBaseAdmin(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { TopBar() },
+        topBar = { TopBar(onNotificacionesClick = {navController.navigate("notificaciones/true")}) },
         bottomBar = {
             NavBarAdmin(
                 opcionSeleccionada,

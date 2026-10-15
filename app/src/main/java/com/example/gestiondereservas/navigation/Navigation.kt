@@ -8,6 +8,7 @@ import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
 import com.example.gestiondereservas.ui.components.PantallaBaseRelator
 import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
+import com.example.gestiondereservas.ui.views.NotificacionesScreen
 import com.example.gestiondereservas.ui.views.RelatorScreen
 import com.example.gestiondereservas.ui.views.ReservasScreen
 
@@ -15,7 +16,7 @@ import com.example.gestiondereservas.ui.views.ReservasScreen
 fun appNavigation(navController: NavHostController) {
 
     NavHost(
-        navController = navController, startDestination = "baseSupervisor" //"baseRelator" //"login"
+        navController = navController, startDestination = "baseRelator" //"baseSupervisor" //"login"
     ) {
         composable ("login"){ }
 
@@ -25,6 +26,21 @@ fun appNavigation(navController: NavHostController) {
 
         composable("baseSupervisor"){
             PantallaBaseAdmin(navController) }
+
+        composable("notificaciones/{esSupervisor}") { backStackEntry ->
+
+            val esSupervisor = backStackEntry.arguments
+                ?.getString("esSupervisor")
+                ?.toBoolean() ?: false
+
+            NotificacionesScreen(
+                navController = navController,
+                esSupervisor = esSupervisor,
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
 
     }
 }

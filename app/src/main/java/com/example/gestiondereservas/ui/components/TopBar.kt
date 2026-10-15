@@ -14,20 +14,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.example.gestiondereservas.R
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.ColorFilter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-<<<<<<< Updated upstream
+
 fun TopBar(
     onNotificacionesClick: () -> Unit = {}
 ) {
-=======
-fun TopBar(navController: NavController) {
->>>>>>> Stashed changes
+
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary,
@@ -69,11 +66,8 @@ fun TopBar(navController: NavController) {
                         .size(50.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF3B3B3B))
-<<<<<<< Updated upstream
                         .clickable { onNotificacionesClick()  },
-=======
-                        .clickable { navController.navigate("notificaciones")},
->>>>>>> Stashed changes
+
                     contentAlignment = Alignment.Center
                 ) {
 

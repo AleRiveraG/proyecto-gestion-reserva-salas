@@ -36,7 +36,7 @@ fun PantallaBaseRelator(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { TopBar() },
+        topBar = { TopBar( onNotificacionesClick = {navController.navigate("notificaciones/false")}) },
         bottomBar = {
             NavBar(
                 opcionSeleccionada,

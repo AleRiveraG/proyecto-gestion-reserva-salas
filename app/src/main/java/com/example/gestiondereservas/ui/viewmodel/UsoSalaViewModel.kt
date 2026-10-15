@@ -11,7 +11,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
-import com.example.gestiondereservas.data.room.ReservaEntity
+import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
