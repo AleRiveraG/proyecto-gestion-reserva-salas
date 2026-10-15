@@ -3,6 +3,7 @@ package com.example.gestiondereservas.data.room
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 
 @Dao
 interface ReservaDao {

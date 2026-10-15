@@ -1,6 +1,5 @@
 package com.example.gestiondereservas.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -10,7 +9,6 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-
 private val DarkColorScheme = darkColorScheme(
     primary = Black,
     secondary = White,
@@ -18,20 +16,35 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Black,
-    secondary = White,
-    tertiary = Yellow,
-    background = White,
-    surface = White,
-    onBackground = Black,
-    onSurface = Black,
-    onPrimary = White
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40
+
+    /* Other default colors to override
+    background = Color(0xFFFFFBFE),
+    surface = Color(0xFFFFFBFE),
+    onPrimary = Color.White,
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color(0xFF1C1B1F),
+    onSurface = Color(0xFF1C1B1F),
+    */
 )
-
-
+private val EsquemaDuoc = lightColorScheme(
+    primary = Black,
+    onPrimary = White,
+    secondary = White,
+    onSecondary = Black,
+    tertiary = Yellow,
+    onTertiary = Black,
+    background = White,
+    onBackground = Black,
+    surface = White,
+    onSurface = Black
+)
 @Composable
 fun GestionDeReservasTheme(
-    darkTheme: Boolean = false,
+    darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
@@ -43,7 +56,8 @@ fun GestionDeReservasTheme(
         }
 
         darkTheme -> DarkColorScheme
-        else -> DarkColorScheme
+        //else -> DarkColorScheme
+        else -> EsquemaDuoc
     }
 
     MaterialTheme(

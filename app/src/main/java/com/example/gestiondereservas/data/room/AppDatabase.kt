@@ -5,16 +5,19 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.gestiondereservas.data.room.entidades.Equipamiento
+import com.example.gestiondereservas.data.room.entidades.ReservaEntity
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.utils.Converters
 
 @TypeConverters(Converters::class)
-@Database(entities = [ReservaEntity::class],
-        version = 1,
+@Database(entities = [ReservaEntity::class, SalaEntity::class, Equipamiento::class],
+        version = 2,
         exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun reservaDao(): ReservaDao
-
+    abstract fun salaDao(): SalaDao
     companion object {
 
         @Volatile
@@ -27,6 +30,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "gestion_reservas_db"
                 ).build().also { INSTANCE = it }
+
             }
         }
     }
