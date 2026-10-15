@@ -40,12 +40,18 @@ fun SupervisorScreen(
                      onAuditoria: () -> Unit,
                      onReportes: () -> Unit)
 {
-        Contenido(
-            onGestionSalas)
+        Contenido(onHorarios,
+            onGestionSalas,
+            onAuditoria,
+            onReportes)
 }
 
 @Composable
-private fun Contenido(onGestionSalas: () -> Unit) {
+private fun Contenido(onHorarios: () -> Unit,
+                      onGestionSalas: () -> Unit,
+                      onAuditoria: () -> Unit,
+                      onReportes: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -71,7 +77,11 @@ private fun Contenido(onGestionSalas: () -> Unit) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        accesosDirectos(onGestionSalas)
+        accesosDirectos(onHorarios,
+            onGestionSalas,
+            onReportes,
+            onAuditoria
+        )
     }
 }
 
@@ -97,7 +107,10 @@ fun reservasPendientes(){
 }
 
 @Composable
-private fun accesosDirectos(onGestionSalas: () -> Unit) {
+private fun accesosDirectos(onHorarios: () -> Unit,
+                            onGestionSalas: () -> Unit,
+                            onReportes: () -> Unit,
+                            onAuditoria: () -> Unit) {
     Text("Accesos directos",
         color = MaterialTheme.colorScheme.primary,
         fontSize = 20.sp,
@@ -136,7 +149,7 @@ private fun accesosDirectos(onGestionSalas: () -> Unit) {
         Column(verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = {},
+            IconButton(onClick = { onAuditoria() },
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F5)

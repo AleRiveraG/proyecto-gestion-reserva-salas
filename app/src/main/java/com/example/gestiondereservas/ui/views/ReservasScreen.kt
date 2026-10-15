@@ -69,11 +69,15 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
+import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
 import com.example.gestiondereservas.utils.formatearFechaPerso
 import com.example.gestiondereservas.utils.formatoFecha
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.Locale
 import kotlin.collections.listOf
 
@@ -95,7 +99,8 @@ fun rememberReservaViewModel(): ReservaViewModel {
 @Composable
 fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                    onAtras: () -> Unit,
-                   onEnviar: () -> Unit) {
+                   onEnviar: () -> Unit,
+                   onRegistrarAuditoria: (AuditoriaEntity) -> Unit) {
     var paso by remember{ mutableIntStateOf(1)}
 
     var nombre by remember({mutableStateOf("")})
@@ -133,13 +138,13 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             correoResponsable = correo,
             organizador = organizador,
 
-            salaId = salaId?: 1L,
+            salaId = salaId,
             fechaActividad = fechaActividad,
             horaInicio = horaInicio,
             horaTermino = horaTermino,
             fechaMontaje = fechaMontaje,
             horaMontaje = horaMontaje,
-            publico = publicoSelecionado.joinToString {", "},
+            publico = publicoSelecionado.joinToString (", "),
             requiereFormulario = requiereForm == "Si",
             nombreExternos = nombres,
             complementos = complemento,
@@ -150,9 +155,22 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
         )
     }
 
+    fun crearAuditoria(): AuditoriaEntity{
+        return AuditoriaEntity(
+            accion = "Se creo una solicitud de reserva",
+            detalle = nombre,
+            fecha = LocalDate.now().toString(),
+            hora = LocalDateTime.now().toString(),
+            tipo = TipoAuditoria.RESERVA.name
+        )
+    }
     fun guardarReserva() {
         val reserva = crearReserva()
         viewModel.registrarReserva(reserva )
+
+        val auditoria = crearAuditoria()
+        onRegistrarAuditoria( auditoria )
+
         onEnviar()
     }
 
@@ -198,7 +216,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                 viewModel.buscarSala(id)},
             listaSalas,
             nombres,
-            { nombre = it },
+            { nombres = it },
             onAtras = { paso = 1},
             onSiguiente = { paso = 3}
         )

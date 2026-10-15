@@ -14,6 +14,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
 import com.example.gestiondereservas.ui.views.BusquedaSalasScreen
 import com.example.gestiondereservas.ui.views.RelatorScreen
@@ -21,7 +22,8 @@ import com.example.gestiondereservas.ui.views.ReservasScreen
 
 @Composable
 fun PantallaBaseRelator(
-    navController: NavHostController
+    navController: NavHostController,
+    onRegistrarAuditoria: (AuditoriaEntity) -> Unit
 ) {
     val tabNavController = rememberNavController()
 
@@ -54,7 +56,7 @@ fun PantallaBaseRelator(
         ){
             NavHost(
                 navController = tabNavController,
-                startDestination = "salasRelator"
+                startDestination = "paginaRelator"
             ) {
                 composable("paginaRelator") {
                     RelatorScreen(
@@ -70,7 +72,9 @@ fun PantallaBaseRelator(
                 composable("reservas") {
                     ReservasScreen(
                         onAtras = { tabNavController.navigate("paginaRelator")},
-                        onEnviar = { tabNavController.navigate("paginaRelator")} // TIENE QUE DEVOLVER A CALENDARIO
+                        onEnviar = { tabNavController.navigate("paginaRelator")},
+                        onRegistrarAuditoria = onRegistrarAuditoria
+                    // TIENE QUE DEVOLVER A CALENDARIO
                     )
                 }
 

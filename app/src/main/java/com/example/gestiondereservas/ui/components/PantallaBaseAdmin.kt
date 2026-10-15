@@ -18,7 +18,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.room.entidades.Area
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
+import com.example.gestiondereservas.ui.views.AuditoriaScreen
 import com.example.gestiondereservas.ui.views.FormularioSalaScreen
 import com.example.gestiondereservas.ui.views.GestionReservasScreen
 import com.example.gestiondereservas.ui.views.SalasScreen
@@ -32,7 +34,8 @@ object GestionSalasRutas {
 }
 @Composable
 fun PantallaBaseAdmin(
-    navController: NavHostController
+    navController: NavHostController,
+    onRegistrarAuditoria: (AuditoriaEntity) -> Unit
 ) {
     val tabNavController = rememberNavController()
 
@@ -73,7 +76,7 @@ fun PantallaBaseAdmin(
                     SupervisorScreen(
                         onHorarios = { },
                         onGestionSalas = { tabNavController.navigate("gestion_salas")},
-                        onAuditoria = { },
+                        onAuditoria = { tabNavController.navigate("auditoria")},
                         onReportes = { },
                     )
                 }
@@ -88,6 +91,12 @@ fun PantallaBaseAdmin(
 
                 composable("gestionReserva") {
                     GestionReservasScreen()
+                }
+
+                composable("auditoria") {
+                    AuditoriaScreen(
+                        onAtras = { tabNavController.navigate("paginaSupervisor") }
+                    )
                 }
 
                 composable("gestion_salas") {
