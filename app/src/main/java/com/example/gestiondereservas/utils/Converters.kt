@@ -1,7 +1,8 @@
 package com.example.gestiondereservas.utils
 
 import androidx.room.TypeConverter
-import com.example.gestiondereservas.data.room.entidades.EstadoReserva
+//import com.example.gestiondereservas.data.room.entidades.EstadoReserva
+import com.example.gestiondereservas.data.room.EstadoReserva
 
 class Converters {
 

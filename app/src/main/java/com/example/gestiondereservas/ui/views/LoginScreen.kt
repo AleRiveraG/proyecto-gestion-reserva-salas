@@ -66,10 +66,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
+import com.example.gestiondereservas.utils.AnimacionLogin
+import com.example.gestiondereservas.utils.AnimacionLottie
 
 //- - - - - - - - - - - - - - - - - - - - - - - - -
 //Encabezado
 //- - - - - - - - - - - - - - - - - - - - - - - - -
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -208,11 +211,13 @@ enum class RolUsuario(val nombreMostrar: String) {
 //- - - - - - - - - - - - - - - - - - - - - - - - -
 //Cuerpo
 //- - - - - - - - - - - - - - - - - - - - - - - - -
+
 @Composable
 fun LoginBody(
     modifier: Modifier = Modifier,
     estaCargando: Boolean = false,
     mensajeErrorGeneral: String? = null,
+    alHacerClicEnRegistrarse: () -> Unit = {},
     alIniciarSesionExitoso: (correo: String, password: String, rol: RolUsuario) -> Unit
 ) {
     //Estados locales del formulario
@@ -290,6 +295,13 @@ fun LoginBody(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
+
+        AnimacionLogin(
+            tamano = 70.dp
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         //Título de la sección
         Text(
             text = "Iniciar sesión",
@@ -483,6 +495,24 @@ fun LoginBody(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        androidx.compose.material3.OutlinedButton(
+            onClick = {
+                alHacerClicEnRegistrarse()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            enabled = !estaCargando
+        ) {
+            Text(
+                text = "Registrarse",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
@@ -491,6 +521,7 @@ fun LoginBody(
 fun LoginScreen(
     estaCargando: Boolean = false,
     mensajeErrorGeneral: String? = null,
+    alNavegarARegistro: () -> Unit = {},
     alIniciarSesionExitoso: (correo: String, password: String, rol: RolUsuario) -> Unit
 ) {
     Scaffold(
@@ -503,6 +534,7 @@ fun LoginScreen(
                 .padding(paddingValues),
             estaCargando = estaCargando,
             mensajeErrorGeneral = mensajeErrorGeneral,
+            alHacerClicEnRegistrarse = alNavegarARegistro,
             alIniciarSesionExitoso = alIniciarSesionExitoso
         )
     }
