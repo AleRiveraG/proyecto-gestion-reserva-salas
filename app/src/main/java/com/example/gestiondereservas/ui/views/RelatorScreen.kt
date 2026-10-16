@@ -41,6 +41,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
 import com.example.gestiondereservas.utils.formatearFecha
 
@@ -92,3 +94,275 @@ private fun Contenido(
     }
 }
 
+
+@Composable
+fun infoReserva(onReservas: () -> Unit) {
+    var checked by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.primary)
+    ){
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    "Información de tu reserva",
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Light
+                )
+                etiquetaEstado("PENDIENTE")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF2C2C2C)),
+                contentAlignment = Alignment.Center
+            ){
+                Icon(
+                    painter = painterResource(R.drawable.school),
+                    contentDescription = "Icono escuela",
+                    tint = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.scale(2.5f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text("Titulo de la actividad",
+                color = MaterialTheme.colorScheme.secondary,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row() {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(R.drawable.calendar),
+                        contentDescription = "Icono calendario",
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(14.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text("Fecha",
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 10.sp)
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(R.drawable.clock),
+                        contentDescription = "Icono reloj",
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(14.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text("Inicio-Termino",
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 10.sp)
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(R.drawable.door),
+                        contentDescription = "Icono sala",
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(14.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    Text("Sala sala",
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 10.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(thickness = 1.dp)
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Recordarme",
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 12.sp)
+
+                Switch(
+                    modifier = Modifier.scale(0.8f),
+                    checked = checked,
+                    onCheckedChange = { checked = it },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = MaterialTheme.colorScheme.secondary,
+                        uncheckedThumbColor = MaterialTheme.colorScheme.secondary,
+                        checkedTrackColor = MaterialTheme.colorScheme.tertiary
+
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun accesosDirectos(onMiActividad: () -> Unit) {
+    Text("Accesos directos",
+        color = MaterialTheme.colorScheme.primary,
+        fontSize = 20.sp,
+        fontWeight = FontWeight.Bold)
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column(verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            IconButton(onClick = {},
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF5F5F5)
+                )) {
+                Icon(
+                    painter = painterResource(R.drawable.search),
+                    contentDescription = "Icono buscar",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text("Buscar sala",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 12.sp)
+        }
+
+        Column(verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            IconButton(onClick = {},
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF5F5F5)
+                    )) {
+                Icon(
+                    painter = painterResource(R.drawable.calendar_alt),
+                    contentDescription = "Icono calendario alt",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text("Calendario",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 12.sp)
+        }
+
+        Column(verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            IconButton(onClick = {},
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF5F5F5)
+                    )) {
+                Icon(
+                    painter = painterResource(R.drawable.door),
+                    contentDescription = "Icono sala",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text("Disponibles",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 12.sp)
+        }
+
+        Column(verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            IconButton(onClick = {onMiActividad()},
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF5F5F5)
+                    )) {
+                Icon(
+                    painter = painterResource(R.drawable.clock),
+                    contentDescription = "Icono reloj",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text("Mi actividad",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 12.sp)
+        }
+    }
+
+}
+
+@Composable
+fun noInfoReserva(onReservas: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.primary)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text("No tienes reservas actuales")
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = { onReservas() },
+                modifier = Modifier
+                    .fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary
+                )
+            ) {
+                Text("Reservar sala",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
