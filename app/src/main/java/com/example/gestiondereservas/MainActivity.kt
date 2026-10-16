@@ -18,14 +18,20 @@ import com.example.gestiondereservas.ui.views.ReservasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
 import android.graphics.Color
 import androidx.activity.SystemBarStyle
+import androidx.lifecycle.lifecycleScope
 
 //este import es por para probar la vista de las distintas areas
 import com.example.gestiondereservas.data.room.entidades.Area
 import com.example.gestiondereservas.ui.views.SalasScreen
+import com.example.gestiondereservas.utils.ObservadorRecordatorios
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        lifecycleScope.launch {
+            ObservadorRecordatorios.observar(applicationContext)
+        }
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)

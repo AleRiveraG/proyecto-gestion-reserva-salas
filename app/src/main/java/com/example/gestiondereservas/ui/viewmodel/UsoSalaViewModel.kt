@@ -31,10 +31,17 @@ class UsoSalaViewModel : ViewModel() {
     var segundosRestantes by mutableStateOf(3600L)
         private set
 
+    var reservaId by mutableStateOf<Long?>(null)
+        private set
+
+    var salaId by mutableStateOf<Long?>(null)
+        private set
     private var trabajoCronometro: Job? = null
 
     fun cargarReserva(reserva: ReservaEntity) {
 
+        reservaId = reserva.id
+        salaId = reserva.salaId
         nombreActividad = reserva.nombreActividad
 
         val anioActual = LocalDate.now().year

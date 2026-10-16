@@ -48,14 +48,15 @@ import com.example.gestiondereservas.utils.formatearFecha
 
 @Composable
 fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
-                  onReservas: () -> Unit) {
+                  onReservas: () -> Unit, onMiActividad: () -> Unit) {
     //FALTA BUSCAR RESERVA POR USUARIO ID EXTRAIDO DEL LOGIN Y USA EL VIEWMODEL PARA ESO
-    Contenido(onReservas)
+    Contenido(onReservas, onMiActividad)
 }
 
 @Composable
 private fun Contenido(
-    onReservas: () -> Unit
+    onReservas: () -> Unit,
+    onMiActividad: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -89,7 +90,7 @@ private fun Contenido(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        accesosDirectos()
+        accesosDirectos(onMiActividad)
     }
 }
 
@@ -229,7 +230,7 @@ fun infoReserva(onReservas: () -> Unit) {
 }
 
 @Composable
-private fun accesosDirectos() {
+private fun accesosDirectos(onMiActividad: () -> Unit) {
     Text("Accesos directos",
         color = MaterialTheme.colorScheme.primary,
         fontSize = 20.sp,
@@ -312,7 +313,7 @@ private fun accesosDirectos() {
         Column(verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = {},
+            IconButton(onClick = {onMiActividad()},
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F5)

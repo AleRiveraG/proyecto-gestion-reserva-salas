@@ -22,6 +22,15 @@ import com.example.gestiondereservas.ui.viewmodel.UsoSalaViewModel
 import com.example.gestiondereservas.ui.theme.Black
 import com.example.gestiondereservas.ui.theme.White
 import com.example.gestiondereservas.ui.theme.Yellow
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.room.entidades.ReporteEntity
+import java.time.LocalDateTime
 
 @Composable
 fun UsoSalaScreen(
@@ -29,6 +38,22 @@ fun UsoSalaScreen(
 ) {
 
     val estadoActividad = viewModel.estadoActividad
+
+    var mostrarReporte by remember { mutableStateOf(false) }
+
+    var descripcionReporte by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+
+    val scope = rememberCoroutineScope()
+
+    val reporteDao = remember(context) {
+        AppDatabase.getInstance(context).reporteDao()
+    }
+
+    var enviandoReporte by remember { mutableStateOf(false) }
+
+    var errorReporte by remember { mutableStateOf<String?>(null) }
 
     val horaTermino = viewModel.finReserva.format(
         DateTimeFormatter.ofPattern("HH:mm")
@@ -186,6 +211,95 @@ fun UsoSalaScreen(
                 )
             }
 
+
+            if (mostrarReporte) {
+                AlertDialog(
+                    onDismissRequest = {
+                        mostrarReporte = false
+                    },
+                    title = {
+                        Text("Reportar inconveniente")
+                    },
+                    text = {
+                        Column {
+                            Text(
+                                "Describe el problema ocurrido durante el uso de la sala."
+                            )
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            OutlinedTextField(
+                                value = descripcionReporte,
+                                onValueChange = { descripcionReporte = it },
+                                label = { Text("Descripción del problema") },
+                                modifier = Modifier.fillMaxWidth(),
+                                minLines = 3
+                            )
+
+                            if (errorReporte != null) {
+                                Text(
+                                    text = errorReporte!!,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                val reservaId = viewModel.reservaId
+                                val salaId = viewModel.salaId
+
+                                if (reservaId != null && reservaId > 0L && salaId != null && salaId > 0L) {
+                                    scope.launch {
+                                        enviandoReporte = true
+                                        errorReporte = null
+
+                                        try {
+                                            val ahora = LocalDateTime.now()
+                                            val reporte = ReporteEntity (
+                                                reservaId = reservaId,
+                                                salaId = salaId,
+                                                descripcion = descripcionReporte.trim(),
+                                                fechaReporte =  ahora.toLocalDate().toString(),
+                                                horaReporte = ahora.toLocalTime()
+                                                    .format(DateTimeFormatter.ofPattern("HH:mm"))
+                                            )
+
+                                            withContext(Dispatchers.IO) {
+                                                reporteDao.guardarReporte(reporte)
+                                            }
+
+                                            descripcionReporte = ""
+                                            mostrarReporte = false
+                                        } catch (e:Exception) {
+                                            errorReporte= "No se pudo guardar el reporte"
+                                        } finally {
+                                            enviandoReporte = false
+                                        }
+                                    }
+                                } else {
+                                    errorReporte = "No hay una reserca cargada para este reporte"
+                                }
+                            },
+                            enabled = descripcionReporte.isNotBlank() && !enviandoReporte
+                        ) {
+                            Text(if (enviandoReporte) "Guardando" else "Enviar reporte")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                mostrarReporte = false
+                            }
+                        ) {
+                            Text("Cancelar")
+                        }
+                    }
+                )
+            }
+
+
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -237,8 +351,8 @@ fun UsoSalaScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedButton(
-                    onClick = {},
-                    enabled = false,
+                    onClick = {mostrarReporte = true},
+                    enabled = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
                     border = BorderStroke(1.dp,Black),

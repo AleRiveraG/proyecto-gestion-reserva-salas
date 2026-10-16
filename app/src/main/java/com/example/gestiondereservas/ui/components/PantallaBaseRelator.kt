@@ -17,10 +17,12 @@ import androidx.navigation.compose.rememberNavController
 import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
 import com.example.gestiondereservas.ui.views.RelatorScreen
 import com.example.gestiondereservas.ui.views.ReservasScreen
+import com.example.gestiondereservas.ui.views.UsoSalaScreen
 
 @Composable
 fun PantallaBaseRelator(
-    navController: NavHostController
+    navController: NavHostController,
+    abrirReservas: Boolean = false
 ) {
     val tabNavController = rememberNavController()
 
@@ -53,19 +55,26 @@ fun PantallaBaseRelator(
         ){
             NavHost(
                 navController = tabNavController,
-                startDestination = "paginaRelator"
+                startDestination = if (abrirReservas) "reservas" else "paginaRelator"
             ) {
+
                 composable("paginaRelator") {
                     RelatorScreen(
-                        onReservas = { tabNavController.navigate("reservas") }
+                        onReservas = { tabNavController.navigate("reservas")},
+                        onMiActividad = { tabNavController.navigate("usoSala")}
                     )
                 }
+
 
                 composable("reservas") {
                     ReservasScreen(
                         onAtras = { tabNavController.navigate("paginaRelator")},
                         onEnviar = { tabNavController.navigate("paginaRelator")} // TIENE QUE DEVOLVER A CALENDARIO
                     )
+                }
+
+                composable("usoSala") {
+                    UsoSalaScreen()
                 }
             }
         }
