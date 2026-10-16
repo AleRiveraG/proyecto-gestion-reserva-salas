@@ -3,6 +3,8 @@ package com.example.gestiondereservas.data.room
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import com.example.gestiondereservas.data.room.entidades.ReservaEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ReservaDao {
@@ -25,9 +27,23 @@ interface ReservaDao {
     @Query("SELECT COUNT(*) FROM reserva WHERE estado = 'PENDIENTE'")
     suspend fun obtenerPendientes(): Int
 
-    @Query("SELECT * FROM reserva WHERE id = :idReserva")
-    suspend fun obtenerReservaPorId (idReserva: Long) : ReservaEntity?
+    // Buscar una reserva por su ID
+    @Query("SELECT * FROM reserva WHERE id = :id LIMIT 1")
+    suspend fun obtenerReservaPorId(id: Long): ReservaEntity?
 
+    // Obtener reservas aprobadas
     @Query("SELECT * FROM reserva WHERE estado = 'APROBADA'")
     suspend fun obtenerReservasAprobadas(): List<ReservaEntity>
+
+    // Observar reservas aprobadas para los recordatorios
+    @Query("SELECT * FROM reserva WHERE estado = 'APROBADA'")
+    fun observarReservasAprobadas(): Flow<List<ReservaEntity>>
+
+    // Observar aprobaciones y rechazos para notificaciones
+    @Query("""
+        SELECT * FROM reserva
+        WHERE estado IN ('APROBADA', 'RECHAZADA')
+    """)
+    fun observarReservasResueltas(): Flow<List<ReservaEntity>>
+
 }

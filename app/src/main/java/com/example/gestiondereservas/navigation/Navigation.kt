@@ -6,38 +6,65 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.gestiondereservas.data.AppState
-import com.example.gestiondereservas.ui.views.GestionReservasScreen
-import com.example.gestiondereservas.ui.views.LoginBody
-import com.example.gestiondereservas.ui.views.RelatorScreen
-import com.example.gestiondereservas.ui.views.ReservasScreen
-import com.example.gestiondereservas.ui.views.SupervisorScreen
-import com.example.gestiondereservas.ui.views.UsoSalaScreen
-import com.example.gestiondereservas.ui.views.NotificacionesScreen
 
+import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
+import com.example.gestiondereservas.ui.components.PantallaBaseRelator
+import com.example.gestiondereservas.ui.views.NotificacionesScreen
+import com.example.gestiondereservas.ui.views.UsoSalaScreen
 
 @Composable
-fun appNavigation(navController: NavHostController, appState: AppState) {
+fun appNavigation(
+    navController: NavHostController,
+    appState: AppState
+) {
+
     NavHost(
-        navController = navController, startDestination =  "paginaRelator" //"login"
+        navController = navController,
+        startDestination = "baseRelator"
     ) {
-        composable ("login"){ }
 
-        composable("paginaRelator") { RelatorScreen(navController, appState) }
-        composable("calendario"){  }
-        composable("salasRelator"){  }
-        composable("reservas"){ ReservasScreen(navController, appState) }
+        composable("login") {
+            // Pendiente de integración del login
+        }
 
-        composable("paginaSupervisor"){ SupervisorScreen(appState) }
-        composable("gestionReservas"){ GestionReservasScreen(appState) }
-        composable("calendarioSupervisor"){ }
-        composable("salasSupervisor"){  }
-        composable("auditoria"){ }
-        composable("reportes"){  }
-        composable("horarios"){  }
+        // Pantalla principal del relator
+        composable("baseRelator") {
+            PantallaBaseRelator(navController)
+        }
 
-        composable("notificaciones") { NotificacionesScreen() }
-        composable("usoSala/{reservaId}",
+        // Formulario de reservas
+        composable("baseRelator/reservas") {
+            PantallaBaseRelator(
+                navController = navController,
+                abrirReservas = true
+            )
+        }
+
+        // Pantalla principal del supervisor
+        composable("baseSupervisor") {
+            PantallaBaseAdmin(navController)
+        }
+
+        // Notificaciones según el rol
+        composable("notificaciones/{esSupervisor}") { backStackEntry ->
+
+            val esSupervisor = backStackEntry.arguments
+                ?.getString("esSupervisor")
+                ?.toBoolean() ?: false
+
+            NotificacionesScreen(
+                navController = navController,
+                esSupervisor = esSupervisor,
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Uso de sala con una reserva real
+        composable(
+            route = "usoSala/{reservaId}",
             arguments = listOf(
                 navArgument("reservaId") {
                     type = NavType.LongType
@@ -45,11 +72,14 @@ fun appNavigation(navController: NavHostController, appState: AppState) {
             )
         ) { backStackEntry ->
 
-            val reservaId = backStackEntry.arguments?.getLong("reservaId") ?: return@composable
+            val reservaId = backStackEntry.arguments
+                ?.getLong("reservaId")
+                ?: return@composable
 
-            UsoSalaScreen(reservaId = reservaId, appState = appState)
+            UsoSalaScreen(
+                reservaId = reservaId,
+                appState = appState
+            )
         }
-
     }
 }
-

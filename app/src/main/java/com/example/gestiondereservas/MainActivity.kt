@@ -13,17 +13,30 @@ import com.example.gestiondereservas.navigation.appNavigation
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
 import com.example.gestiondereservas.ui.views.GestionReservasScreen
 import com.example.gestiondereservas.ui.views.RelatorScreen
-import com.example.gestiondereservas.ui.views.NotificacionesScreen
 import com.example.gestiondereservas.ui.views.UsoSalaScreen
 import com.example.gestiondereservas.ui.views.ReservasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
+import android.graphics.Color
+import androidx.activity.SystemBarStyle
+import androidx.lifecycle.lifecycleScope
+
+//este import es por para probar la vista de las distintas areas
+import com.example.gestiondereservas.data.room.entidades.Area
+import com.example.gestiondereservas.ui.views.SalasScreen
+import com.example.gestiondereservas.utils.ObservadorRecordatorios
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        lifecycleScope.launch {
+            ObservadorRecordatorios.observar(applicationContext)
+        }
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
+        )
         enableEdgeToEdge()
-        val db = AppDatabase.getInstance(applicationContext)
-        val appState = AppState(db)
 
         setContent {
             GestionDeReservasTheme {
@@ -31,18 +44,18 @@ class MainActivity : ComponentActivity() {
                 //GestionReservasScreen(appState)
                 //RelatorScreen()
                 //SupervisorScreen(appState)
-                myApp(appState)
-
+                //SalasScreen()
+                myApp()
             }
         }
     }
 }
 
 @Composable
-fun myApp(appState: AppState) {
+fun myApp() {
     val navController =  rememberNavController()
 
     MaterialTheme{
-        appNavigation(navController, appState)
+        appNavigation(navController)
     }
 }

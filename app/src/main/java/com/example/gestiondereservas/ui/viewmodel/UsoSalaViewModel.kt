@@ -11,7 +11,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
-import com.example.gestiondereservas.data.room.ReservaEntity
+import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -31,12 +31,19 @@ class UsoSalaViewModel : ViewModel() {
     var segundosRestantes by mutableStateOf(3600L)
         private set
 
+    var reservaId by mutableStateOf<Long?>(null)
+        private set
+
+    var salaId by mutableStateOf<Long?>(null)
+        private set
     private var trabajoCronometro: Job? = null
 
     var salaId by mutableStateOf<Long?>(null)
         private set
     fun cargarReserva(reserva: ReservaEntity) {
 
+        reservaId = reserva.id
+        salaId = reserva.salaId
         nombreActividad = reserva.nombreActividad
         salaId = reserva.salaId
 
