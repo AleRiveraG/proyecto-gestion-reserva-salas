@@ -61,8 +61,9 @@ fun PantallaBaseRelator(
                 composable("paginaRelator") {
                     RelatorScreen(
                         onReservas = { tabNavController.navigate("reservas")},
-                        onMiActividad = { tabNavController.navigate("usoSala")}
-                    )
+                        onMiActividad = {
+                            // navController.navigate("usoSala/$reservaId")  Pendiente: obtener el ID de una reserva aprobada
+                        })
                 }
 
 
@@ -73,9 +74,7 @@ fun PantallaBaseRelator(
                     )
                 }
 
-                composable("usoSala") {
-                    UsoSalaScreen()
-                }
+
             }
         }
     }

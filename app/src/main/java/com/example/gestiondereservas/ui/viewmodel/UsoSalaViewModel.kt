@@ -34,8 +34,6 @@ class UsoSalaViewModel : ViewModel() {
     var reservaId by mutableStateOf<Long?>(null)
         private set
 
-    var salaId by mutableStateOf<Long?>(null)
-        private set
     private var trabajoCronometro: Job? = null
 
     var salaId by mutableStateOf<Long?>(null)
@@ -45,7 +43,7 @@ class UsoSalaViewModel : ViewModel() {
         reservaId = reserva.id
         salaId = reserva.salaId
         nombreActividad = reserva.nombreActividad
-        salaId = reserva.salaId
+
 
         val anioActual = LocalDate.now().year
         val fechaCompleta = "${reserva.fechaActividad}/$anioActual"

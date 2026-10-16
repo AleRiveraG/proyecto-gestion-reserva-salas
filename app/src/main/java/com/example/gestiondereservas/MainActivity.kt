@@ -18,6 +18,8 @@ import com.example.gestiondereservas.ui.views.ReservasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
 import android.graphics.Color
 import androidx.activity.SystemBarStyle
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 
 //este import es por para probar la vista de las distintas areas
@@ -53,9 +55,17 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun myApp() {
-    val navController =  rememberNavController()
+    val navController = rememberNavController()
+    val context = LocalContext.current
 
-    MaterialTheme{
-        appNavigation(navController)
+    val appState = remember {
+        AppState(AppDatabase.getInstance(context))
+    }
+
+    MaterialTheme {
+        appNavigation(
+            navController = navController,
+            appState = appState
+        )
     }
 }
