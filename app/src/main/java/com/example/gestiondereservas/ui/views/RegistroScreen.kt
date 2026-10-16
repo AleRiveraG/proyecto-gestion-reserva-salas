@@ -66,7 +66,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
+import com.example.gestiondereservas.ui.theme.*
 import com.example.gestiondereservas.utils.AnimacionRegistro
 
 
@@ -246,7 +246,7 @@ fun RegistroBody(
                 errorNombre = "El nombre completo es obligatorio"
                 false
             }
-            nombreCompleto.trim().length > 3 -> {
+            nombreCompleto.trim().length < 3 -> {
                 errorNombre = "El nombre debe tener al menos 3 caracteres"
                 false
             }
@@ -393,6 +393,7 @@ fun RegistroBody(
             isError = errorNombre != null,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
+                capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words,
                 imeAction = ImeAction.Next
             ),
             keyboardActions = KeyboardActions(
@@ -681,8 +682,8 @@ fun RegistroBodyPreview() {
     GestionDeReservasTheme {
         RegistroScreen(
             alRegistrarExitoso = { nombre, correo, password, rol ->
-                //Acción de prueba local
-            }
-        )
+            //Acción de prueba local
+        }
+    )
     }
 }

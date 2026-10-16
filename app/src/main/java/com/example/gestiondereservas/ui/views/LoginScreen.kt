@@ -65,7 +65,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
+import com.example.gestiondereservas.ui.theme.*
 import com.example.gestiondereservas.utils.AnimacionLogin
 import com.example.gestiondereservas.utils.AnimacionLottie
 
@@ -355,6 +355,7 @@ fun LoginBody(
             isError = errorCorreo != null,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
+                autoCorrectEnabled = false,
                 imeAction = ImeAction.Next
             ),
             keyboardActions = KeyboardActions(
@@ -522,7 +523,9 @@ fun LoginScreen(
     estaCargando: Boolean = false,
     mensajeErrorGeneral: String? = null,
     alNavegarARegistro: () -> Unit = {},
-    alIniciarSesionExitoso: (correo: String, password: String, rol: RolUsuario) -> Unit
+    alNavegarARelator: () -> Unit = {},
+    alNavegarASupervisor: () -> Unit = {},
+    alIniciarSesionExitoso: (correo: String, password: String, rol: RolUsuario) -> Unit = {_, _, _ -> }
 ) {
     Scaffold(
         topBar = { LoginTopBar() },
@@ -535,7 +538,15 @@ fun LoginScreen(
             estaCargando = estaCargando,
             mensajeErrorGeneral = mensajeErrorGeneral,
             alHacerClicEnRegistrarse = alNavegarARegistro,
-            alIniciarSesionExitoso = alIniciarSesionExitoso
+            alIniciarSesionExitoso = { correo, password, rol ->
+                // Notifica el login exitoso
+                alIniciarSesionExitoso(correo, password, rol)
+
+                when (rol) {
+                    RolUsuario.RELATOR -> alNavegarARelator()
+                    RolUsuario.COORDINADOR -> alNavegarASupervisor()
+                }
+            }
         )
     }
 }
@@ -545,9 +556,9 @@ fun LoginScreen(
 fun LoginBodyPreview() {
     GestionDeReservasTheme {
         LoginScreen(
-            alIniciarSesionExitoso = { correo, contrasena, rol ->
-                //Acción de prueba local
-            }
+            alNavegarARelator = {/* Test local */},
+            alNavegarASupervisor = {/* Test local */},
+            alNavegarARegistro = {/* Test local */}
         )
     }
 }

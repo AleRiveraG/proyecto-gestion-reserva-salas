@@ -1,58 +1,53 @@
 package com.example.gestiondereservas.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.gestiondereservas.data.repository.AuditoriaRepository
-import com.example.gestiondereservas.data.room.AppDatabase
+import androidx.navigation.compose.rememberNavController
 import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
 import com.example.gestiondereservas.ui.components.PantallaBaseRelator
-import com.example.gestiondereservas.ui.viewmodel.AuditoriaViewModel
+//import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
+//import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
+import com.example.gestiondereservas.ui.views.LoginScreen
+import com.example.gestiondereservas.ui.views.RegistroScreen
+//import com.example.gestiondereservas.ui.views.RelatorScreen
+import com.example.gestiondereservas.ui.views.ReservasScreen
 
 @Composable
-fun rememberAuditoriaViewModel(): AuditoriaViewModel {
-    val contexto = LocalContext.current.applicationContext
-    return viewModel(
-        factory = viewModelFactory {
-            initializer {
-                val dao = AppDatabase.getInstance(contexto).auditoriaDao()
-                val repository = AuditoriaRepository(dao)
-                AuditoriaViewModel(repository)
-            }
-        }
-    )
-}
-@Composable
-fun appNavigation(navController: NavHostController) {
-
-    val auditoriaViewModel: AuditoriaViewModel = rememberAuditoriaViewModel()
-
+fun AppNavigation(navController: NavHostController = rememberNavController()) {
     NavHost(
-        navController = navController, startDestination = "baseSupervisor" //"baseRelator" //"login"
+        navController = navController,
+        startDestination = "login" // <<< MODIFICADO (antes apuntaba a otra ruta)
     ) {
-        composable ("login"){ }
-
+        composable("login") {
+            LoginScreen(
+                alNavegarARegistro = { navController.navigate("registro") },
+                alNavegarARelator = {
+                    navController.navigate("relator") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                },
+                alNavegarASupervisor = {
+                    navController.navigate("supervisor") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable("registro") {
+            RegistroScreen(
+                alRegistrarExitoso = { _, _, _, _ ->
+                    navController.popBackStack()
+                }
+            )
+        }
         composable("baseRelator") {
-            PantallaBaseRelator(navController,
-                onRegistrarAuditoria = { evento ->
-                    auditoriaViewModel.registrarReserva(evento)
-                })
+            PantallaBaseRelator(navController)
         }
 
         composable("baseSupervisor"){
-            PantallaBaseAdmin(navController,
-                onRegistrarAuditoria = { evento ->
-                    auditoriaViewModel.registrarReserva(evento)
-                },
-                auditoriaViewModel = auditoriaViewModel
-            )
+            PantallaBaseAdmin(navController)
         }
-
     }
 }
-
