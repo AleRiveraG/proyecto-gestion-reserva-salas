@@ -54,6 +54,10 @@ import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.ui.components.AreaChip
 import com.example.gestiondereservas.ui.viewmodel.SalasViewModel
 import com.example.gestiondereservas.data.room.entidades.Area
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
+import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Composable
 fun rememberSalasViewModel(areaCoordinador: Area): SalasViewModel {
@@ -75,10 +79,21 @@ fun SalasScreen(
     areaCoordinador: Area = Area.INFORMATICA,
     onNuevaSala: () -> Unit = {},
     onEditarSala: (Long) -> Unit = {},
+    onRegistrarAuditoria: (AuditoriaEntity) -> Unit,
     viewModel: SalasViewModel = rememberSalasViewModel(areaCoordinador)
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     var salaEntityPorCambiar by remember { mutableStateOf<SalaEntity?>(null) }
+
+    fun crearAuditoria(): AuditoriaEntity{
+        return AuditoriaEntity(
+            accion = "Se actualizaron los datos de la sala",
+            detalle = "${salaEntityPorCambiar?.codigo} - ${salaEntityPorCambiar?.nombre} ",
+            fecha = LocalDate.now().toString(),
+            hora = LocalDateTime.now().toString(),
+            tipo = TipoAuditoria.SALAS.name
+        )
+    }
 
     Column(
         modifier = Modifier

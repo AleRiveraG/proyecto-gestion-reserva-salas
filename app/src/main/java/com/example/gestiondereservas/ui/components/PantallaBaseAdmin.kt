@@ -19,6 +19,7 @@ import androidx.navigation.navArgument
 import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.room.entidades.Area
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
+import com.example.gestiondereservas.ui.viewmodel.AuditoriaViewModel
 import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.ui.views.AuditoriaScreen
 import com.example.gestiondereservas.ui.views.FormularioSalaScreen
@@ -35,6 +36,7 @@ object GestionSalasRutas {
 @Composable
 fun PantallaBaseAdmin(
     navController: NavHostController,
+    auditoriaViewModel: AuditoriaViewModel,
     onRegistrarAuditoria: (AuditoriaEntity) -> Unit
 ) {
     val tabNavController = rememberNavController()
@@ -95,7 +97,8 @@ fun PantallaBaseAdmin(
 
                 composable("auditoria") {
                     AuditoriaScreen(
-                        onAtras = { tabNavController.navigate("paginaSupervisor") }
+                        onAtras = { tabNavController.navigate("paginaSupervisor")},
+                        auditoriaViewModel
                     )
                 }
 
@@ -107,7 +110,8 @@ fun PantallaBaseAdmin(
                         },
                         onEditarSala = { id ->
                             tabNavController.navigate(GestionSalasRutas.formularioSala(id))
-                        }
+                        },
+                        onRegistrarAuditoria = onRegistrarAuditoria
                     )
                 }
 
@@ -118,7 +122,8 @@ fun PantallaBaseAdmin(
                     val salaId = entrada.arguments?.getLong("salaId") ?: 0L
                         FormularioSalaScreen(
                             salaId = salaId,
-                            onVolver = { navController.popBackStack() }
+                            onVolver = { navController.popBackStack() },
+                            onRegistrarAuditoria = onRegistrarAuditoria
                         )
                 }
             }

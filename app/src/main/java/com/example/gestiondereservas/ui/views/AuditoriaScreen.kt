@@ -1,7 +1,6 @@
 package com.example.gestiondereservas.ui.views
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +21,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,15 +32,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
+import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
+import com.example.gestiondereservas.ui.viewmodel.AuditoriaViewModel
 
 @Composable
-fun AuditoriaScreen(onAtras: () -> Unit){
+fun AuditoriaScreen(onAtras: () -> Unit,
+                    viewModel: AuditoriaViewModel
+){
+    val listaAuditorias by viewModel.totalAuditorias.collectAsState()
 
-    contenido(onAtras)
+    contenido(onAtras,
+        listaAuditorias)
+
+
 }
 
 @Composable
-private fun contenido(onAtras: () -> Unit) {
+private fun contenido(onAtras: () -> Unit,
+                      listaAuditorias: List<AuditoriaEntity>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,13 +83,29 @@ private fun contenido(onAtras: () -> Unit) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        auditoriaCard()
+        listaAuditorias.forEach { auditoria ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                auditoriaCard(auditoria)
+            }
+        }
 
     }
 }
 
 @Composable
-fun auditoriaCard(){
+fun auditoriaCard(auditoria: AuditoriaEntity){
+    val (icono, colorFondo) = when (auditoria.tipo) {
+        TipoAuditoria.RESERVA.name -> Pair(R.drawable.task, Color(0xFFFFF0D4))
+        TipoAuditoria.SALAS.name -> Pair(R.drawable.door, Color(0xFFE9F0FA))
+        TipoAuditoria.HORARIOS.name -> Pair(R.drawable.clock, Color(0xFFEFEFEF))
+        TipoAuditoria.REPORTES.name -> Pair(R.drawable.chart_bar, Color(0xFFC4FFCB))
+        else -> Pair(R.drawable.history, Color(0xFFFFEAC4))
+    }
+
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
             defaultElevation = 3.dp
@@ -89,7 +116,7 @@ fun auditoriaCard(){
             containerColor = MaterialTheme.colorScheme.secondary
         )
     ) {
-        // if (tipo = "Reserva", "Salas", "Horario")
+
 
         Row(
             modifier = Modifier.padding(16.dp),
@@ -99,29 +126,29 @@ fun auditoriaCard(){
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFFF0F0F0)), //Cambiar color en base al tipo de reserva
+                    .background(colorFondo),
                 contentAlignment = Alignment.Center
             ){
                 Icon(
-                    painter = painterResource(R.drawable.task),
-                    contentDescription = "Icono reserva"
-                    //painter = painterResource(R.drawable.clock)
-                    //painter = painterResource(R.drawable.door
+                    painter = painterResource(icono),
+                    contentDescription = "Icono auditoria"
                 )
             }
 
             Spacer(modifier = Modifier.width(12.dp))
 
             Column() {
-                Text("Acción realizada",
+                Text(
+                    auditoria.accion,
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 14.sp)
 
-                Text("Area",
+                Text(
+                    auditoria.detalle,
                     color = Color(0xFF3B3B3B),
                     fontSize = 12.sp)
 
-                Text("Fecha y hora que se realizo la acción",
+                Text("${auditoria.fecha} - ${auditoria.hora}",
                     color = Color(0xFF3B3B3B),
                     fontSize = 12.sp)
             }

@@ -75,6 +75,7 @@ import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
 import com.example.gestiondereservas.utils.formatearFechaPerso
+import com.example.gestiondereservas.utils.formatearHora
 import com.example.gestiondereservas.utils.formatoFecha
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -160,7 +161,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             accion = "Se creo una solicitud de reserva",
             detalle = nombre,
             fecha = LocalDate.now().toString(),
-            hora = LocalDateTime.now().toString(),
+            hora = formatearHora(),
             tipo = TipoAuditoria.RESERVA.name
         )
     }

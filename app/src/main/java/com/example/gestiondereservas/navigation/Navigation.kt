@@ -33,7 +33,7 @@ fun appNavigation(navController: NavHostController) {
     val auditoriaViewModel: AuditoriaViewModel = rememberAuditoriaViewModel()
 
     NavHost(
-        navController = navController, startDestination = "baseRelator" //"baseRelator" //"login"
+        navController = navController, startDestination = "baseSupervisor" //"baseRelator" //"login"
     ) {
         composable ("login"){ }
 
@@ -48,7 +48,10 @@ fun appNavigation(navController: NavHostController) {
             PantallaBaseAdmin(navController,
                 onRegistrarAuditoria = { evento ->
                     auditoriaViewModel.registrarReserva(evento)
-                }) }
+                },
+                auditoriaViewModel = auditoriaViewModel
+            )
+        }
 
     }
 }

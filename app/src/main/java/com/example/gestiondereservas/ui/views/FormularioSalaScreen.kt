@@ -68,12 +68,18 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.ProveedorDatos
 import com.example.gestiondereservas.data.repository.SalaRepository
+import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.Area
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
+import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.components.AreaChip
 import com.example.gestiondereservas.ui.viewmodel.EquipoForm
 import com.example.gestiondereservas.ui.viewmodel.FormularioSalaViewModel
+import com.example.gestiondereservas.utils.formatearHora
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Composable
 fun rememberFormularioSalaViewModel(
@@ -85,8 +91,9 @@ fun rememberFormularioSalaViewModel(
         key = "formulario-sala-$salaId-${areaCoordinador.name}",
         factory = viewModelFactory {
             initializer {
+                val dao = AppDatabase.getInstance(contexto).salaDao()
                 FormularioSalaViewModel(
-                    SalaRepository(ProveedorDatos.salaDao(contexto)),
+                    SalaRepository(dao),
                     salaId,
                     areaCoordinador
                 )
@@ -104,7 +111,8 @@ fun FormularioSalaScreen(
     viewModel: FormularioSalaViewModel = rememberFormularioSalaViewModel(
         salaId,
         areaCoordinador
-    )
+    ),
+    onRegistrarAuditoria: (AuditoriaEntity) -> Unit
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val contexto = LocalContext.current
@@ -126,6 +134,16 @@ fun FormularioSalaScreen(
         }
     }
 
+    fun crearAuditoria(): AuditoriaEntity{
+        return AuditoriaEntity(
+            accion = "Se actualizo una sala",
+            detalle = "${d.codigo} - ${d.nombre} " ,
+            fecha = LocalDate.now().toString(),
+            hora = formatearHora(),
+            tipo = TipoAuditoria.SALAS.name
+        )
+    }
+
     fun intentarVolver() {
         if (estado.hayCambios) confirmarDescarte = true else onVolver()
     }
@@ -139,6 +157,10 @@ fun FormularioSalaScreen(
                 if (estado.esNueva) "Sala creada" else "Sala actualizada",
                 Toast.LENGTH_SHORT
             ).show()
+
+            val auditoria = crearAuditoria()
+            onRegistrarAuditoria(auditoria)
+
             onVolver()
         }
     }
