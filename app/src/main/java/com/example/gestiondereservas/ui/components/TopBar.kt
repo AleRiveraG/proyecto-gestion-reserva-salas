@@ -50,7 +50,7 @@ fun TopBar() {
             Row {
                 Box(
                     modifier = Modifier
-                        .size(50.dp)
+                        .size(40.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF3B3B3B))
                         .clickable { },
@@ -60,13 +60,13 @@ fun TopBar() {
                         painter = painterResource(id = R.drawable.bell),
                         contentDescription = "Icono notificaciones",
                         tint = Color.White,
-                        modifier = Modifier.size(30.dp)
+                        modifier = Modifier.size(25.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 Box(
                     modifier = Modifier
-                        .size(50.dp)
+                        .size(40.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF3B3B3B))
                         .clickable { },
@@ -76,7 +76,7 @@ fun TopBar() {
                         painter = painterResource(id = R.drawable.user_circle),
                         contentDescription = "Icono usuario",
                         tint = Color.White,
-                        modifier = Modifier.size(30.dp)
+                        modifier = Modifier.size(25.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))

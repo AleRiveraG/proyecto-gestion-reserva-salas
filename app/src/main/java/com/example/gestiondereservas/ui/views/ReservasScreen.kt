@@ -1318,7 +1318,7 @@ fun menuEscuelas(titulo: String, opcion: String, onOrganizadorChange: (String) -
         "Comunicación",
         "Construcción",
         "Diseño",
-        "Gastronomia",
+        "Gastronomía",
         "Informática y Telecomunicaciones",
         "Ingeniería y Recursos Naturales",
         "Salud y Bienestar",

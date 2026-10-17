@@ -26,6 +26,7 @@ import com.example.gestiondereservas.ui.views.FormularioSalaScreen
 import com.example.gestiondereservas.ui.views.GestionReservasScreen
 import com.example.gestiondereservas.ui.views.SalasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
+import com.example.gestiondereservas.ui.views.rememberGestionReservasViewModel
 
 object GestionSalasRutas {
     const val SALAS = "gestion_salas"
@@ -80,6 +81,8 @@ fun PantallaBaseAdmin(
                         onGestionSalas = { tabNavController.navigate("gestion_salas")},
                         onAuditoria = { tabNavController.navigate("auditoria")},
                         onReportes = { },
+                        onReservas = { tabNavController.navigate("gestionReserva")},
+                        viewModel = rememberGestionReservasViewModel()
                     )
                 }
 

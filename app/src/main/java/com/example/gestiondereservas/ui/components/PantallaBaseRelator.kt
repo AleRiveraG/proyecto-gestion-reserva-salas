@@ -60,9 +60,13 @@ fun PantallaBaseRelator(
             ) {
                 composable("paginaRelator") {
                     RelatorScreen(
-                        onReservas = { tabNavController.navigate("reservas") }
+                        onReservas = { tabNavController.navigate("reservas") },
+                        onBuscarSala = { tabNavController.navigate("salasRelator")},
+                        onCalendario = { },
+                        onActividad = { }
                     )
                 }
+
 
                 composable("salasRelator") {
                     BusquedaSalasScreen(
