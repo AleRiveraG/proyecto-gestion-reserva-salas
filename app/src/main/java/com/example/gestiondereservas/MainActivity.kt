@@ -7,10 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
 import android.graphics.Color
 import androidx.activity.SystemBarStyle
-import com.example.gestiondereservas.navigation.GestionSalasNavigation
-
-//este import es por para probar la vista de las distintas areas
-import com.example.gestiondereservas.data.room.entidades.Area
+import com.example.gestiondereservas.navigation.GestionHorariosNavigation
 import com.example.gestiondereservas.navigation.GestionSalasNavigation
 
 class MainActivity : ComponentActivity() {
@@ -23,7 +20,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             GestionDeReservasTheme {
                 GestionSalasNavigation()
-                /*para simular la vista desde otra area poner esto = GestionSalasNavigation(areaCoordinador = Area.CONSTRUCCION)*/
+                //DESCOMENTEN LA LINEA DE ABAJO PARA PROBAR LA PANTALLA DE HORARIOS PARA ROL TRABAJADOR Y
+                // PARA OCUPAR EL DE COORDINADOR SOLO PONGAN gestionHorariosNavigation()
+                //GestionHorariosNavigation(puedeEditar = false)
             }
         }
     }
