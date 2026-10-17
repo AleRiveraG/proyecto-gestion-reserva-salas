@@ -4,44 +4,26 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
+import android.graphics.Color
+import androidx.activity.SystemBarStyle
+import com.example.gestiondereservas.navigation.GestionHorariosNavigation
+import com.example.gestiondereservas.navigation.GestionSalasNavigation
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
+        )
         setContent {
             GestionDeReservasTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                GestionSalasNavigation()
+                //DESCOMENTEN LA LINEA DE ABAJO PARA PROBAR LA PANTALLA DE HORARIOS PARA ROL TRABAJADOR Y
+                // PARA OCUPAR EL DE COORDINADOR SOLO PONGAN gestionHorariosNavigation()
+                //GestionHorariosNavigation(puedeEditar = false)
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    GestionDeReservasTheme {
-        Greeting("Android")
     }
 }
