@@ -60,15 +60,15 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.ui.theme.*
+import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
 import com.example.gestiondereservas.utils.AnimacionRegistro
-
 
 //- - - - - - - - - - - - - - - - - - - - - - - - -
 //Encabezado
@@ -102,7 +102,7 @@ fun RegistroTopBar() {
                         .size(50.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF3B3B3B))
-                        .clickable{},
+                        .clickable {},
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -120,14 +120,14 @@ fun RegistroTopBar() {
                         .size(50.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF3B3B3B))
-                        .clickable{},
+                        .clickable {},
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.user_circle),
                         contentDescription = "Icono usuario",
                         tint = Color.White,
-                        modifier = Modifier.size(12.dp)
+                        modifier = Modifier.size(30.dp)
                     )
                 }
 
@@ -136,7 +136,6 @@ fun RegistroTopBar() {
         }
     )
 }
-
 
 //- - - - - - - - - - - - - - - - - - - - - - - - -
 //Pie de página
@@ -200,7 +199,6 @@ fun RegistroNavBar() {
     }
 }
 
-
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 //Enumeración para los roles exigidos en las reglas de negocio (RF01)
@@ -208,7 +206,6 @@ enum class RolRegistroUsuario(val nombreMostrar: String) {
     RELATOR("Relator / Trabajador"),
     COORDINADOR("Coordinador")
 }
-
 
 //- - - - - - - - - - - - - - - - - - - - - - - - -
 //Cuerpo
@@ -234,7 +231,7 @@ fun RegistroBody(
     var errorNombre by remember { mutableStateOf<String?>(null) }
     var errorCorreo by remember { mutableStateOf<String?>(null) }
     var errorPassword by remember { mutableStateOf<String?>(null) }
-    var errorConfirmarPassword by remember { mutableStateOf<String?>(null)}
+    var errorConfirmarPassword by remember { mutableStateOf<String?>(null) }
 
     val administradorFoco = LocalFocusManager.current
     val estadoDesplazamiento = rememberScrollState()
@@ -278,6 +275,7 @@ fun RegistroBody(
         }
     }
 
+    //Validación estricta y sincronizada de la contraseña
     fun validarPassword(): Boolean {
         return when {
             password.isBlank() -> {
@@ -286,6 +284,18 @@ fun RegistroBody(
             }
             password.length < 6 -> {
                 errorPassword = "La contraseña debe tener al menos 6 caracteres"
+                false
+            }
+            !password.any { it.isUpperCase() } -> {  //Obliga a tener al menos 1 mayúscula
+                errorPassword = "Debe contener al menos una letra mayúscula"
+                false
+            }
+            !password.any { it.isLowerCase() } -> {  //Obliga a tener al menos 1 minúscula
+                errorPassword = "Debe contener al menos una letra minúscula"
+                false
+            }
+            !password.any { it.isDigit() } -> {  //Obliga a tener al menos 1 número
+                errorPassword = "Debe contener al menos un número"
                 false
             }
             else -> {
@@ -315,7 +325,7 @@ fun RegistroBody(
     fun manejarEnvio() {
         val esNombreValido = validarNombre()
         val esCorreoValido = validarCorreo()
-        val esPasswordValido = validarPassword()
+        val esPasswordValido = validarPassword() //Aplica las reglas reforzadas
         val esConfirmacionValida = validarConfirmarPassword()
 
         if (esNombreValido && esCorreoValido && esPasswordValido && esConfirmacionValida) {
@@ -390,10 +400,11 @@ fun RegistroBody(
             label = { Text("Nombre completo") },
             placeholder = { Text("Ej. José Merino") },
             singleLine = true,
+            maxLines = 1,
             isError = errorNombre != null,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
-                capitalization = androidx.compose.ui.text.input.KeyboardCapitalization.Words,
+                capitalization = KeyboardCapitalization.Words,
                 imeAction = ImeAction.Next
             ),
             keyboardActions = KeyboardActions(
@@ -447,6 +458,7 @@ fun RegistroBody(
             isError = errorCorreo != null,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
+                autoCorrectEnabled = false,
                 imeAction = ImeAction.Next
             ),
             keyboardActions = KeyboardActions(
@@ -491,7 +503,7 @@ fun RegistroBody(
             value = password,
             onValueChange = {
                 password = it
-                if (errorPassword != null) validarPassword()
+                if (errorPassword != null) validarPassword() //Revalida en tiempo real
                 if (errorConfirmarPassword != null && confirmarPassword.isNotEmpty()) validarConfirmarPassword()
             },
             modifier = Modifier.fillMaxWidth(),
@@ -504,7 +516,7 @@ fun RegistroBody(
                 imeAction = ImeAction.Next
             ),
             keyboardActions = KeyboardActions(
-                onNext = { administradorFoco.moveFocus(FocusDirection.Down)}
+                onNext = { administradorFoco.moveFocus(FocusDirection.Down) }
             ),
             leadingIcon = {
                 Icon(
@@ -522,7 +534,7 @@ fun RegistroBody(
                             modifier = Modifier.padding(end = 4.dp)
                         )
                     }
-                    IconButton(onClick = { esPasswordVisible = !esPasswordVisible}) {
+                    IconButton(onClick = { esPasswordVisible = !esPasswordVisible }) {
                         Icon(
                             imageVector = if (esPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                             contentDescription = if (esPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña"
@@ -682,8 +694,8 @@ fun RegistroBodyPreview() {
     GestionDeReservasTheme {
         RegistroScreen(
             alRegistrarExitoso = { nombre, correo, password, rol ->
-            //Acción de prueba local
-        }
-    )
+                //Acción de prueba local
+            }
+        )
     }
 }
