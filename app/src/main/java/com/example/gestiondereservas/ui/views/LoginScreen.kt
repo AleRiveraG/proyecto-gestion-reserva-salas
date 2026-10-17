@@ -65,8 +65,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.ui.theme.*
+import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.utils.AnimacionLogin
 import com.example.gestiondereservas.utils.AnimacionLottie
 
@@ -610,16 +612,22 @@ fun LoginScreen(
     when (pantallaDestinoInterna) {
         "relator" -> {
             RelatorScreen(
-                onReservas = {}
+                onReservas = {},
+                onBuscarSala = {},
+                onCalendario = {},
+                onActividad = {}
             )
             return
         }
         "supervisor" -> {
+            val supervisorVm: GestionReservasViewModel = viewModel()
             SupervisorScreen(
                 onHorarios = {},
                 onGestionSalas = {},
                 onAuditoria = {},
-                onReportes = {}
+                onReportes = {},
+                onReservas = {},
+                viewModel = supervisorVm
             )
             return
         }
