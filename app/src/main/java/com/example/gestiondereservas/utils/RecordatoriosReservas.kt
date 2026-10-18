@@ -26,7 +26,12 @@ object RecordatoriosReservas {
 
     fun programar(context: Context, reserva: ReservaEntity) {
 
-        val inicio = obtenerFechaHora(reserva) ?: return
+        val inicio = obtenerFechaHora(reserva)
+
+        if (inicio == null) {
+            cancelar(context, reserva.id)
+            return
+        }
 
         val momentoAviso = inicio.minusHours(1)
         val ahora = LocalDateTime.now()

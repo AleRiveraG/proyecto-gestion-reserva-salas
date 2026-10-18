@@ -23,14 +23,27 @@ import androidx.lifecycle.lifecycleScope
 //este import es por para probar la vista de las distintas areas
 import com.example.gestiondereservas.data.room.entidades.Area
 import com.example.gestiondereservas.ui.views.SalasScreen
+import com.example.gestiondereservas.utils.ObservadorNotificaciones
 import com.example.gestiondereservas.utils.ObservadorRecordatorios
 import kotlinx.coroutines.launch
+import android.content.Intent
+import androidx.compose.runtime.mutableStateOf
 
 class MainActivity : ComponentActivity() {
+
+    private val abrirNotificaciones = mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        abrirNotificaciones.value =
+            intent?.getBooleanExtra("abrirNotificaciones", false) ?: false
+
         lifecycleScope.launch {
             ObservadorRecordatorios.observar(applicationContext)
+        }
+        lifecycleScope.launch {
+            ObservadorNotificaciones.observar(applicationContext)
         }
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
@@ -45,17 +58,31 @@ class MainActivity : ComponentActivity() {
                 //RelatorScreen()
                 //SupervisorScreen(appState)
                 //SalasScreen()
-                myApp()
+                myApp(
+                    abrirNotificaciones = abrirNotificaciones.value
+                )
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+
+        abrirNotificaciones.value =
+            intent.getBooleanExtra("abrirNotificaciones", false)
     }
 }
 
 @Composable
-fun myApp() {
-    val navController =  rememberNavController()
+fun myApp(abrirNotificaciones: Boolean = false) {
 
-    MaterialTheme{
-        appNavigation(navController)
+    val navController = rememberNavController()
+
+    MaterialTheme {
+        appNavigation(
+            navController = navController,
+            abrirNotificaciones = abrirNotificaciones
+        )
     }
 }

@@ -510,7 +510,7 @@ fun etiquetaEstado(estado: String) {
 }
 
 @Composable
-fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long) -> Unit) {
+fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long) -> Unit, soloLectura: Boolean = false) {
     val scope = rememberCoroutineScope()
 
     Column(modifier = Modifier.padding(16.dp)) {
@@ -560,6 +560,8 @@ fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, onAprobar: (L
 
         servicios(reserva)
 
+        if (!soloLectura && reserva.estado == EstadoReserva.PENDIENTE) {
+
         Spacer(modifier = Modifier.height(12.dp))
 
         Row(
@@ -570,7 +572,7 @@ fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, onAprobar: (L
                 modifier = Modifier
                     .weight(1f),
                 onClick = {
-                    onAprobar(reserva.id)
+                    onRechazar(reserva.id)
                     onCerrar() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFD00236)
@@ -596,7 +598,7 @@ fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, onAprobar: (L
                 modifier = Modifier
                     .weight(1f),
                 onClick = {
-                    onRechazar(reserva.id)
+                    onAprobar(reserva.id)
                     onCerrar()
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -616,6 +618,8 @@ fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, onAprobar: (L
                     color = MaterialTheme.colorScheme.secondary
                 )
             }
+        }
+
         }
     }
 }

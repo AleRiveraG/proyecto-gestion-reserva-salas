@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -45,6 +46,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
+import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 
 
 // Representa una notificación
@@ -53,7 +55,8 @@ private data class NotificacionUI(
     val titulo: String,
     val descripcion: String,
     val tipo: TipoNotificacion,
-    val leida: Boolean = false
+    val leida: Boolean = false,
+    val reservaId: Long? = null
 )
 
 // Tipos de notificaciones
@@ -65,15 +68,14 @@ private enum class TipoNotificacion {
     RECHAZADA
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificacionesScreen(
     onVolver: () -> Unit,
     navController: NavController,
-    esSupervisor: Boolean
+    esSupervisor: Boolean,
+    correoUsuario: String? = null
 ) {
-    // Datos de ejemplo para esta primera versión
-
-
     val context = LocalContext.current
 
     val tituloNotificacion = "Recordatorio de actividad"
@@ -114,99 +116,63 @@ fun NotificacionesScreen(
     val database = remember(context) {
         AppDatabase.getInstance(context)
     }
+
+    var reservaSeleccionada by remember {
+        mutableStateOf<ReservaEntity?>(null)
+    }
+
     val notificacionDao = remember(database) {
         database.notificacionDao()
     }
     val scope = rememberCoroutineScope()
 
-    val ejemplos = remember(esSupervisor) {
-        mutableStateListOf<NotificacionUI>().apply {
-            if (esSupervisor) {
-                add(
-                    NotificacionUI(
-                        1,
-                        "Nueva solicitud por validar",
-                        "Taller de programación · Sala C204",
-                        TipoNotificacion.SOLICITUD
-                    )
+    val correoNormalizado = remember(correoUsuario) {
+        correoUsuario?.trim()?.lowercase()?.takeIf { it.isNotBlank() }
+    }
+
+    val flujoNotificaciones = remember(
+        notificacionDao,
+        esSupervisor,
+        correoNormalizado
+    ) {
+        when {
+            correoNormalizado == null -> {
+                kotlinx.coroutines.flow.flowOf(
+                    emptyList<NotificacionEntity>()
                 )
-                add(
-                    NotificacionUI(
-                        2,
-                        "Solicitudes pendientes",
-                        "Tienes reservas por revisar",
-                        TipoNotificacion.SOLICITUD
-                    )
-                )
-            } else {
-                add(
-                    NotificacionUI(
-                        3,
-                        "Reserva aprobada",
-                        "Workshop de experiencia digital",
-                        TipoNotificacion.APROBADA
-                    )
-                )
-                add(
-                    NotificacionUI(
-                        4,
-                        "Tu actividad comienza en 1 hora",
-                        "Sala C204 · 10:00",
-                        TipoNotificacion.RECORDATORIO
-                    )
-                )
-                add(
-                    NotificacionUI(
-                        5,
-                        "Equipamiento liberado",
-                        "Proyector disponible en Sala D302",
-                        TipoNotificacion.EQUIPAMIENTO
-                    )
-                )
-                add(
-                    NotificacionUI(
-                        6,
-                        "Reserva rechazada",
-                        "Revisa el motivo de tu solicitud",
-                        TipoNotificacion.RECHAZADA
-                    )
+            }
+
+            esSupervisor -> {
+                notificacionDao.obtenerNotificacionesSupervisor()
+            }
+
+            else -> {
+                notificacionDao.obtenerNotificacionesRelator(
+                    correoNormalizado
                 )
             }
         }
     }
 
-    LaunchedEffect(esSupervisor) {
-        val guardadas = notificacionDao
-            .obtenerNotificaciones(esSupervisor)
-            .first()
+    val registros by flujoNotificaciones.collectAsStateWithLifecycle(
+        initialValue = emptyList()
+    )
 
-        if (guardadas.isEmpty()) {
-            ejemplos.forEach { ejemplo ->
-                notificacionDao.guardarNotificacion(
-                    NotificacionEntity(
-                        titulo = ejemplo.titulo,
-                        descripcion = ejemplo.descripcion,
-                        tipo = ejemplo.tipo.name,
-                        esSupervisor = esSupervisor,
-                        leida = ejemplo.leida
-                    )
-                )
-            }
+    val notificaciones = registros.mapNotNull { registro ->
+        val tipo = TipoNotificacion.entries.find {
+            it.name == registro.tipo
         }
-    }
 
-    val registros by notificacionDao
-        .obtenerNotificaciones(esSupervisor)
-        .collectAsState(initial = emptyList())
-
-    val notificaciones = registros.map { registro ->
-        NotificacionUI(
-            id = registro.id.toInt(),
-            titulo = registro.titulo,
-            descripcion = registro.descripcion,
-            tipo = TipoNotificacion.valueOf(registro.tipo),
-            leida = registro.leida
-        )
+        tipo?.let {
+            NotificacionUI(
+                id = registro.id.toInt(),
+                titulo = registro.titulo,
+                descripcion = registro.descripcion,
+                tipo = it,
+                leida = registro.leida,
+                reservaId = registro.reservaId
+            )
+        }
     }
 
     val pendientes = notificaciones.count { !it.leida }
@@ -276,7 +242,14 @@ fun NotificacionesScreen(
                     color = NotificationDarkYellow,
                     modifier = Modifier.clickable {
                         scope.launch {
-                            notificacionDao.marcarTodasLeidas(esSupervisor)
+
+                            val correo = correoNormalizado ?: return@launch
+
+                            if (esSupervisor) {
+                                notificacionDao.marcarTodasLeidasSupervisor()
+                            } else {
+                                notificacionDao.marcarTodasLeidasRelator(correo)
+                            }
                         }
                     }
                 )
@@ -314,6 +287,25 @@ fun NotificacionesScreen(
                 Text("Programar recordatorio (2 min)")
             }
 
+            if (notificaciones.isEmpty()) {
+                Text(
+                    text = "No tienes notificaciones por ahora",
+                    color = NotificationSecondaryText,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 24.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            if (correoNormalizado == null) {
+                Text(
+                    text = "Inicia sesión para ver tus notificaciones",
+                    color = NotificationSecondaryText,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+
             LazyColumn(
                 modifier = Modifier.fillMaxSize()
             ) {
@@ -326,26 +318,26 @@ fun NotificacionesScreen(
                         notificacion = notificacion,
                         onClick = {
                             scope.launch {
-                                notificacionDao.marcarLeida(notificacion.id.toLong())
+                                val correo = correoNormalizado ?: return@launch
+
+                                if (esSupervisor) {
+                                    notificacionDao.marcarLeidaSupervisor(
+                                        notificacion.id.toLong()
+                                    )
+                                } else {
+                                    notificacionDao.marcarLeidaRelator(
+                                        notificacion.id.toLong(),
+                                        correo
+                                    )
+                                }
+
+                                val reservaId = notificacion.reservaId
+
+                                if (reservaId != null) {
+                                    reservaSeleccionada = database.reservaDao()
+                                        .obtenerReservaPorId(reservaId)
+                                }
                             }
-
-                            // Navegar según el tipo de notificación
-                            when (notificacion.tipo) {
-                                TipoNotificacion.SOLICITUD -> {
-                                    navController.navigate("baseSupervisor/gestionReserva")
-                                }
-
-                                TipoNotificacion.APROBADA,
-                                TipoNotificacion.RECORDATORIO,
-                                TipoNotificacion.RECHAZADA -> {
-                                   navController.navigate("baseRelator/reservas")
-                                }
-
-                                else -> {
-                                    // Los demás tipos todavía no tienen navegación.
-                                }
-                            }
-
                         }
                     )
 
@@ -357,7 +349,25 @@ fun NotificacionesScreen(
             }
         }
     }
+    if (reservaSeleccionada != null) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                reservaSeleccionada = null
+            }
+        ) {
+            detalleSolicitud(
+                onCerrar = {
+                    reservaSeleccionada = null
+                },
+                reserva = reservaSeleccionada!!,
+                onAprobar = {},
+                onRechazar = {},
+                soloLectura = true
+            )
+        }
+    }
 }
+
 
 @Composable
 private fun TarjetaNotificacion(

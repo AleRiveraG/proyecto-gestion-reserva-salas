@@ -11,9 +11,20 @@ import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
 import com.example.gestiondereservas.ui.views.NotificacionesScreen
 import com.example.gestiondereservas.ui.views.RelatorScreen
 import com.example.gestiondereservas.ui.views.ReservasScreen
-
+import androidx.compose.runtime.LaunchedEffect
 @Composable
-fun appNavigation(navController: NavHostController) {
+fun appNavigation(
+    navController: NavHostController,
+    abrirNotificaciones: Boolean = false
+) {
+
+    LaunchedEffect(abrirNotificaciones) {
+        if (abrirNotificaciones) {
+            navController.navigate("notificaciones/false") {
+                launchSingleTop = true
+            }
+        }
+    }
 
     NavHost(
         navController = navController, startDestination = "baseRelator/reservas" //"baseSupervisor" //"login"
