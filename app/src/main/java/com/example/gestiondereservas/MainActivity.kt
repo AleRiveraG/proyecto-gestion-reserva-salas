@@ -18,6 +18,8 @@ import com.example.gestiondereservas.ui.views.ReservasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
 import android.graphics.Color
 import androidx.activity.SystemBarStyle
+import com.example.gestiondereservas.navigation.GestionHorariosNavigation
+import com.example.gestiondereservas.navigation.GestionSalasNavigation
 
 //este import es por para probar la vista de las distintas areas
 import com.example.gestiondereservas.data.room.entidades.Area
@@ -34,6 +36,10 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             GestionDeReservasTheme {
+                GestionSalasNavigation()
+                //DESCOMENTEN LA LINEA DE ABAJO PARA PROBAR LA PANTALLA DE HORARIOS PARA ROL TRABAJADOR Y
+                // PARA OCUPAR EL DE COORDINADOR SOLO PONGAN gestionHorariosNavigation()
+                //GestionHorariosNavigation(puedeEditar = false)
                 //ReservasScreen(appState)
                 //GestionReservasScreen(appState)
                 //RelatorScreen()

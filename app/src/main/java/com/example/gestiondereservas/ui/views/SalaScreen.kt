@@ -60,15 +60,15 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Composable
-fun rememberSalasViewModel(areaCoordinador: Area): SalasViewModel {
+fun rememberSalasViewModel(): SalasViewModel {
     val contexto = LocalContext.current.applicationContext
     return viewModel(
-        key = "salas-${areaCoordinador.name}",
+        key = "salas-coordinador-infraestructura",
         factory = viewModelFactory {
             initializer {
                 val dao = AppDatabase.getInstance(contexto).salaDao()
                 val repository = SalaRepository(dao)
-                SalasViewModel(repository, areaCoordinador)
+                SalasViewModel(repository)
             }
         }
     )
@@ -76,11 +76,10 @@ fun rememberSalasViewModel(areaCoordinador: Area): SalasViewModel {
 
 @Composable
 fun SalasScreen(
-    areaCoordinador: Area = Area.INFORMATICA,
     onNuevaSala: () -> Unit = {},
     onEditarSala: (Long) -> Unit = {},
     onRegistrarAuditoria: (AuditoriaEntity) -> Unit,
-    viewModel: SalasViewModel = rememberSalasViewModel(areaCoordinador)
+    viewModel: SalasViewModel = rememberSalasViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     var salaEntityPorCambiar by remember { mutableStateOf<SalaEntity?>(null) }
@@ -107,7 +106,7 @@ fun SalasScreen(
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "Gestiona los recintos de tu área",
+            text = "Gestiona los recintos de todas las áreas",
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF666666)
         )
