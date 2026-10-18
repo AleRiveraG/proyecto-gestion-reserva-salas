@@ -52,17 +52,17 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.Ocupacion
-import com.example.gestiondereservas.data.ProveedorDatos
-import com.example.gestiondereservas.data.ProveedorDatosHorarios
 import com.example.gestiondereservas.data.TipoOcupacion
 import com.example.gestiondereservas.data.repository.HorarioRepository
+import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
-import com.example.gestiondereservas.data.room.entidades.Horario
+import com.example.gestiondereservas.data.room.entidades.HorarioEntity
 import com.example.gestiondereservas.ui.viewmodel.HorariosViewModel
 import com.example.gestiondereservas.utils.FechasSemana
 import com.example.gestiondereservas.utils.FormatoHora
 import com.example.gestiondereservas.utils.ValidacionesHorario
 import java.util.Calendar
+import kotlin.collections.isNotEmpty
 
 private val ColorLibre = Color.White
 private val ColorBloqueado = Color(0xFFC9C9C9)
@@ -85,13 +85,11 @@ fun rememberHorariosViewModel(): HorariosViewModel {
         key = "horarios-coordinador-infraestructura",
         factory = viewModelFactory {
             initializer {
-                HorariosViewModel(
-                    HorarioRepository(
-                        ProveedorDatosHorarios.horarioDao(contexto),
-                        ProveedorDatos.salaDao(contexto)
-                    ),
-                    ProveedorDatosHorarios.ocupacionFuente(contexto)
-                )
+                val horarioDao = AppDatabase.getInstance(contexto).horarioDao()
+                val salaDao = AppDatabase.getInstance(contexto).salaDao()
+                val reservaDao = AppDatabase.getInstance(contexto).reservaDao()
+                val repository = HorarioRepository(horarioDao, salaDao, reservaDao)
+                HorariosViewModel(repository)
             }
         }
     )
@@ -442,14 +440,14 @@ private fun ItemLeyenda(color: Color, texto: String) {
 
 @Composable
 private fun GrillaSemanal(
-    horarios: List<Horario>,
+    horarios: List<HorarioEntity>,
     ocupaciones: List<Ocupacion>,
     dias: List<Calendar>,
     onEditar: (Long) -> Unit,
     onNuevo: (DiaSemana, Int) -> Unit,
     onOcupacion: (Ocupacion, DiaSemana) -> Unit,
     puedeEditar: Boolean,
-    onSolicitar: (Horario, Int) -> Unit
+    onSolicitar: (HorarioEntity, Int) -> Unit
 ) {
     //una fila por hora, desde la hora mínima hasta la máxima que permite el formulario
     val horas = (ValidacionesHorario.HORA_MIN / 60) until (ValidacionesHorario.HORA_MAX / 60)
@@ -537,7 +535,7 @@ private fun GrillaSemanal(
 
 @Composable
 private fun CeldaHorario(
-    bloque: Horario?,
+    bloque: HorarioEntity?,
     ocupadas: List<Ocupacion>,
     inicioHora: Int,
     onClick: () -> Unit

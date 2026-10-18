@@ -251,7 +251,7 @@ private fun accesosDirectos(onHorarios: () -> Unit,
         Column(verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = {},
+            IconButton(onClick = { onHorarios() },
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F5)

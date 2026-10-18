@@ -2,7 +2,7 @@ package com.example.gestiondereservas.data.simulacionbd
 
 import com.example.gestiondereservas.data.room.HorarioDao
 import com.example.gestiondereservas.data.room.SalaDao
-import com.example.gestiondereservas.data.room.entidades.Horario
+import com.example.gestiondereservas.data.room.entidades.HorarioEntity
 import com.example.gestiondereservas.data.room.entidades.HorarioConSala
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,14 +13,14 @@ import kotlinx.coroutines.flow.update
 // Necesita el SalaDao para poder armar HorarioConSala que es la relacion con sala
 class HorarioDaoPrueba(private val salaDao: SalaDao) : HorarioDao {
 
-    private val tablaHorarios = MutableStateFlow<List<Horario>>(emptyList())
+    private val tablaHorarios = MutableStateFlow<List<HorarioEntity>>(emptyList())
     private var siguienteId = 1L
 
     override fun observarTodos(
         busqueda: String
     ): Flow<List<HorarioConSala>> =
         combine(tablaHorarios, salaDao.observarTodas("")) { horarios, salas ->
-            val salasPorId = salas.associate { it.sala.id to it.sala }
+            val salasPorId = salas.associate { it.salaEntity.id to it.salaEntity }
 
             horarios
                 .mapNotNull { horario ->
@@ -37,7 +37,7 @@ class HorarioDaoPrueba(private val salaDao: SalaDao) : HorarioDao {
     override suspend fun obtenerPorId(id: Long): HorarioConSala? {
         val horario = tablaHorarios.value.firstOrNull { it.id == id }
             ?: return null
-        val sala = salaDao.obtenerPorId(horario.salaId)?.sala
+        val sala = salaDao.obtenerPorId(horario.salaId)?.salaEntity
             ?: return null
 
         return HorarioConSala(horario, sala)
@@ -75,13 +75,13 @@ class HorarioDaoPrueba(private val salaDao: SalaDao) : HorarioDao {
     override suspend fun contarHorarios(): Int =
         tablaHorarios.value.size
 
-    override suspend fun insertarHorario(horario: Horario): Long {
+    override suspend fun insertarHorario(horario: HorarioEntity): Long {
         val id = siguienteId++
         tablaHorarios.update { horarios -> horarios + horario.copy(id = id) }
         return id
     }
 
-    override suspend fun actualizarHorario(horario: Horario) {
+    override suspend fun actualizarHorario(horario: HorarioEntity) {
         tablaHorarios.update { horarios ->
             horarios.map { existente ->
                 if (existente.id == horario.id) horario else existente

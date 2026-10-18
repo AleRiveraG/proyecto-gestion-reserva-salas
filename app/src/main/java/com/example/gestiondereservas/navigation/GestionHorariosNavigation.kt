@@ -8,10 +8,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.gestiondereservas.ui.components.PantallaBase
+import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
 import com.example.gestiondereservas.ui.views.FormularioHorarioScreen
 import com.example.gestiondereservas.ui.views.HorariosScreen
-
+/*
 //rutas para las funcionalidades de gestion de horarios
 object GestionHorariosRutas {
     const val HORARIOS = "gestion_horarios"
@@ -40,9 +40,10 @@ fun GestionHorariosNavigation(puedeEditar: Boolean = true) {
         startDestination = GestionHorariosRutas.HORARIOS
     ) {
         composable(GestionHorariosRutas.HORARIOS) {
-            PantallaBase(itemSeleccionado = 2) {
+            PantallaBaseAdmin(itemSeleccionado = 2) {
                 HorariosScreen(
-                    puedeEditar = puedeEditar,onSolicitarBloque = { salaId, fecha, horaInicio, horaTermino ->
+                    puedeEditar = puedeEditar,
+                    onSolicitarBloque = { salaId, fecha, horaInicio, horaTermino ->
                         Toast.makeText(
                             contexto,
                             "Solicitar sala $salaId · $fecha · $horaInicio - $horaTermino",
@@ -88,7 +89,7 @@ fun GestionHorariosNavigation(puedeEditar: Boolean = true) {
             val salaId = entrada.arguments?.getLong("salaId") ?: 0L
             val dia = entrada.arguments?.getString("dia")
             val inicio = entrada.arguments?.getInt("inicio") ?: -1
-            PantallaBase(itemSeleccionado = 2) {
+            PantallaBaseAdmin(itemSeleccionado = 2) {
                 FormularioHorarioScreen(
                     horarioId = horarioId,
                     salaInicialId = salaId,
@@ -100,3 +101,4 @@ fun GestionHorariosNavigation(puedeEditar: Boolean = true) {
         }
     }
 }
+ */

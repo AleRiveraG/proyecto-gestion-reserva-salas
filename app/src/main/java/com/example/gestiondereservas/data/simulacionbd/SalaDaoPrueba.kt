@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.update
 // Simula salas y equipamientos en memoria para integrar la base centralizada después.
 class SalaDaoPrueba : SalaDao {
 
-    private val tablaSalas = MutableStateFlow<List<Sala>>(emptyList())
+    private val tablaSalas = MutableStateFlow<List<SalaEntity>>(emptyList())
     private val tablaEquipos = MutableStateFlow<List<Equipamiento>>(emptyList())
 
     private var siguienteIdSala = 1L
@@ -59,6 +59,14 @@ class SalaDaoPrueba : SalaDao {
     override suspend fun contarSalas(): Int =
         tablaSalas.value.size
 
+    override suspend fun obtenerSalas(): List<SalaEntity> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun obtenerSalaPorId(id: Long): SalaEntity {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun cambiarEstado(id: Long, activa: Boolean) {
         tablaSalas.update { salas ->
             salas.map { sala ->
@@ -67,7 +75,7 @@ class SalaDaoPrueba : SalaDao {
         }
     }
 
-    override suspend fun insertarSala(sala: Sala): Long {
+    override suspend fun insertarSala(sala: SalaEntity): Long {
         check(
             tablaSalas.value.none {
                 it.codigo.equals(sala.codigo, ignoreCase = true)
@@ -81,7 +89,7 @@ class SalaDaoPrueba : SalaDao {
         return id
     }
 
-    override suspend fun actualizarSala(sala: Sala) {
+    override suspend fun actualizarSala(sala: SalaEntity) {
         check(
             tablaSalas.value.none {
                 it.id != sala.id &&

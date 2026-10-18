@@ -2,7 +2,6 @@ package com.example.gestiondereservas.data
 
 import com.example.gestiondereservas.data.room.entidades.Area
 import com.example.gestiondereservas.data.room.entidades.Equipamiento
-import com.example.gestiondereservas.data.room.entidades.Sala
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 
 object DatosPrueba {

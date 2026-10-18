@@ -7,19 +7,21 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.Equipamiento
+import com.example.gestiondereservas.data.room.entidades.HorarioEntity
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.utils.Converters
 
 @TypeConverters(Converters::class)
-@Database(entities = [ReservaEntity::class, SalaEntity::class, Equipamiento::class, AuditoriaEntity::class],
-        version = 3,
+@Database(entities = [ReservaEntity::class, SalaEntity::class, Equipamiento::class,
+    AuditoriaEntity::class, HorarioEntity::class],
+        version = 4,
         exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun reservaDao(): ReservaDao
     abstract fun salaDao(): SalaDao
-
+    abstract fun horarioDao(): HorarioDao
     abstract fun auditoriaDao(): AuditoriaDao
     companion object {
 

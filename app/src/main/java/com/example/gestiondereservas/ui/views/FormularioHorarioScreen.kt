@@ -57,9 +57,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.data.ProveedorDatos
-import com.example.gestiondereservas.data.ProveedorDatosHorarios
 import com.example.gestiondereservas.data.repository.HorarioRepository
+import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
 import com.example.gestiondereservas.ui.components.AreaChip
 import com.example.gestiondereservas.ui.viewmodel.FormularioHorarioViewModel
@@ -78,18 +77,15 @@ fun rememberFormularioHorarioViewModel(
         key = "formulario-horario-$horarioId",
         factory = viewModelFactory {
             initializer {
-                FormularioHorarioViewModel(
-                    HorarioRepository(
-                        ProveedorDatosHorarios.horarioDao(contexto),
-                        ProveedorDatos.salaDao(contexto)
-                    ),
+                val horarioDao = AppDatabase.getInstance(contexto).horarioDao()
+                val salaDao = AppDatabase.getInstance(contexto).salaDao()
+                val reservaDao = AppDatabase.getInstance(contexto).reservaDao()
+                val repository = HorarioRepository(horarioDao, salaDao, reservaDao)
+                FormularioHorarioViewModel(repository,
                     horarioId,
                     salaInicialId,
-                    diaInicial?.let { nombre ->
-                        runCatching { DiaSemana.valueOf(nombre) }.getOrNull()
-                    },
-                    inicioInicialMin
-                )
+                    diaInicial?.let { nombre -> runCatching { DiaSemana.valueOf(nombre) }.getOrNull() },
+                    inicioInicialMin)
             }
         }
     )

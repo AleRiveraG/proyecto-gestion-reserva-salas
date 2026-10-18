@@ -26,4 +26,7 @@ interface ReservaDao {
     @Query("SELECT COUNT(*) FROM reserva WHERE estado = 'PENDIENTE'")
     suspend fun obtenerPendientes(): Int
 
+    @Query("SELECT * FROM reserva WHERE salaId = :salaId")
+    suspend fun obtenerReservasPorSala(salaId: Long): List<ReservaEntity>
+
 }

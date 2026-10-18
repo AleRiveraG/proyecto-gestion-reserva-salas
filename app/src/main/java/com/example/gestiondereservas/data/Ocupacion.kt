@@ -16,6 +16,4 @@ data class Ocupacion(
 
 //esto es para las ocupaciones de una sala ahora lo estoy haciendo con ocupacion fuente prueba. Cuando se haga con la bd real se
 //deberia reemplazar por una que lea las reservas y ocupe el OcupacionMapper desde reserva para cada una
-interface OcupacionFuente {
-    suspend fun obtenerPorSala(salaId: Long): List<Ocupacion>
-}
+

@@ -1,12 +1,15 @@
 package com.example.gestiondereservas.data.repository
 
 import com.example.gestiondereservas.data.DatosPruebaHorarios
+import com.example.gestiondereservas.data.Ocupacion
+import com.example.gestiondereservas.data.OcupacionMapper
 import com.example.gestiondereservas.data.room.HorarioDao
+import com.example.gestiondereservas.data.room.ReservaDao
 import com.example.gestiondereservas.data.room.SalaDao
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
-import com.example.gestiondereservas.data.room.entidades.Horario
 import com.example.gestiondereservas.data.room.entidades.HorarioConSala
-import com.example.gestiondereservas.data.room.entidades.Sala
+import com.example.gestiondereservas.data.room.entidades.HorarioEntity
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.utils.ValidacionesHorario
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -14,9 +17,9 @@ import kotlinx.coroutines.flow.map
 
 class HorarioRepository(
     private val dao: HorarioDao,
-    private val salaDao: SalaDao
+    private val salaDao: SalaDao,
+    private val reservaDao: ReservaDao
 ) {
-
     fun observarTodos(busqueda: String): Flow<List<HorarioConSala>> =
         dao.observarTodos(busqueda.trim())
 
@@ -25,7 +28,7 @@ class HorarioRepository(
     suspend fun cambiarEstado(id: Long, activo: Boolean) =
         dao.cambiarEstado(id, activo)
 
-    suspend fun guardar(horario: Horario): Long = dao.guardar(horario)
+    suspend fun guardar(horario: HorarioEntity): Long = dao.guardar(horario)
 
     suspend fun eliminar(id: Long) = dao.eliminar(id)
 
@@ -46,11 +49,11 @@ class HorarioRepository(
             excluirId
         ) > 0
 
-    fun observarSalas(): Flow<List<Sala>> =
-        salaDao.observarTodas("").map { lista -> lista.map { it.sala } }
+    fun observarSalas(): Flow<List<SalaEntity>> =
+        salaDao.observarTodas("").map { lista -> lista.map { it.salaEntity } }
 
-    suspend fun salasDisponibles(): List<Sala> =
-        salaDao.observarTodas("").first().map { it.sala }
+    suspend fun salasDisponibles(): List<SalaEntity> =
+        salaDao.observarTodas("").first().map { it.salaEntity }
 
     suspend fun sembrarSiVacio() {
         if (dao.contarHorarios() > 0) return
@@ -66,7 +69,7 @@ class HorarioRepository(
                 ?: return@forEach
 
             dao.guardar(
-                Horario(
+                HorarioEntity(
                     salaId = sala.id,
                     dia = semilla.dia,
                     inicioMin = semilla.inicioMin,
@@ -75,5 +78,15 @@ class HorarioRepository(
                 )
             )
         }
+    }
+
+    suspend fun obtenerOcupacionesPorSala(salaId: Long): List<Ocupacion> {
+        val reservas = reservaDao.obtenerReservasPorSala(salaId)
+        val lista = mutableListOf<Ocupacion>()
+
+        reservas.forEach { reserva ->
+            lista.addAll(OcupacionMapper.desdeReserva(reserva))
+        }
+        return lista
     }
 }

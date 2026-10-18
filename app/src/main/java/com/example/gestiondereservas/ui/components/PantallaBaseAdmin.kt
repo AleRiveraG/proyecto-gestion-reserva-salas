@@ -1,5 +1,6 @@
 package com.example.gestiondereservas.ui.components
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -8,6 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -22,8 +24,10 @@ import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.ui.viewmodel.AuditoriaViewModel
 import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.ui.views.AuditoriaScreen
+import com.example.gestiondereservas.ui.views.FormularioHorarioScreen
 import com.example.gestiondereservas.ui.views.FormularioSalaScreen
 import com.example.gestiondereservas.ui.views.GestionReservasScreen
+import com.example.gestiondereservas.ui.views.HorariosScreen
 import com.example.gestiondereservas.ui.views.SalasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
 import com.example.gestiondereservas.ui.views.rememberGestionReservasViewModel
@@ -33,6 +37,23 @@ object GestionSalasRutas {
     const val FORMULARIO_SALA = "gestion_salas/formulario/{salaId}"
 
     fun formularioSala(salaId: Long) = "gestion_salas/formulario/$salaId"
+}
+
+object GestionHorariosRutas {
+    const val HORARIOS = "gestion_horarios"
+    const val FORMULARIO_HORARIO =
+        "gestion_horarios/formulario/{horarioId}?salaId={salaId}&dia={dia}&inicio={inicio}"
+
+    //salaId, dia e inicio sirven para abrir un horario nuevo ya rellenado desde la grilla
+    fun formularioHorario(
+        horarioId: Long,
+        salaId: Long = 0L,
+        dia: String? = null,
+        inicioMin: Int = -1
+    ): String {
+        val base = "gestion_horarios/formulario/$horarioId?salaId=$salaId&inicio=$inicioMin"
+        return if (dia != null) "$base&dia=$dia" else base
+    }
 }
 @Composable
 fun PantallaBaseAdmin(
@@ -60,7 +81,7 @@ fun PantallaBaseAdmin(
             NavBarAdmin(
                 opcionSeleccionada,
                 onInicio = { tabNavController.navigate("paginaSupervisor") },
-                onCalendario = { tabNavController.navigate("") },
+                onCalendario = { tabNavController.navigate("calendarioSupervisor") },
                 onSalas = { tabNavController.navigate("gestion_salas") },
                 onReservas = { tabNavController.navigate("gestionReserva") }
             ) },
@@ -77,7 +98,7 @@ fun PantallaBaseAdmin(
             ) {
                 composable("paginaSupervisor") {
                     SupervisorScreen(
-                        onHorarios = { },
+                        onHorarios = { tabNavController.navigate("calendarioSupervisor")},
                         onGestionSalas = { tabNavController.navigate("gestion_salas")},
                         onAuditoria = { tabNavController.navigate("auditoria")},
                         onReportes = { },
@@ -87,11 +108,22 @@ fun PantallaBaseAdmin(
                 }
 
                 composable("calendarioSupervisor") {
-
-                }
-
-                composable("horarios") {
-
+                    HorariosScreen(
+                        puedeEditar = true,
+                        onNuevoHorario = { salaId, dia, inicioMin ->
+                            tabNavController.navigate(
+                                GestionHorariosRutas.formularioHorario(
+                                    horarioId = 0L,
+                                    salaId = salaId,
+                                    dia = dia?.name,
+                                    inicioMin = inicioMin
+                                )
+                            )
+                        },
+                        onEditarHorario = { id ->
+                            tabNavController.navigate(GestionHorariosRutas.formularioHorario(id))
+                        }
+                    )
                 }
 
                 composable("gestionReserva") {
@@ -107,7 +139,6 @@ fun PantallaBaseAdmin(
 
                 composable("gestion_salas") {
                     SalasScreen(
-                        areaCoordinador = Area.INFORMATICA,
                         onNuevaSala = {
                             tabNavController.navigate(GestionSalasRutas.formularioSala(0L))
                         },
@@ -123,12 +154,46 @@ fun PantallaBaseAdmin(
                     arguments = listOf(navArgument("salaId") { type = NavType.LongType })
                 ) { entrada ->
                     val salaId = entrada.arguments?.getLong("salaId") ?: 0L
-                        FormularioSalaScreen(
-                            salaId = salaId,
-                            onVolver = { navController.popBackStack() },
-                            onRegistrarAuditoria = onRegistrarAuditoria
-                        )
+                    FormularioSalaScreen(
+                        salaId = salaId,
+                        onVolver = { tabNavController.popBackStack() },
+                        onRegistrarAuditoria = onRegistrarAuditoria
+                    )
                 }
+
+                composable(
+                    route = GestionHorariosRutas.FORMULARIO_HORARIO,
+                    arguments = listOf(
+                        navArgument("horarioId") { type = NavType.LongType },
+                        navArgument("salaId") {
+                            type = NavType.LongType
+                            defaultValue = 0L
+                        },
+                        navArgument("dia") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        },
+                        navArgument("inicio") {
+                            type = NavType.IntType
+                            defaultValue = -1
+                        }
+                    )
+                ) { entrada ->
+                    val horarioId = entrada.arguments?.getLong("horarioId") ?: 0L
+                    val salaId = entrada.arguments?.getLong("salaId") ?: 0L
+                    val dia = entrada.arguments?.getString("dia")
+                    val inicio = entrada.arguments?.getInt("inicio") ?: -1
+                    FormularioHorarioScreen(
+                        horarioId = horarioId,
+                        salaInicialId = salaId,
+                        diaInicial = dia,
+                        inicioInicialMin = inicio,
+                        onVolver = { navController.popBackStack() }
+                    )
+                }
+
+                //FALTA REPORTES
             }
 
         }

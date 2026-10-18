@@ -11,7 +11,7 @@ import androidx.room.Relation
     tableName = "horarios",
     foreignKeys = [
         ForeignKey(
-            entity = Sala::class,
+            entity = SalaEntity::class,
             parentColumns = ["id"],
             childColumns = ["salaId"],
             onDelete = ForeignKey.CASCADE
@@ -19,7 +19,7 @@ import androidx.room.Relation
     ],
     indices = [Index(value = ["salaId", "dia"])]
 )
-data class Horario(
+data class HorarioEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val salaId: Long,
     val dia: DiaSemana,
@@ -29,7 +29,7 @@ data class Horario(
 )
 
 data class HorarioConSala(
-    @Embedded val horario: Horario,
+    @Embedded val horario: HorarioEntity,
     @Relation(parentColumn = "salaId", entityColumn = "id")
-    val sala: Sala
+    val sala: SalaEntity
 )

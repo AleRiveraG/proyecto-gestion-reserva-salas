@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.repository.HorarioRepository
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
-import com.example.gestiondereservas.data.room.entidades.Horario
-import com.example.gestiondereservas.data.room.entidades.Sala
+import com.example.gestiondereservas.data.room.entidades.HorarioEntity
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.utils.ValidacionesHorario
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +26,7 @@ data class FormularioHorarioState(
     val esNuevo: Boolean = true,
     val datos: DatosHorario = DatosHorario(),
     val original: DatosHorario = DatosHorario(),
-    val salas: List<Sala> = emptyList(),
+    val salas: List<SalaEntity> = emptyList(),
     val errorSala: String? = null,
     val errorHorario: String? = null,
     val errorAcceso: String? = null,
@@ -52,7 +52,7 @@ class FormularioHorarioViewModel(
 
     val estado: StateFlow<FormularioHorarioState> = _estado.asStateFlow()
 
-    private var horarioCargado: Horario? = null
+    private var horarioCargado: HorarioEntity? = null
 
     init {
         cargar()
@@ -216,7 +216,7 @@ class FormularioHorarioViewModel(
                     return@launch
                 }
 
-                val horario = Horario(
+                val horario = HorarioEntity(
                     id = horarioCargado?.id ?: 0L,
                     salaId = datos.salaId,
                     dia = datos.dia,

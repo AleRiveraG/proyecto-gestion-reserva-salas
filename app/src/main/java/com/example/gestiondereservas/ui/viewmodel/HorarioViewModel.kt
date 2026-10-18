@@ -3,10 +3,9 @@ package com.example.gestiondereservas.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.Ocupacion
-import com.example.gestiondereservas.data.OcupacionFuente
 import com.example.gestiondereservas.data.repository.HorarioRepository
-import com.example.gestiondereservas.data.room.entidades.Horario
-import com.example.gestiondereservas.data.room.entidades.Sala
+import com.example.gestiondereservas.data.room.entidades.HorarioEntity
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,10 +20,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class HorariosUiState(
-    val salas: List<Sala> = emptyList(),
-    val sala: Sala? = null,
+    val salas: List<SalaEntity> = emptyList(),
+    val sala: SalaEntity? = null,
     // bloques de horario de atención de la sala elegida (todos los días)
-    val horarios: List<Horario> = emptyList(),
+    val horarios: List<HorarioEntity> = emptyList(),
     // franjas ocupadas de la sala elegida (la pantalla filtra las de la semana visible)
     val ocupaciones: List<Ocupacion> = emptyList(),
     // 0 = esta semana, -1 = la anterior, 1 = la siguiente
@@ -33,8 +32,7 @@ data class HorariosUiState(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class HorariosViewModel(
-    private val repositorio: HorarioRepository,
-    private val ocupaciones: OcupacionFuente
+    private val repositorio: HorarioRepository
 ) : ViewModel() {
 
     private val salaElegida = MutableStateFlow<Long?>(null)
@@ -69,7 +67,7 @@ class HorariosViewModel(
                 flow {
                     emit(
                         if (salaId == null) emptyList()
-                        else ocupaciones.obtenerPorSala(salaId)
+                        else repositorio.obtenerOcupacionesPorSala(salaId)
                     )
                 }
             }

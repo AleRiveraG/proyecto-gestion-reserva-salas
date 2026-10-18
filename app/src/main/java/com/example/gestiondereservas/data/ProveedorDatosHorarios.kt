@@ -3,10 +3,10 @@ package com.example.gestiondereservas.data
 import android.content.Context
 import com.example.gestiondereservas.data.room.HorarioDao
 import com.example.gestiondereservas.data.simulacionbd.HorarioDaoPrueba
-import com.example.gestiondereservas.data.simulacionbd.OcupacionFuentePrueba
 
 // Tanto los horarios simulados como las ocupaciones leen las salas del mismo SalaDao
 // simulado de ProveedorDatos
+/*
 object ProveedorDatosHorarios {
     private var horarioDaoSimulado: HorarioDao? = null
     private var ocupacionSimulada: OcupacionFuente? = null
@@ -20,3 +20,4 @@ object ProveedorDatosHorarios {
             ?: OcupacionFuentePrueba(ProveedorDatos.salaDao(context))
                 .also { ocupacionSimulada = it }
 }
+*/

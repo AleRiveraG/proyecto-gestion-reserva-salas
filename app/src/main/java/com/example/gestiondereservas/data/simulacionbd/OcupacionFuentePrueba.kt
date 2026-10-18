@@ -1,7 +1,6 @@
 package com.example.gestiondereservas.data.simulacionbd
 
 import com.example.gestiondereservas.data.Ocupacion
-import com.example.gestiondereservas.data.OcupacionFuente
 import com.example.gestiondereservas.data.TipoOcupacion
 import com.example.gestiondereservas.data.room.SalaDao
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
@@ -9,6 +8,7 @@ import com.example.gestiondereservas.utils.FechasSemana
 
 //datos de prueba. Se calculan respecto a la semana actual para que siempre se vean
 // (semana 0 = esta semana, 1 = la siguiente).
+/*
 class OcupacionFuentePrueba(private val salaDao: SalaDao) : OcupacionFuente {
 
     private class Semilla(
@@ -40,7 +40,7 @@ class OcupacionFuentePrueba(private val salaDao: SalaDao) : OcupacionFuente {
     )
 
     override suspend fun obtenerPorSala(salaId: Long): List<Ocupacion> {
-        val sala = salaDao.obtenerPorId(salaId)?.sala ?: return emptyList()
+        val sala = salaDao.obtenerPorId(salaId)?.salaEntity ?: return emptyList()
 
         return semillas
             .filter { it.codigoSala.equals(sala.codigo, ignoreCase = true) }
@@ -58,3 +58,6 @@ class OcupacionFuentePrueba(private val salaDao: SalaDao) : OcupacionFuente {
             }
     }
 }
+
+
+ */

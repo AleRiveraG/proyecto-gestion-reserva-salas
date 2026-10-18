@@ -65,7 +65,7 @@ class FormularioSalaViewModel(
 
     val estado: StateFlow<FormularioSalaState> = _estado.asStateFlow()
 
-    private var salaEntityCargada: SalaEntity? = null
+    private var salaCargada: SalaEntity? = null
 
     init {
         cargar()
@@ -92,15 +92,14 @@ class FormularioSalaViewModel(
                 return@launch
             }
 
-            salaCargada = item.sala
+            salaCargada = item.salaEntity
 
-            salaEntityCargada = item.salaEntity
+            salaCargada = item.salaEntity
             val datos = DatosSala(
                 codigo = item.salaEntity.codigo,
                 nombre = item.salaEntity.nombre,
                 capacidad = item.salaEntity.capacidad,
                 area = item.salaEntity.area,
-                encargado = item.salaEntity.encargado,
                 equipos = equiposParaFormulario(item.equipamiento),
                 imagenUri = item.salaEntity.imagenUri
             )
@@ -228,7 +227,7 @@ class FormularioSalaViewModel(
                     return@launch
                 }
 
-                val sala = Sala(
+                val sala = SalaEntity(
                     id = salaCargada?.id ?: 0L,
                     codigo = codigo,
                     nombre = datos.nombre.trim(),
