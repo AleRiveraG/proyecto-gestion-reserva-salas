@@ -33,7 +33,7 @@ fun appNavigation(navController: NavHostController) {
     val auditoriaViewModel: AuditoriaViewModel = rememberAuditoriaViewModel()
 
     NavHost(
-        navController = navController, startDestination = "baseSupervisor" //"baseRelator" //"login"
+        navController = navController, startDestination = "baseRelator" //"baseRelator" //"login"
     ) {
         composable ("login"){ }
 

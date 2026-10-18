@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -32,6 +34,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -45,49 +48,51 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.CatalogoEquipamientos
+import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
+import com.example.gestiondereservas.ui.viewmodel.FiltrosAvanzados
+import com.example.gestiondereservas.ui.viewmodel.SalasUiState
+import com.example.gestiondereservas.ui.viewmodel.SalasViewModel
 import com.example.gestiondereservas.utils.formatearFecha
 import com.example.gestiondereservas.utils.formatearFechaPerso
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Composable
-fun BusquedaSalasScreen(onReservas: () -> Unit){
-    var fecha by remember { mutableStateOf("") }
-    var hora by remember { mutableStateOf("") }
-    var capacidad by remember { mutableStateOf("") }
-    var area by remember { mutableStateOf("") }
-
-
-
+fun BusquedaSalasScreen(onReservas: () -> Unit,
+                        viewModel: SalasViewModel = rememberSalasViewModel()
+){
+    val uiState by viewModel.uiState.collectAsState()
     var paso by remember { mutableIntStateOf(1) }
 
     when(paso) {
-       1 ->  Contenido(fecha,
-           { fecha = it },
-           hora,
-           { hora = it},
-           capacidad,
-           { capacidad = it},
-           area,
-           { area = it },
-           onSiguiente = { paso = 2}
-            )
-        2 -> salasDisponibles(onAtras = { paso = 1}
-            , onReservas)
+       1 ->  Contenido(
+           uiState = uiState,
+           onBusquedaChange = { viewModel.onBusquedaChange(it) },
+           onFechaChange = { viewModel.actualizarFiltros(fecha = it) },
+           onHoraChange = { viewModel.actualizarFiltros(hora = it) },
+           onCapacidadChange = { viewModel.actualizarFiltros(capacidad = it) },
+           onAreaChange = { viewModel.actualizarFiltros(area = it) },
+           onEquipamientosChange = { viewModel.actualizarFiltros(equipamientos = it) },
+           onSiguiente = { paso = 2 }
+       )
+        2 -> salasDisponibles(
+            salas = uiState.salas,
+            onAtras = { paso = 1 },
+            onReservas = onReservas)
     }
 }
 
 @Composable
-private fun Contenido(fecha:String,
+private fun Contenido(uiState: SalasUiState,
+                      onBusquedaChange: (String) -> Unit,
                       onFechaChange: (String) -> Unit,
-                      hora: String,
                       onHoraChange: (String) -> Unit,
-                      capacidad: String,
                       onCapacidadChange: (String) -> Unit,
-                      area: String,
                       onAreaChange: (String) -> Unit,
+                      onEquipamientosChange: (Set<String>) -> Unit,
                       onSiguiente: () -> Unit
 ) {
     Column(
@@ -108,11 +113,16 @@ private fun Contenido(fecha:String,
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        barraBusqueda()
+        barraBusqueda(uiState.busqueda, onBusquedaChange)
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        cajaForm(fecha, onFechaChange, hora, onHoraChange, capacidad, onCapacidadChange, area, onAreaChange )
+        cajaForm(uiState.filtros,
+            onFechaChange,
+            onHoraChange,
+            onCapacidadChange,
+            onAreaChange,
+            onEquipamientosChange)
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -139,16 +149,14 @@ private fun Contenido(fecha:String,
 }
 
 @Composable
-fun salasDisponibles(onAtras: () -> Unit,
-                     onReservas: () -> Unit)
-{
-    val contador: String = "1"
-
+fun salasDisponibles(salas: List<SalaConEquipamiento>,
+                     onAtras: () -> Unit,
+                     onReservas: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .verticalScroll(rememberScrollState())
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -172,12 +180,19 @@ fun salasDisponibles(onAtras: () -> Unit,
             )
         }
 
-        Text("$contador resultados - ${formatearFecha()}",
+        Text("${salas.size} resultados - ${formatearFecha()}",
             color = Color(0xFF3D5A73),
             fontSize = 12.sp,
             modifier = Modifier.padding(horizontal = 60.dp))
 
-        salaCard()
+        LazyColumn(
+            modifier = Modifier.weight(1f)
+        ) {
+            items(salas) { sala ->
+                    salaCard(sala)
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -189,12 +204,12 @@ fun salasDisponibles(onAtras: () -> Unit,
     }
 }
 @Composable
-fun barraBusqueda() {
-    var texto by remember { mutableStateOf("") }
-
+fun barraBusqueda(texto: String,
+                  onTextoChange: (String) -> Unit
+) {
     OutlinedTextField(
         value = texto,
-        onValueChange = { texto = it },
+        onValueChange = onTextoChange,
         singleLine = true,
         placeholder = { Text("Búsqueda por código o nombre de sala", fontSize = 12.sp) },
         leadingIcon = {
@@ -216,14 +231,12 @@ fun barraBusqueda() {
 }
 
 @Composable
-fun cajaForm(fecha: String,
+fun cajaForm(filtros: FiltrosAvanzados,
              onFechaChange: (String) -> Unit,
-             hora:String,
              onHoraChange: (String) -> Unit,
-             capacidad: String,
              onCapacidadChange: (String) -> Unit,
-             area: String,
-             onAreaChange: (String) -> Unit
+             onAreaChange: (String) -> Unit,
+             onEquipamientosChange: (Set<String>) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -257,7 +270,7 @@ fun cajaForm(fecha: String,
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    seleccionarFecha("Seleccione fecha", fecha, onFechaChange)
+                    seleccionarFecha("Seleccione fecha", filtros.fecha, onFechaChange)
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
@@ -265,7 +278,7 @@ fun cajaForm(fecha: String,
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    seleccionarHora("Selecciona hora", hora, onHoraChange)
+                    seleccionarHora("Selecciona hora", filtros.hora, onHoraChange)
 
                 }
             }
@@ -281,15 +294,15 @@ fun cajaForm(fecha: String,
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            menuCapacidad("Capacidad máxima", capacidad, onCapacidadChange)
+            menuCapacidad("Capacidad máxima", filtros.capacidad, onCapacidadChange)
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            menuEquipamientos("Equipamientos disponibles")
+            menuEquipamientos("Equipamientos disponibles", filtros.equipamientos, onEquipamientosChange)
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            menuArea("Área de conocimiento", area, onAreaChange)
+            menuArea("Área de conocimiento", filtros.area, onAreaChange)
         }
     }
 }
@@ -431,9 +444,11 @@ fun menuArea(titulo: String, opcion: String, onAreaChange: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun menuEquipamientos(titulo: String) {
+fun menuEquipamientos(titulo: String,
+                      seleccionados: Set<String>,
+                      onSeleccionChange: (Set<String>) -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
-    var seleccionados by remember { mutableStateOf(setOf<String>()) }
 
     val equipamientos = CatalogoEquipamientos.opciones
 
@@ -499,11 +514,12 @@ fun menuEquipamientos(titulo: String) {
                             }
                         },
                         onClick = {
-                            seleccionados = if (isSelected) {
+                            val nuevosSeleccionados = if (isSelected) {
                                 seleccionados - opcion
                             } else {
                                 seleccionados + opcion
                             }
+                            onSeleccionChange(nuevosSeleccionados)
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -516,7 +532,14 @@ fun menuEquipamientos(titulo: String) {
 }
 
 @Composable
-fun salaCard() {
+fun salaCard(sala: SalaConEquipamiento) {
+
+    val salaCompleta = sala.salaEntity
+    val equipamientosTexto = if (sala.equipamiento.isEmpty()) {
+        "Sin equipamiento"
+    } else {
+        sala.equipamiento.joinToString(", ") { it.nombre }
+    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -549,35 +572,26 @@ fun salaCard() {
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                "Codigo de sala",
+                salaCompleta.codigo,
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 16.sp
             )
             Text(
-                "Nombre de sala",
+                salaCompleta.nombre,
                 color = Color(0xFF3D5A73),
                 fontSize = 12.sp
             )
             Text(
-                "Capacidad",
+                "Capacidad ${salaCompleta.capacidad}",
                 color = Color(0xFF3D5A73),
                 fontSize = 12.sp
             )
             Text(
-                "Equipamiento",
+                equipamientosTexto,
                 color = Color(0xFF3D5A73),
                 fontSize = 12.sp
             )
-            Text(
-                "Area",
-                color = Color(0xFF3D5A73),
-                fontSize = 12.sp
-            )
-            Text(
-                "Encargado/a",
-                color = Color(0xFF3D5A73),
-                fontSize = 12.sp
-            )
+            etiquetaOrganizador(salaCompleta.area.nombre)
         }
     }
 

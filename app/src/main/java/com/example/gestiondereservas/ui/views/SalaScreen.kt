@@ -30,6 +30,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -83,6 +84,13 @@ fun SalasScreen(
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     var salaEntityPorCambiar by remember { mutableStateOf<SalaEntity?>(null) }
+    var texto by remember { mutableStateOf(estado.busqueda) }
+
+    LaunchedEffect(estado.busqueda) {
+        if (estado.busqueda != texto) {
+            texto = estado.busqueda
+        }
+    }
 
     fun crearAuditoria(): AuditoriaEntity{
         return AuditoriaEntity(
@@ -113,8 +121,10 @@ fun SalasScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
-            value = estado.busqueda,
-            onValueChange = viewModel::onBusquedaChange,
+            value = texto,
+            onValueChange = { nuevoTexto ->
+                texto = nuevoTexto
+                viewModel.onBusquedaChange(nuevoTexto) },
             placeholder = { Text("Buscar por código o nombre") },
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
