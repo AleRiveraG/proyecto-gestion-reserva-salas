@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.ui.components.NavBarAdmin
 import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
@@ -62,7 +63,8 @@ fun SupervisorScreen(
             onAuditoria,
             onReportes,
             onReservas,
-            listaReservas)
+            listaReservas,
+            viewModel)
 }
 
 @Composable
@@ -71,7 +73,8 @@ private fun Contenido(onHorarios: () -> Unit,
                       onAuditoria: () -> Unit,
                       onReportes: () -> Unit,
                       onReservas: () -> Unit,
-                      listaReservas: List<ReservaEntity>
+                      listaReservas: List<ReservaEntity>,
+                      viewModel: GestionReservasViewModel
 ) {
     Column(
         modifier = Modifier
@@ -142,7 +145,9 @@ private fun Contenido(onHorarios: () -> Unit,
             }
         } else
             listaReservas.forEach { reserva ->
-                reservasPendientes(reserva)
+                reservasPendientes(reserva,
+                    onAprobar = { id -> viewModel.modificarEstado(id, EstadoReserva.APROBADA.name) } ,
+                    onRechazar = { id -> viewModel.modificarEstado(id, EstadoReserva.RECHAZADA.name)})
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -156,7 +161,9 @@ private fun Contenido(onHorarios: () -> Unit,
 }
 
 @Composable
-fun reservasPendientes(reserva: ReservaEntity) {
+fun reservasPendientes(reserva: ReservaEntity,
+                       onAprobar: (Long) -> Unit,
+                       onRechazar: (Long) -> Unit) {
    Row() {
        val (icono, colorFondo) = when (reserva.organizador) {
            "Administración y Negocios" -> Pair(R.drawable.bar_chart, Color(0xFFC98BDB))
@@ -202,7 +209,9 @@ fun reservasPendientes(reserva: ReservaEntity) {
 
                Spacer(modifier = Modifier.width(12.dp))
 
-               Column() {
+               Column(
+                   modifier = Modifier.weight(1f)
+               ) {
                    etiquetaOrganizador(reserva.organizador)
                    Text(
                        reserva.nombreActividad,
@@ -222,6 +231,36 @@ fun reservasPendientes(reserva: ReservaEntity) {
                            "${reserva.fechaActividad} - ${reserva.horaInicio}",
                            color = Color(0xFF3B3B3B),
                            fontSize = 12.sp
+                       )
+                   }
+               }
+               Column(
+               ) {
+                   IconButton(
+                       modifier = Modifier
+                           .clip(RoundedCornerShape(12.dp))
+                           .background(Color(0xFFEBF5EA)),
+                       onClick = { onAprobar(reserva.id) }
+                   ) {
+                       Icon(
+                           painter = painterResource(R.drawable.check),
+                           contentDescription = "Icono aceptar",
+                           tint = Color(0xFF1E8E3E)
+                       )
+                   }
+
+                   Spacer(modifier = Modifier.height(8.dp))
+
+                   IconButton(
+                       modifier = Modifier
+                           .clip(RoundedCornerShape(12.dp))
+                           .background(Color(0xFFFAEAEC)),
+                       onClick = { onRechazar(reserva.id) }
+                   ) {
+                       Icon(
+                           painter = painterResource(R.drawable.x),
+                           contentDescription = "Icono rechazar",
+                           tint = Color(0xFFD93025)
                        )
                    }
                }

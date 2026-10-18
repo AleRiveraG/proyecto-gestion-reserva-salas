@@ -127,7 +127,9 @@ fun PantallaBaseAdmin(
                 }
 
                 composable("gestionReserva") {
-                    GestionReservasScreen()
+                    GestionReservasScreen(
+                        onRegistrarAuditoria = onRegistrarAuditoria
+                    )
                 }
 
                 composable("auditoria") {
