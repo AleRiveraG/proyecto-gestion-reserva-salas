@@ -68,7 +68,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.data.ProveedorDatos
 import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.Area
@@ -81,7 +80,6 @@ import com.example.gestiondereservas.utils.formatearHora
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 @Composable
 fun rememberFormularioSalaViewModel(
