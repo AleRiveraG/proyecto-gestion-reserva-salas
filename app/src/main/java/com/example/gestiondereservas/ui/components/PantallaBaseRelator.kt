@@ -151,7 +151,10 @@ fun PantallaBaseRelator(
                     if (reservaId != null) {
                         UsoSalaScreen(
                             reservaId = reservaId,
-                            appState = appState
+                            appState = appState,
+                            onReservaCancelada = {
+                                tabNavController.navigate("paginaRelator")
+                            }
                         )
                     }
                 }

@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.gestiondereservas"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
@@ -21,6 +21,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            isDebuggable = true
+        }
         release {
             optimization {
                 enable = false
@@ -38,6 +41,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.compose.ui.text)
     // Android
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
@@ -54,11 +58,13 @@ dependencies {
     // ViewModel y navegación
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
 
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.ui.graphics)
     ksp(libs.androidx.room.compiler)
 
     // WorkManager

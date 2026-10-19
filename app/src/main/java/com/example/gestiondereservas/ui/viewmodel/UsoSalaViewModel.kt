@@ -59,60 +59,12 @@ class UsoSalaViewModel : ViewModel() {
     var errorActividad by mutableStateOf<String?>(null)
         private set
 
-    companion object {
-        const val TOLERANCIA_CHECK_IN_MINUTOS = 15L
-    }
-
-
-    suspend fun verificarAusencia(
-        usoSalaDao: UsoSalaDao,
-        reservaDao: ReservaDao
-    ) {
-        val id = reservaId ?: return
-        val ahora = LocalDateTime.now()
-        val limite = inicioReserva.plusMinutes(15)
-
-        if (ahora.isBefore(limite)) return
-
-        try {
-            val uso = withContext(Dispatchers.IO) {
-                usoSalaDao.obtenerPorReserva(id)
-            }
-
-            // Si ya inició o finalizó, no corresponde ausencia
-            if (uso?.estado == "EN_CURSO" ||
-                uso?.estado == "FINALIZADA") return
-
-            val cancelada = withContext(Dispatchers.IO) {
-                reservaDao.cancelarReservaAprobada(id)
-            }
-
-            if (cancelada > 0) {
-                withContext(Dispatchers.IO) {
-                    usoSalaDao.guardar(
-                        UsoSalaEntity(
-                            reservaId = id,
-                            estado = "AUSENTE"
-                        )
-                    )
-                }
-
-                errorActividad =
-                    "Reserva cancelada por no realizar check-in dentro de los 15 minutos"
-            }
-
-        } catch (e: Exception) {
-            errorActividad = "No se pudo verificar la ausencia"
-        }
-    }
-
-    suspend fun cargarEstadoGuardado(dao: UsoSalaDao, id: Long) {
+        suspend fun cargarEstadoGuardado(dao: UsoSalaDao, id: Long) {
         val uso = withContext(Dispatchers.IO) {
             dao.obtenerPorReserva(id)
         }
         restaurarEstado(uso,dao)
     }
-
 
     suspend fun registrarInicio(
         db: AppDatabase,
@@ -123,16 +75,13 @@ class UsoSalaViewModel : ViewModel() {
 
         if (estadoActividad != EstadoActividad.PENDIENTE) return
 
-        val limiteCheckIn =
-            inicioReserva.plusMinutes(TOLERANCIA_CHECK_IN_MINUTOS)
-
         if (ahora.isBefore(inicioReserva)) {
             errorActividad = "Todavía no comienza el horario de la reserva"
             return
         }
 
-        if (!ahora.isBefore(limiteCheckIn) || !ahora.isBefore(finReserva)) {
-            errorActividad = "El plazo para realizar el check-in ha terminado"
+        if (!ahora.isBefore(finReserva)) {
+            errorActividad = "El horario de la reserva ya terminó"
             return
         }
 
@@ -145,7 +94,8 @@ class UsoSalaViewModel : ViewModel() {
                     val reserva = db.reservaDao().obtenerReservaPorId(id)
                     val uso = db.usoSalaDao().obtenerPorReserva(id)
 
-                    if (reserva?.estado != EstadoReserva.APROBADA ||
+                    if (
+                        reserva?.estado != EstadoReserva.APROBADA ||
                         uso?.estado == "AUSENTE" ||
                         uso?.estado == "EN_CURSO" ||
                         uso?.estado == "FINALIZADA"
@@ -154,8 +104,8 @@ class UsoSalaViewModel : ViewModel() {
                     } else {
                         val momento = LocalDateTime.now()
 
-                        if (momento.isBefore(inicioReserva) ||
-                            !momento.isBefore(limiteCheckIn) ||
+                        if (
+                            momento.isBefore(inicioReserva) ||
                             !momento.isBefore(finReserva)
                         ) {
                             false
@@ -194,11 +144,11 @@ class UsoSalaViewModel : ViewModel() {
                     ExistingWorkPolicy.REPLACE,
                     solicitud
                 )
+
                 estadoActividad = EstadoActividad.EN_CURSO
                 iniciarCronometro(db.usoSalaDao())
             } else {
-                errorActividad =
-                    "No se puede iniciar: la reserva ya no está aprobada o el plazo venció"
+                errorActividad = "No se puede iniciar: la reserva ya no está aprobada o el horario terminó"
             }
         } catch (e: Exception) {
             errorActividad = "No se pudo registrar el inicio"
@@ -232,18 +182,11 @@ class UsoSalaViewModel : ViewModel() {
             guardando = false
         }
     }
-    fun cargarReserva(reserva: ReservaEntity) {
 
+    fun cargarReserva(reserva: ReservaEntity) {
         reservaId = reserva.id
         salaId = reserva.salaId
         nombreActividad = reserva.nombreActividad
-
-
-        val anioActual = LocalDate.now().year
-        val fechaCompleta = "${reserva.fechaActividad}/$anioActual"
-
-        val horaInicioFormateada = LocalTime.parse(reserva.horaInicio)
-        val horaTerminoFormateada = LocalTime.parse(reserva.horaTermino)
 
         val inicio = calcularInicioReserva(
             reserva.fechaActividad,
@@ -254,7 +197,9 @@ class UsoSalaViewModel : ViewModel() {
             LocalTime.parse(reserva.horaTermino)
         )
 
-        configurarReserva(inicio, fin)
+        trabajoCronometro?.cancel()
+
+        estadoActividad = EstadoActividad.PENDIENTE
 
         configurarReserva(inicio, fin)
     }
@@ -277,15 +222,10 @@ class UsoSalaViewModel : ViewModel() {
         if (estadoActividad != EstadoActividad.PENDIENTE) return
 
         val ahora = LocalDateTime.now()
-        val limiteCheckIn = inicioReserva.plusMinutes(TOLERANCIA_CHECK_IN_MINUTOS)
 
-        if (ahora.isBefore(inicioReserva) ||
-            !ahora.isBefore(limiteCheckIn) ||
-            !ahora.isBefore(finReserva)
-        ) {
+        if (ahora.isBefore(inicioReserva) || !ahora.isBefore(finReserva)) {
             return
         }
-        if (ahora.isBefore(inicioReserva) || !ahora.isBefore(finReserva)) return
 
         estadoActividad = EstadoActividad.EN_CURSO
         iniciarCronometro(dao)

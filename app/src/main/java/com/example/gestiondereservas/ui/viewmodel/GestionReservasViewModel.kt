@@ -10,20 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import android.content.Context
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.workDataOf
-import com.example.gestiondereservas.data.room.AppDatabase
-import com.example.gestiondereservas.data.room.entidades.EstadoReserva
-import com.example.gestiondereservas.workers.AusenciaWorker
-import java.time.Duration
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.util.concurrent.TimeUnit
-import com.example.gestiondereservas.utils.calcularInicioReserva
 
 class GestionReservasViewModel(
     private val repository: ReservaRepository,
@@ -59,39 +45,6 @@ class GestionReservasViewModel(
     fun modificarEstado(id: Long, estado: String) {
         viewModelScope.launch {
             repository.modificarEstado(id, estado)
-
-            if (estado == EstadoReserva.APROBADA.name) {
-                val reserva = AppDatabase.getInstance(context)
-                    .reservaDao()
-                    .obtenerReservaPorId(id)
-
-                if (reserva != null && reserva.estado == EstadoReserva.APROBADA) {
-
-                                        val inicio = calcularInicioReserva(
-                        reserva.fechaActividad,
-                        reserva.horaInicio
-                    )
-
-                    val vencimiento = inicio.plusMinutes(15)
-
-                    val espera = Duration.between(
-                        LocalDateTime.now(),
-                        vencimiento
-                    ).toMillis().coerceAtLeast(0L)
-
-                    val solicitud = OneTimeWorkRequestBuilder<AusenciaWorker>()
-                        .setInitialDelay(espera, TimeUnit.MILLISECONDS)
-                        .setInputData(workDataOf("reservaId" to id))
-                        .build()
-
-                    WorkManager.getInstance(context).enqueueUniqueWork(
-                        "ausencia_$id",
-                        ExistingWorkPolicy.REPLACE,
-                        solicitud
-                    )
-                }
-            }
-
             cargarDatos()
         }
     }

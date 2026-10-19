@@ -3,6 +3,7 @@ package com.example.gestiondereservas.ui.views
 
 
 import android.R.attr.enabled
+import android.widget.Toast
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -41,12 +42,17 @@ import com.example.gestiondereservas.data.room.entidades.EvaluacionSalaEntity
 fun UsoSalaScreen(
     reservaId : Long,
     appState: AppState,
+    onReservaCancelada : () -> Unit ,
     viewModel: UsoSalaViewModel = viewModel()
 ) {
 
     val estadoActividad = viewModel.estadoActividad
 
     var mostrarReporte by remember { mutableStateOf(false) }
+
+    var mostrarCancelarReserva by remember { mutableStateOf(false) }
+
+    var cancelandoReserva by remember { mutableStateOf(false) }
 
     var descripcionReporte by remember { mutableStateOf("") }
 
@@ -152,14 +158,17 @@ fun UsoSalaScreen(
         try {
             val reserva = appState.consultarReservaPorId(reservaId)
 
+            val usoGuardado = withContext(Dispatchers.IO) {
+                usoSalaDao.obtenerPorReserva(reservaId)
+            }
+
+            val evaluacionGuardadaRoom = withContext(Dispatchers.IO) {
+                evaluacionDao.obtenerPorReserva(reservaId)
+            }
+
             if (reserva != null && reserva.estado == EstadoReserva.APROBADA) {
                 viewModel.cargarReserva(reserva)
                 viewModel.cargarEstadoGuardado(usoSalaDao, reservaId)
-
-                viewModel.verificarAusencia(
-                    usoSalaDao,
-                    reservaDao
-                )
 
                 val reservaActualizada = withContext(Dispatchers.IO) {
                     reservaDao.obtenerReservaPorId(reservaId)
@@ -306,42 +315,68 @@ fun UsoSalaScreen(
             if (mostrarReporte) {
                 AlertDialog(
                     onDismissRequest = {
-                        mostrarReporte = false
+                        if (!enviandoReporte) mostrarReporte = false
                     },
+                    containerColor = White,
+                    shape = RoundedCornerShape(16.dp),
+
                     title = {
-                        Text("Reportar inconveniente")
+                        Text(
+                            text = "Reportar inconveniente",
+                            color = Black,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleLarge
+                        )
                     },
+
                     text = {
                         Column {
                             Text(
-                                "Describe el problema ocurrido durante el uso de la sala."
+                                text = "Describe el problema ocurrido durante el uso de la sala.",
+                                color = Black
                             )
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             OutlinedTextField(
                                 value = descripcionReporte,
-                                onValueChange = { descripcionReporte = it },
-                                label = { Text("Descripción del problema") },
+                                onValueChange = {
+                                    descripcionReporte = it
+                                    errorReporte = null
+                                },
+                                label = {
+                                    Text("Descripción del problema")
+                                },
                                 modifier = Modifier.fillMaxWidth(),
-                                minLines = 3
+                                minLines = 3,
+                                enabled = !enviandoReporte,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Yellow,
+                                    focusedLabelColor = Black,
+                                    cursorColor = Black
+                                )
                             )
 
-                            if (errorReporte != null) {
+                            errorReporte?.let { mensaje ->
+                                Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = errorReporte!!,
+                                    text = mensaje,
                                     color = MaterialTheme.colorScheme.error
                                 )
                             }
                         }
                     },
+
                     confirmButton = {
-                        TextButton(
+                        Button(
                             onClick = {
                                 val idReserva = viewModel.reservaId
                                 val idSala = viewModel.salaId
 
-                                if (idReserva != null && idReserva > 0L && idSala != null) {
+                                if (idReserva != null &&
+                                    idReserva > 0L &&
+                                    idSala != null
+                                ) {
                                     scope.launch {
                                         enviandoReporte = true
                                         errorReporte = null
@@ -365,6 +400,11 @@ fun UsoSalaScreen(
                                             descripcionReporte = ""
                                             mostrarReporte = false
                                             reporteGuardado = true
+                                            Toast.makeText(
+                                                context,
+                                                "Reporte enviado correctamente",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
 
                                         } catch (e: Exception) {
                                             errorReporte = "No se pudo guardar el reporte"
@@ -376,18 +416,30 @@ fun UsoSalaScreen(
                                     errorReporte = "No hay una reserva cargada para este reporte"
                                 }
                             },
-                            enabled = descripcionReporte.isNotBlank() && !enviandoReporte
+                            enabled = descripcionReporte.isNotBlank() && !enviandoReporte,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Yellow,
+                                contentColor = Black
+                            ),
+                            shape = RoundedCornerShape(10.dp)
                         ) {
-                            Text(if (enviandoReporte) "Guardando" else "Enviar reporte")
+                            Text(
+                                if (enviandoReporte) "Guardando..." else "Enviar reporte"
+                            )
                         }
                     },
+
                     dismissButton = {
                         TextButton(
                             onClick = {
                                 mostrarReporte = false
-                            }
+                            },
+                            enabled = !enviandoReporte
                         ) {
-                            Text("Cancelar")
+                            Text(
+                                text = "Cancelar",
+                                color = Black
+                            )
                         }
                     }
                 )
@@ -413,8 +465,16 @@ fun UsoSalaScreen(
                 onDismissRequest = {
                     if (!guardandoEvaluacion) mostrarEvaluacion = false
                 },
+                containerColor = White,
+                shape = RoundedCornerShape(16.dp),
+                titleContentColor = Black,
+                textContentColor = Black,
                 title = {
-                    Text("Evaluar sala")
+                    Text(
+                        text = "Evaluar sala",
+                        color = Black,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge )
                 },
                 text = {
                     Column {
@@ -432,7 +492,7 @@ fun UsoSalaScreen(
                                 ) {
                                     Text(
                                         text = if (estrella <= calificacion) "★" else "☆",
-                                        color = Color(0xFFFFB300),
+                                        color = Yellow,
                                         style = MaterialTheme.typography.headlineMedium
                                     )
                                 }
@@ -446,7 +506,12 @@ fun UsoSalaScreen(
                             onValueChange = { observaciones = it },
                             label = { Text("Observaciones (opcional)") },
                             modifier = Modifier.fillMaxWidth(),
-                            minLines = 2
+                            minLines = 2,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Yellow,
+                                focusedLabelColor = Black,
+                                cursorColor = Black
+                             )
                         )
 
                         errorEvaluacion?.let {
@@ -458,8 +523,13 @@ fun UsoSalaScreen(
                     }
                 },
                 confirmButton = {
-                    TextButton(
+                    Button(
                         enabled = calificacion in 1..5 && !guardandoEvaluacion,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Yellow,
+                            contentColor = Black
+                        ),
+                        shape = RoundedCornerShape(10.dp),
                         onClick = {
                             val idSala = viewModel.salaId
 
@@ -501,9 +571,101 @@ fun UsoSalaScreen(
                 dismissButton = {
                     TextButton(
                         onClick = { mostrarEvaluacion = false },
-                        enabled = !guardandoEvaluacion
+                        enabled = !guardandoEvaluacion,
+                        colors = ButtonDefaults.textButtonColors(contentColor = Black)
                     ) {
                         Text("Cancelar")
+                    }
+                }
+            )
+        }
+
+
+        if (mostrarCancelarReserva) {
+            AlertDialog(
+                onDismissRequest = {
+                    if (!cancelandoReserva) mostrarCancelarReserva = false
+                },
+                containerColor = White,
+                shape = RoundedCornerShape(16.dp),
+                title = {
+                    Text(
+                        "Cancelar reserva",
+                        color = Black,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = {
+                    Text(
+                        "¿Estás seguro de que deseas cancelar esta reserva?",
+                        color = Black
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        enabled = !cancelandoReserva,
+                        onClick = {
+                            scope.launch {
+                                cancelandoReserva = true
+                                try {
+                                    val canceladas = withContext(Dispatchers.IO) {
+                                        val reserva = reservaDao.obtenerReservaPorId(reservaId)
+
+                                        if (reserva != null &&
+                                            LocalDateTime.now().isBefore(
+                                                viewModel.inicioReserva
+                                            ) &&
+                                            usoSalaDao.obtenerPorReserva(reservaId)?.estado != "EN_CURSO"
+                                        ) {
+                                            reservaDao.cancelarReservaAprobada(reservaId)
+                                        } else {
+                                            0
+                                        }
+                                    }
+
+                                    mostrarCancelarReserva = false
+
+                                    if (canceladas > 0) {
+                                        Toast.makeText(
+                                            context,
+                                            "Reserva cancelada correctamente",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+
+                                        onReservaCancelada()
+
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "La reserva ya no se puede cancelar",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+                                } catch (e: Exception) {
+                                    Toast.makeText(
+                                        context,
+                                        "Error al cancelar la reserva",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                } finally {
+                                    cancelandoReserva = false
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Yellow,
+                            contentColor = Black
+                        )
+                    ) {
+                        Text(if (cancelandoReserva) "Cancelando..." else "Sí, cancelar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        enabled = !cancelandoReserva,
+                        onClick = { mostrarCancelarReserva = false }
+                    ) {
+                        Text("Volver", color = Black)
                     }
                 }
             )
@@ -512,11 +674,13 @@ fun UsoSalaScreen(
         when (estadoActividad) {
 
             EstadoActividad.PENDIENTE -> {
-
                 Button(
                     onClick = {
                         scope.launch {
-                            viewModel.registrarInicio(AppDatabase.getInstance(context), context)
+                            viewModel.registrarInicio(
+                                AppDatabase.getInstance(context),
+                                context
+                            )
                         }
                     },
                     enabled = reservaAprobada,
@@ -531,13 +695,16 @@ fun UsoSalaScreen(
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
-
                 OutlinedButton(
-                    onClick = {},
-                    enabled = false,
-                    border = BorderStroke(1.dp,Black),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Black),
+                    onClick = {
+                        mostrarCancelarReserva = true
+                    },
+                    enabled = LocalDateTime.now().isBefore(viewModel.inicioReserva),
                     modifier = Modifier.fillMaxWidth(),
+                    border = BorderStroke(1.dp, Black),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Black
+                    ),
                     shape = RoundedCornerShape(10.dp)
                 ) {
                     Text("Cancelar Reserva")

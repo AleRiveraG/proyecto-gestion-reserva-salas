@@ -1,5 +1,14 @@
 package com.example.gestiondereservas.navigation
 
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.unit.dp
+import com.example.gestiondereservas.ui.theme.Black
+import com.example.gestiondereservas.ui.theme.White
+import com.example.gestiondereservas.ui.theme.Yellow
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.*
@@ -23,6 +32,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.gestiondereservas.ui.views.UsoSalaScreen
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 
 @Composable
 fun rememberAuditoriaViewModel(): AuditoriaViewModel {
@@ -82,16 +103,27 @@ fun appNavigation(navController: NavHostController, appState: AppState) {
             val context = LocalContext.current
             val scope = rememberCoroutineScope()
 
+            var abrirActividadSeleccionada by remember {
+                mutableStateOf<(Long) -> Unit>({})
+            }
+
+            var reservasParaElegir by remember {
+                mutableStateOf<List<ReservaEntity>>(emptyList())
+            }
+
+            var mostrarSelectorReservas by remember {
+                mutableStateOf(false)
+            }
+
             PantallaBaseRelator(
                 navController = navController,
-
                 appState = appState,
-
                 onRegistrarAuditoria = { evento ->
                     auditoriaViewModel.registrarReserva(evento)
                 },
 
-                onMiActividad = { abrirUsoSala ->
+                onMiActividad = { abrirActividad ->
+                    abrirActividadSeleccionada = abrirActividad
                     val correo = correoUsuario
 
                     if (correo.isNullOrBlank()) {
@@ -109,10 +141,9 @@ fun appNavigation(navController: NavHostController, appState: AppState) {
                                         .obtenerReservasAprobadasPorCorreo(correo)
                                 }
 
-                                val reserva = reservas.firstOrNull()
-
-                                if (reserva != null) {
-                                    abrirUsoSala(reserva.id)
+                                if (reservas.isNotEmpty()) {
+                                    reservasParaElegir = reservas
+                                    mostrarSelectorReservas = true
                                 } else {
                                     Toast.makeText(
                                         context,
@@ -120,7 +151,6 @@ fun appNavigation(navController: NavHostController, appState: AppState) {
                                         Toast.LENGTH_LONG
                                     ).show()
                                 }
-
                             } catch (e: Exception) {
                                 Log.e(
                                     "USO_SALA",
@@ -149,7 +179,74 @@ fun appNavigation(navController: NavHostController, appState: AppState) {
                     }
                 }
             )
+            if (mostrarSelectorReservas) {
+                AlertDialog(
+                    onDismissRequest = {
+                        mostrarSelectorReservas = false
+                    },
+                    title = {
+                        Text(
+                            text = "Selecciona tu actividad",
+                            color = Black,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            reservasParaElegir.forEach { reserva ->
+                                Card(
+                                    onClick = {
+                                        mostrarSelectorReservas = false
+                                        abrirActividadSeleccionada(reserva.id)
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 5.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Yellow
+                                    )
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(14.dp)
+                                    ) {
+                                        Text(
+                                            text = reserva.nombreActividad,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Black
+                                        )
+
+                                        Text(
+                                            text = "${reserva.fechaActividad} · " +
+                                                    "${reserva.horaInicio} - ${reserva.horaTermino}",
+                                            color = Black
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                mostrarSelectorReservas = false
+                            }
+                        ) {
+                            Text(
+                                text = "Cancelar",
+                                color = Black,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    },
+                    containerColor = White
+                )
+            }
         }
+
 
         composable("baseSupervisor") {
             PantallaBaseAdmin(
@@ -180,9 +277,20 @@ fun appNavigation(navController: NavHostController, appState: AppState) {
             if (reservaId != null) {
                 UsoSalaScreen(
                     reservaId = reservaId,
-                    appState = appState
+                    appState = appState,
+                    onReservaCancelada = {
+                        navController.navigate("baseRelator") {
+                            popUpTo("baseRelator") {
+                                inclusive = false
+                            }
+                            launchSingleTop = true
+                        }
+
+                    }
                 )
             }
         }
     }
 }
+
+
