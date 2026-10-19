@@ -24,7 +24,7 @@ import com.example.gestiondereservas.ui.views.ReservasScreen
 @Composable
 fun PantallaBaseRelator(
     navController: NavHostController,
-    onRegistrarAuditoria: (AuditoriaEntity) -> Unit
+    onRegistrarAuditoria: (AuditoriaEntity) -> Unit = {}
 ) {
     val contexto = LocalContext.current
 
