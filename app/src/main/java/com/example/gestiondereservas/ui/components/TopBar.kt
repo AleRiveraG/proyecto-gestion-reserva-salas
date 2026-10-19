@@ -37,7 +37,7 @@ fun TopBar() {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     painter = painterResource(id = R.drawable.logo),
-                    contentDescription = "Logo Duoc UC",
+                    contentDescription = "Logo Duoc Uc",
                     modifier = Modifier.size(100.dp),
                     colorFilter = ColorFilter.tint(Color.White)
                 )
@@ -50,35 +50,38 @@ fun TopBar() {
             Row {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(50.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF3B3B3B))
-                        .clickable { },
+                        .clickable {},
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.bell),
                         contentDescription = "Icono notificaciones",
                         tint = Color.White,
-                        modifier = Modifier.size(25.dp)
+                        modifier = Modifier.size(30.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
+
+                Spacer(modifier = Modifier.width(12.dp))
+
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(50.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF3B3B3B))
-                        .clickable { },
+                        .clickable {},
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.user_circle),
                         contentDescription = "Icono usuario",
                         tint = Color.White,
-                        modifier = Modifier.size(25.dp)
+                        modifier = Modifier.size(30.dp)
                     )
                 }
+
                 Spacer(modifier = Modifier.width(12.dp))
             }
         }
