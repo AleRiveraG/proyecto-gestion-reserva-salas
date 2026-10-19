@@ -1,11 +1,16 @@
 package com.example.gestiondereservas.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.gestiondereservas.data.repository.AuditoriaRepository
+import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
 import com.example.gestiondereservas.ui.components.PantallaBaseRelator
 import com.example.gestiondereservas.ui.viewmodel.AuditoriaViewModel
@@ -31,12 +36,12 @@ fun rememberAuditoriaViewModel(): AuditoriaViewModel {
     )
 }
 @Composable
-fun appNavigation(navController: NavHostController) {
+fun AppNavigation(navController: NavHostController) {
 
     val auditoriaViewModel: AuditoriaViewModel = rememberAuditoriaViewModel()
 
     NavHost(
-        navController = navController, startDestination = "baseRelator" //"baseRelator" //"login"
+        navController = navController, startDestination = "login" //"baseRelator" //"login"
     ) {
         composable("login") {
             LoginScreen(
@@ -56,14 +61,7 @@ fun appNavigation(navController: NavHostController) {
 
         composable("registro") {
             RegistroScreen(
-                alRegistrarExitoso = { nombre, correo, pass, rol ->
-                    val correoLimpio = correo.trim().lowercase()
-                    val rolLogin = if (rol == RolRegistroUsuario.RELATOR) RolUsuario.RELATOR else RolUsuario.COORDINADOR
-
-                    // Guardar rol y contraseña en los almacenes de memoria
-                    com.example.gestiondereservas.ui.views.usuariosRegistradosMemoria[correoLimpio] = rolLogin
-                    com.example.gestiondereservas.ui.views.passwordsUsuariosMemoria[correoLimpio] = pass
-
+                alRegistrarExitoso = {
                     navController.popBackStack()
                 }
             )

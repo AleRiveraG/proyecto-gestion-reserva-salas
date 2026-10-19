@@ -45,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +57,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -66,13 +68,30 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.repository.UsuarioRepository
+import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
+import com.example.gestiondereservas.ui.viewmodel.LoginViewModel
+import com.example.gestiondereservas.ui.viewmodel.RegistroViewModel
 import com.example.gestiondereservas.utils.AnimacionRegistro
 
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-//Encabezado
-//- - - - - - - - - - - - - - - - - - - - - - - - -
+@Composable
+fun rememberRegistroViewModel(): RegistroViewModel {
+    val contexto = LocalContext.current.applicationContext
+    return viewModel(
+        factory = viewModelFactory {
+            initializer {
+                val dao = AppDatabase.getInstance(contexto).usuarioDao()
+                val repository = UsuarioRepository(dao)
+                RegistroViewModel(repository)
+            }
+        }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -668,13 +687,13 @@ fun RegistroBody(
 //Pantalla completa que une RegistroTopBar, RegistroNavBar y RegistroBody
 @Composable
 fun RegistroScreen(
-    estaCargando: Boolean = false,
-    mensajeErrorGeneral: String? = null,
-    alRegistrarExitoso: (nombre: String, correo: String, password: String, rol: RolRegistroUsuario) -> Unit
+    viewModel: RegistroViewModel = rememberRegistroViewModel(),
+    alRegistrarExitoso: () -> Unit
 ) {
+    val estaCargando by viewModel.estaCargando.collectAsState()
+    val mensajeErrorGeneral by viewModel.mensajeError.collectAsState()
+
     Scaffold(
-        topBar = { RegistroTopBar() },
-        bottomBar = { RegistroNavBar() }
     ) { paddingValues ->
         RegistroBody(
             modifier = Modifier
@@ -682,19 +701,10 @@ fun RegistroScreen(
                 .padding(paddingValues),
             estaCargando = estaCargando,
             mensajeErrorGeneral = mensajeErrorGeneral,
-            alRegistrarExitoso = alRegistrarExitoso
-        )
-    }
-}
-
-//Preview local con el tema de la aplicación aplicado
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun RegistroBodyPreview() {
-    GestionDeReservasTheme {
-        RegistroScreen(
             alRegistrarExitoso = { nombre, correo, password, rol ->
-                //Acción de prueba local
+                viewModel.registrarUsuario(nombre, correo, password, rol.nombreMostrar) {
+                    alRegistrarExitoso()
+                }
             }
         )
     }

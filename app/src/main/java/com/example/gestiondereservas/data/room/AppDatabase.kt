@@ -10,11 +10,12 @@ import com.example.gestiondereservas.data.room.entidades.Equipamiento
 import com.example.gestiondereservas.data.room.entidades.HorarioEntity
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
+import com.example.gestiondereservas.data.room.entidades.UsuarioEntity
 import com.example.gestiondereservas.utils.Converters
 
 @TypeConverters(Converters::class)
 @Database(entities = [ReservaEntity::class, SalaEntity::class, Equipamiento::class,
-    AuditoriaEntity::class, HorarioEntity::class],
+    AuditoriaEntity::class, HorarioEntity::class, UsuarioEntity::class],
         version = 4,
         exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
@@ -23,6 +24,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun salaDao(): SalaDao
     abstract fun horarioDao(): HorarioDao
     abstract fun auditoriaDao(): AuditoriaDao
+    abstract fun usuarioDao(): UsuarioDao
     companion object {
 
         @Volatile
