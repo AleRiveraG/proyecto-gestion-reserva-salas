@@ -1,16 +1,11 @@
 package com.example.gestiondereservas.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.gestiondereservas.data.repository.AuditoriaRepository
-import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
 import com.example.gestiondereservas.ui.components.PantallaBaseRelator
 import com.example.gestiondereservas.ui.viewmodel.AuditoriaViewModel
@@ -23,27 +18,13 @@ import com.example.gestiondereservas.ui.views.RolUsuario
 import com.example.gestiondereservas.ui.views.SupervisorScreen
 
 @Composable
-fun rememberAuditoriaViewModel(): AuditoriaViewModel {
-    val contexto = LocalContext.current.applicationContext
-    return viewModel(
-        factory = viewModelFactory {
-            initializer {
-                val dao = AppDatabase.getInstance(contexto).auditoriaDao()
-                val repository = AuditoriaRepository(dao)
-                AuditoriaViewModel(repository)
-            }
-        }
-    )
-}
-@Composable
-fun AppNavigation(navController: NavHostController) {
-
-    val auditoriaViewModel: AuditoriaViewModel = rememberAuditoriaViewModel()
-
+fun AppNavigation(navController: NavHostController = rememberNavController()) {
     NavHost(
-        navController = navController, startDestination = "login" //"baseRelator" //"login"
+        navController = navController,
+        startDestination = "login"
     ) {
-        composable("login") {
+        //Declarar parámetro de entrada en cada composable
+        composable("login") { _ ->
             LoginScreen(
                 alNavegarARegistro = { navController.navigate("registro") },
                 alNavegarARelator = {
@@ -59,29 +40,53 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
 
-        composable("registro") {
+        composable("registro") { _ ->
             RegistroScreen(
-                alRegistrarExitoso = {
+                alRegistrarExitoso = { nombre, correo, pass, rol ->
+                    val correoLimpio = correo.trim().lowercase()
+                    val rolLogin = if (rol == RolRegistroUsuario.RELATOR) RolUsuario.RELATOR else RolUsuario.COORDINADOR
+
+                    //Guardar rol y contraseña en los almacenes de memoria
+                    com.example.gestiondereservas.ui.views.usuariosRegistradosMemoria[correoLimpio] = rolLogin
+                    com.example.gestiondereservas.ui.views.passwordsUsuariosMemoria[correoLimpio] = pass
+
                     navController.popBackStack()
                 }
             )
         }
 
-        composable("baseRelator") {
-            PantallaBaseRelator(navController,
-                onRegistrarAuditoria = { evento ->
-                    auditoriaViewModel.registrarReserva(evento)
-                })
+        composable("baseRelator") { _ ->
+            PantallaBaseRelator(navController)
         }
 
-        composable("baseSupervisor"){
-            PantallaBaseAdmin(navController,
-                onRegistrarAuditoria = { evento ->
-                    auditoriaViewModel.registrarReserva(evento)
-                },
-                auditoriaViewModel = auditoriaViewModel
+        composable("baseSupervisor") { _ ->
+            val auditoriaVm: AuditoriaViewModel = viewModel()
+            PantallaBaseAdmin(
+                navController = navController,
+                auditoriaViewModel = auditoriaVm,
+                onRegistrarAuditoria = { _ -> }
             )
         }
 
+        composable("relator") { _ ->
+            RelatorScreen(
+                onReservas = { /* Acción al presionar reservas */ },
+                onBuscarSala = { /* Acción al buscar sala */ },
+                onCalendario = { /* Acción al abrir calendario */ },
+                onActividad = { /* Acción al ver actividad */ }
+            )
+        }
+
+        composable("supervisor") { _ ->
+            val supervisorVm: GestionReservasViewModel = viewModel()
+            SupervisorScreen(
+                onHorarios = { /* Acción */ },
+                onGestionSalas = { /* Acción */ },
+                onAuditoria = { /* Acción */ },
+                onReportes = { /* Acción hacia rama reportes */ },
+                onReservas = { /* Acción reservas */ },
+                viewModel = supervisorVm
+            )
+        }
     }
 }
