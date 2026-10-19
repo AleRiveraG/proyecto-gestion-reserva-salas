@@ -1,11 +1,11 @@
 package com.example.gestiondereservas.data.room
 
+
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.example.gestiondereservas.data.room.entidades.Area
 import com.example.gestiondereservas.data.room.entidades.Equipamiento
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
@@ -16,11 +16,12 @@ interface SalaDao {
 
     @Transaction
     @Query(
-        "SELECT * FROM salas WHERE area = :area " +
-                "AND (codigo LIKE '%' || :busqueda || '%' OR nombre LIKE '%' || :busqueda || '%') " +
+        "SELECT * FROM salas " +
+                "WHERE (codigo LIKE '%' || :busqueda || '%' " +
+                "OR nombre LIKE '%' || :busqueda || '%') " +
                 "ORDER BY codigo"
     )
-    fun observarPorArea(area: Area, busqueda: String): Flow<List<SalaConEquipamiento>>
+    fun observarTodas(busqueda: String): Flow<List<SalaConEquipamiento>>
 
     @Transaction
     @Query("SELECT * FROM salas WHERE id = :id")
@@ -55,8 +56,12 @@ interface SalaDao {
             actualizarSala(salaEntity)
             salaEntity.id
         }
+
         borrarEquipamientos(id)
-        insertarEquipamientos(equipos.map { it.copy(id = 0, salaId = id) })
+        insertarEquipamientos(
+            equipos.map { it.copy(id = 0, salaId = id) }
+        )
+
         return id
     }
 

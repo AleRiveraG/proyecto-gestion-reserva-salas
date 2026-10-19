@@ -2,32 +2,54 @@
 package com.example.gestiondereservas.navigation
 
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 
+import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.repository.AuditoriaRepository
 import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
 import com.example.gestiondereservas.ui.components.PantallaBaseRelator
+import com.example.gestiondereservas.ui.viewmodel.AuditoriaViewModel
 import com.example.gestiondereservas.ui.views.LoginScreen
+import com.example.gestiondereservas.ui.views.NotificacionesScreen
 import com.example.gestiondereservas.ui.views.RegistroScreen
 import com.example.gestiondereservas.ui.views.RolRegistroUsuario
 import com.example.gestiondereservas.ui.views.RolUsuario
-import com.example.gestiondereservas.ui.views.NotificacionesScreen
-import com.example.gestiondereservas.ui.views.usuariosRegistradosMemoria
 import com.example.gestiondereservas.ui.views.passwordsUsuariosMemoria
+import com.example.gestiondereservas.ui.views.usuariosRegistradosMemoria
+
+@Composable
+fun rememberAuditoriaViewModel(): AuditoriaViewModel {
+    val contexto = LocalContext.current.applicationContext
+
+    return viewModel(
+        factory = viewModelFactory {
+            initializer {
+                val dao = AppDatabase.getInstance(contexto).auditoriaDao()
+                val repository = AuditoriaRepository(dao)
+                AuditoriaViewModel(repository)
+            }
+        }
+    )
+}
 
 @Composable
 fun appNavigation(
     navController: NavHostController,
     abrirNotificaciones: Boolean = false
 ) {
-    // Datos de la sesión actual
+    val auditoriaViewModel = rememberAuditoriaViewModel()
+
     var correoUsuario by remember { mutableStateOf<String?>(null) }
     var rolUsuario by remember { mutableStateOf<RolUsuario?>(null) }
 
     val esSupervisor = rolUsuario == RolUsuario.COORDINADOR
 
-    // Abrir notificaciones desde una alerta del teléfono
     LaunchedEffect(abrirNotificaciones, correoUsuario, rolUsuario) {
         if (abrirNotificaciones && correoUsuario != null) {
             navController.navigate("notificaciones/$esSupervisor") {
@@ -40,8 +62,6 @@ fun appNavigation(
         navController = navController,
         startDestination = "login"
     ) {
-
-        // LOGIN DEL COMPAÑERO
         composable("login") {
             LoginScreen(
                 alNavegarARegistro = {
@@ -64,7 +84,6 @@ fun appNavigation(
             )
         }
 
-        // REGISTRO DEL COMPAÑERO
         composable("registro") {
             RegistroScreen(
                 alRegistrarExitoso = { _, correo, password, rol ->
@@ -85,25 +104,36 @@ fun appNavigation(
             )
         }
 
-        // PANTALLAS EXISTENTES
         composable("baseRelator") {
-            PantallaBaseRelator(navController)
+            PantallaBaseRelator(
+                navController = navController,
+                onRegistrarAuditoria = { evento ->
+                    auditoriaViewModel.registrarReserva(evento)
+                }
+            )
         }
 
         composable("baseRelator/reservas") {
             PantallaBaseRelator(
                 navController = navController,
-                abrirReservas = true
+                abrirReservas = true,
+                onRegistrarAuditoria = { evento ->
+                    auditoriaViewModel.registrarReserva(evento)
+                }
             )
         }
 
         composable("baseSupervisor") {
-            PantallaBaseAdmin(navController)
+            PantallaBaseAdmin(
+                navController = navController,
+                auditoriaViewModel = auditoriaViewModel,
+                onRegistrarAuditoria = { evento ->
+                    auditoriaViewModel.registrarReserva(evento)
+                }
+            )
         }
 
-        // TUS NOTIFICACIONES
         composable("notificaciones/{esSupervisor}") { backStackEntry ->
-
             val rolDeRuta = backStackEntry.arguments
                 ?.getString("esSupervisor")
                 ?.toBoolean() ?: false

@@ -1,7 +1,6 @@
 package com.example.gestiondereservas.data.repository
 
 import com.example.gestiondereservas.data.room.SalaDao
-import com.example.gestiondereservas.data.room.entidades.Area
 import com.example.gestiondereservas.data.room.entidades.Equipamiento
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
@@ -10,8 +9,8 @@ import com.example.gestiondereservas.data.DatosPrueba
 
 class SalaRepository(private val dao: SalaDao) {
 
-    fun observarPorArea(area: Area, busqueda: String): Flow<List<SalaConEquipamiento>> =
-        dao.observarPorArea(area, busqueda.trim())
+    fun observarTodas(busqueda: String): Flow<List<SalaConEquipamiento>> =
+        dao.observarTodas(busqueda.trim())
 
     suspend fun obtener(id: Long): SalaConEquipamiento? = dao.obtenerPorId(id)
 

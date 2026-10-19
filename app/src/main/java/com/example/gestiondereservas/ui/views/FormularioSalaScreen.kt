@@ -35,6 +35,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -66,29 +68,32 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.data.ProveedorDatos
 import com.example.gestiondereservas.data.repository.SalaRepository
+import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.Area
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
+import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.components.AreaChip
 import com.example.gestiondereservas.ui.viewmodel.EquipoForm
 import com.example.gestiondereservas.ui.viewmodel.FormularioSalaViewModel
+import com.example.gestiondereservas.utils.formatearHora
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
 
 @Composable
 fun rememberFormularioSalaViewModel(
-    salaId: Long,
-    areaCoordinador: Area
+    salaId: Long
 ): FormularioSalaViewModel {
     val contexto = LocalContext.current.applicationContext
     return viewModel(
-        key = "formulario-sala-$salaId-${areaCoordinador.name}",
+        key = "formulario-sala-$salaId",
         factory = viewModelFactory {
             initializer {
+                val dao = AppDatabase.getInstance(contexto).salaDao()
                 FormularioSalaViewModel(
-                    SalaRepository(ProveedorDatos.salaDao(contexto)),
-                    salaId,
-                    areaCoordinador
+                    SalaRepository(dao),
+                    salaId
                 )
             }
         }
@@ -99,17 +104,18 @@ fun rememberFormularioSalaViewModel(
 @Composable
 fun FormularioSalaScreen(
     salaId: Long,
-    areaCoordinador: Area = Area.INFORMATICA,
     onVolver: () -> Unit,
     viewModel: FormularioSalaViewModel = rememberFormularioSalaViewModel(
-        salaId,
-        areaCoordinador
-    )
+        salaId
+    ),
+    onRegistrarAuditoria: (AuditoriaEntity) -> Unit
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val contexto = LocalContext.current
     var confirmarDescarte by remember { mutableStateOf(false) }
+    var desplegarAreas by remember { mutableStateOf(false) }
     val d = estado.datos
+
     val selectorImagen = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -120,10 +126,20 @@ fun FormularioSalaScreen(
                     android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
             } catch (_: SecurityException) {
-
+                // Algunos proveedores entregan permisos temporales que siguen siendo válidos.
             }
             viewModel.onImagenChange(uri.toString())
         }
+    }
+
+    fun crearAuditoria(): AuditoriaEntity{
+        return AuditoriaEntity(
+            accion = "Se actualizo una sala",
+            detalle = "${d.codigo} - ${d.nombre} " ,
+            fecha = LocalDate.now().toString(),
+            hora = formatearHora(),
+            tipo = TipoAuditoria.SALAS.name
+        )
     }
 
     fun intentarVolver() {
@@ -139,6 +155,10 @@ fun FormularioSalaScreen(
                 if (estado.esNueva) "Sala creada" else "Sala actualizada",
                 Toast.LENGTH_SHORT
             ).show()
+
+            val auditoria = crearAuditoria()
+            onRegistrarAuditoria(auditoria)
+
             onVolver()
         }
     }
@@ -160,7 +180,9 @@ fun FormularioSalaScreen(
         ) {
             Text(error, color = MaterialTheme.colorScheme.error)
             Spacer(Modifier.height(16.dp))
-            Button(onClick = onVolver) { Text("Volver a salas") }
+            Button(onClick = onVolver) {
+                Text("Volver a salas")
+            }
         }
         return
     }
@@ -232,9 +254,19 @@ fun FormularioSalaScreen(
         }
         Spacer(Modifier.height(16.dp))
 
-        CampoTexto("Código de sala", d.codigo, viewModel::onCodigoChange, estado.errorCodigo)
+        CampoTexto(
+            "Código de sala",
+            d.codigo,
+            viewModel::onCodigoChange,
+            estado.errorCodigo
+        )
         Spacer(Modifier.height(12.dp))
-        CampoTexto("Nombre de la sala", d.nombre, viewModel::onNombreChange, estado.errorNombre)
+        CampoTexto(
+            "Nombre de la sala",
+            d.nombre,
+            viewModel::onNombreChange,
+            estado.errorNombre
+        )
         Spacer(Modifier.height(12.dp))
 
         // Capacidad máxima
@@ -245,7 +277,9 @@ fun FormularioSalaScreen(
                 shape = CircleShape,
                 contentPadding = PaddingValues(0.dp),
                 modifier = Modifier.size(44.dp)
-            ) { Text("−", fontWeight = FontWeight.Bold) }
+            ) {
+                Text("−", fontWeight = FontWeight.Bold)
+            }
             Text(
                 text = "${d.capacidad} personas",
                 style = MaterialTheme.typography.titleMedium,
@@ -256,40 +290,41 @@ fun FormularioSalaScreen(
                 shape = CircleShape,
                 contentPadding = PaddingValues(0.dp),
                 modifier = Modifier.size(44.dp)
-            ) { Text("+", fontWeight = FontWeight.Bold) }
+            ) {
+                Text("+", fontWeight = FontWeight.Bold)
+            }
         }
         estado.errorCapacidad?.let { MensajeError(it) }
         Spacer(Modifier.height(12.dp))
 
         // Área de conocimiento
         Etiqueta("Área de conocimiento")
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surface,
-            border = BorderStroke(1.dp, Color(0xFF79747E)),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
+        Box {
+            OutlinedButton(
+                onClick = { desplegarAreas = true },
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 AreaChip(d.area)
-                Spacer(Modifier.width(10.dp))
-                Text(
-                    "Área asignada al coordinador",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF666666)
-                )
+                Spacer(Modifier.weight(1f))
+                Text("Cambiar")
+            }
+
+            DropdownMenu(
+                expanded = desplegarAreas,
+                onDismissRequest = { desplegarAreas = false }
+            ) {
+                Area.values().forEach { area ->
+                    DropdownMenuItem(
+                        text = { Text(area.nombre) },
+                        onClick = {
+                            viewModel.onAreaChange(area)
+                            desplegarAreas = false
+                        }
+                    )
+                }
             }
         }
-        Spacer(Modifier.height(12.dp))
-
-        CampoTexto(
-            "Encargado del área",
-            d.encargado,
-            viewModel::onEncargadoChange,
-            estado.errorEncargado
-        )
         Spacer(Modifier.height(16.dp))
 
         // Equipamiento
@@ -301,7 +336,9 @@ fun FormularioSalaScreen(
             d.equipos.forEach { equipo ->
                 EquipoOpcion(
                     equipo = equipo,
-                    onAlternarSeleccion = { viewModel.alternarEquipo(equipo.nombre) },
+                    onAlternarSeleccion = {
+                        viewModel.alternarEquipo(equipo.nombre)
+                    },
                     onOcupadoChange = { ocupado ->
                         viewModel.cambiarEstadoEquipo(equipo.nombre, ocupado)
                     }
@@ -344,7 +381,9 @@ fun FormularioSalaScreen(
             TextButton(
                 onClick = { intentarVolver() },
                 modifier = Modifier.fillMaxWidth()
-            ) { Text("Cancelar") }
+            ) {
+                Text("Cancelar")
+            }
         }
         Spacer(Modifier.height(24.dp))
     }
@@ -358,10 +397,14 @@ fun FormularioSalaScreen(
                 TextButton(onClick = {
                     confirmarDescarte = false
                     onVolver()
-                }) { Text("Descartar") }
+                }) {
+                    Text("Descartar")
+                }
             },
             dismissButton = {
-                TextButton(onClick = { confirmarDescarte = false }) { Text("Seguir editando") }
+                TextButton(onClick = { confirmarDescarte = false }) {
+                    Text("Seguir editando")
+                }
             }
         )
     }
@@ -374,15 +417,22 @@ private fun ImagenSala(uri: String?) {
         value = if (uri.isNullOrBlank()) null else withContext(Dispatchers.IO) {
             runCatching {
                 val imagenUri = Uri.parse(uri)
-                val opciones = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                val opciones = BitmapFactory.Options().apply {
+                    inJustDecodeBounds = true
+                }
                 contexto.contentResolver.openInputStream(imagenUri)?.use {
                     BitmapFactory.decodeStream(it, null, opciones)
                 }
                 var muestra = 1
-                while (opciones.outWidth / muestra > 1024 || opciones.outHeight / muestra > 1024) {
+                while (
+                    opciones.outWidth / muestra > 1024 ||
+                    opciones.outHeight / muestra > 1024
+                ) {
                     muestra *= 2
                 }
-                val opcionesFinales = BitmapFactory.Options().apply { inSampleSize = muestra }
+                val opcionesFinales = BitmapFactory.Options().apply {
+                    inSampleSize = muestra
+                }
                 contexto.contentResolver.openInputStream(imagenUri)?.use {
                     BitmapFactory.decodeStream(it, null, opcionesFinales)
                 }
@@ -457,7 +507,8 @@ private fun EquipoOpcion(
         Surface(
             onClick = onAlternarSeleccion,
             shape = RoundedCornerShape(12.dp),
-            color = if (equipo.seleccionado) Color(0xFFFFF3CC) else MaterialTheme.colorScheme.surface,
+            color = if (equipo.seleccionado) Color(0xFFFFF3CC)
+            else MaterialTheme.colorScheme.surface,
             contentColor = MaterialTheme.colorScheme.onSurface,
             border = BorderStroke(
                 1.dp,

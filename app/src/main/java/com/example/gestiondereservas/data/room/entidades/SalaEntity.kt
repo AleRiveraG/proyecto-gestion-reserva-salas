@@ -16,7 +16,6 @@ data class SalaEntity(
     // con o son minuscula y viceversa
     val nombre: String,
     val area: Area,
-    val encargado: String,
     val capacidad: Int,
     val activa: Boolean = true,
     val imagenUri: String? = null

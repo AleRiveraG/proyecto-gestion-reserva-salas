@@ -27,6 +27,7 @@ interface ReservaDao {
     @Query("SELECT COUNT(*) FROM reserva WHERE estado = 'PENDIENTE'")
     suspend fun obtenerPendientes(): Int
 
+
     @Query("SELECT * FROM reserva WHERE estado = 'PENDIENTE'")
     fun observarReservasPendientes(): Flow<List<ReservaEntity>>
 
@@ -37,8 +38,12 @@ interface ReservaDao {
     suspend fun obtenerReservaPorId(id: Long): ReservaEntity?
 
     @Query("""
-    SELECT * FROM reserva
-    WHERE estado IN ('APROBADA', 'RECHAZADA')
-""")
+        SELECT * FROM reserva
+        WHERE estado IN ('APROBADA', 'RECHAZADA')
+    """)
     fun observarReservasResueltas(): Flow<List<ReservaEntity>>
+
+    @Query("SELECT * FROM reserva WHERE salaId = :salaId")
+    suspend fun obtenerReservasPorSala(salaId: Long): List<ReservaEntity>
+
 }

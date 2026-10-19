@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,6 +43,10 @@ class GestionReservasViewModel(
         viewModelScope.launch {
             repository.modificarEstado(id, estado)
         }
+    }
+
+    suspend fun buscarSala(id: Long): SalaEntity? {
+        return repository.obtenerSalaPorId(id)
     }
 
 

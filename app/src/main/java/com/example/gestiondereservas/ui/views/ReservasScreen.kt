@@ -69,11 +69,17 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
+import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
+import com.example.gestiondereservas.utils.ValidacionesReserva
 import com.example.gestiondereservas.utils.formatearFechaPerso
+import com.example.gestiondereservas.utils.formatearHora
 import com.example.gestiondereservas.utils.formatoFecha
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.Locale
 import kotlin.collections.listOf
 
@@ -95,7 +101,8 @@ fun rememberReservaViewModel(): ReservaViewModel {
 @Composable
 fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                    onAtras: () -> Unit,
-                   onEnviar: () -> Unit) {
+                   onEnviar: () -> Unit,
+                   onRegistrarAuditoria: (AuditoriaEntity) -> Unit) {
     var paso by remember{ mutableIntStateOf(1)}
 
     var nombre by remember({mutableStateOf("")})
@@ -121,6 +128,10 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var complemento by remember { mutableStateOf("") }
     var proveedores by remember { mutableStateOf("")}
 
+    var nombreError by remember { mutableStateOf(false) }
+    var responsableError by remember { mutableStateOf(false) }
+    var telefonoError by remember { mutableStateOf(false) }
+    var correoError by remember { mutableStateOf(false) }
 
     fun crearReserva(): ReservaEntity {
         return ReservaEntity(
@@ -133,13 +144,13 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             correoResponsable = correo,
             organizador = organizador,
 
-            salaId = salaId?: 1L,
+            salaId = salaId,
             fechaActividad = fechaActividad,
             horaInicio = horaInicio,
             horaTermino = horaTermino,
             fechaMontaje = fechaMontaje,
             horaMontaje = horaMontaje,
-            publico = publicoSelecionado.joinToString {", "},
+            publico = publicoSelecionado.joinToString (", "),
             requiereFormulario = requiereForm == "Si",
             nombreExternos = nombres,
             complementos = complemento,
@@ -150,9 +161,22 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
         )
     }
 
+    fun crearAuditoria(): AuditoriaEntity{
+        return AuditoriaEntity(
+            accion = "Se creo una solicitud de reserva",
+            detalle = nombre,
+            fecha = LocalDate.now().toString(),
+            hora = formatearHora(),
+            tipo = TipoAuditoria.RESERVA.name
+        )
+    }
     fun guardarReserva() {
         val reserva = crearReserva()
         viewModel.registrarReserva(reserva )
+
+        val auditoria = crearAuditoria()
+        onRegistrarAuditoria( auditoria )
+
         onEnviar()
     }
 
@@ -176,8 +200,21 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             tieneValidacion,
             { tieneValidacion = it },
             organizador, { organizador = it },
+            nombreError,
+            responsableError,
+            telefonoError,
+            correoError,
             onAtras = { onAtras() },
-            onSiguiente = { paso = 2})
+            onSiguiente = {
+                nombreError = !ValidacionesReserva.validarTexto(nombre)
+                responsableError = !ValidacionesReserva.validarTexto(responsable)
+                correoError = !ValidacionesReserva.correoValido(correo)
+                telefonoError = !ValidacionesReserva.validarTelefono(telefono)
+                if(!nombreError && !responsableError && !correoError && !telefonoError) {
+                    paso = 2
+                }
+            }
+        )
         2 -> ContentPaso2(
             fechaActividad,
             { fechaActividad = it },
@@ -198,7 +235,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                 viewModel.buscarSala(id)},
             listaSalas,
             nombres,
-            { nombre = it },
+            { nombres = it },
             onAtras = { paso = 1},
             onSiguiente = { paso = 3}
         )
@@ -238,6 +275,10 @@ fun ContentPaso1(nombre: String,
                  onTieneAutorizacionChange: (String) -> Unit,
                  organizador: String,
                  onOrganizadorChange: (String) -> Unit,
+                 nombreError: Boolean,
+                 responsableError: Boolean,
+                 telefonoError: Boolean,
+                 correoError: Boolean,
                  onAtras: () -> Unit,
                  onSiguiente: () -> Unit ) {
     Column(
@@ -385,7 +426,11 @@ fun ContentPaso1(nombre: String,
                 .padding(24.dp)
         ) {
             Column {
-                campoTexto("Nombre de la actividad *", nombre, onNombreChange)
+                campoTexto("Nombre de la actividad *",
+                    nombre,
+                    onNombreChange,
+                    nombreError,
+                    "Nombre de la actividad invalido. Ingrese nuevamente")
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -401,7 +446,11 @@ fun ContentPaso1(nombre: String,
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                campoTexto("Responsable de la actividad *", responsable, onResponsableChange)
+                campoTexto("Responsable de la actividad *",
+                    responsable,
+                    onResponsableChange,
+                    responsableError,
+                    "Nombre del responsable invalido. Ingrese nuevamente")
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -414,7 +463,11 @@ fun ContentPaso1(nombre: String,
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        campoTexto("Teléfono de contacto", telefono, onTelefonoChange)
+                        campoTexto("Teléfono de contacto",
+                            telefono,
+                            onTelefonoChange,
+                            telefonoError,
+                            "Teléfono invalido. Ingrese nuevamente")
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -422,7 +475,11 @@ fun ContentPaso1(nombre: String,
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        campoTexto("Correo electrónico", correo, onCorreoChange)
+                        campoTexto("Correo electrónico",
+                            correo,
+                            onCorreoChange,
+                            correoError,
+                            "Correo invalido. Ingrese nuevamente")
                     }
                 }
 
@@ -938,11 +995,19 @@ fun ContentPaso3(complemento: String,
         ) {
             Column{
 
-                campoTexto("Señale información que complemente los requerimientos y montaje de la actividad", complemento, onComplementoChange)
+                campoTexto("Señale información que complemente los requerimientos y montaje de la actividad",
+                    complemento,
+                    onComplementoChange,
+                    false,
+                    "")
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                campoTexto("Contratación de proveedores externos", proveedores, onProvedooresChange)
+                campoTexto("Contratación de proveedores externos",
+                    proveedores,
+                    onProvedooresChange,
+                    false,
+                    "")
             }
         }
         Row(
@@ -1136,7 +1201,12 @@ fun Final(onEnviar: () -> Unit,
     }
 }
 @Composable
-fun campoTexto(titulo: String, variable: String, onValorChange: (String) -> Unit) {
+fun campoTexto(titulo: String,
+               variable: String,
+               onValorChange: (String) -> Unit,
+               error: Boolean,
+               mensajeError: String
+) {
     Text(text = titulo,
         color = MaterialTheme.colorScheme.primary)
 
@@ -1147,6 +1217,12 @@ fun campoTexto(titulo: String, variable: String, onValorChange: (String) -> Unit
         onValueChange = onValorChange ,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
+        isError = error,
+        supportingText = {
+            if(error) {
+                Text(mensajeError, color = MaterialTheme.colorScheme.error)
+            }
+        },
         colors = TextFieldDefaults.colors(
             focusedTextColor = MaterialTheme.colorScheme.primary,
             unfocusedTextColor = MaterialTheme.colorScheme.primary,
@@ -1299,7 +1375,7 @@ fun menuEscuelas(titulo: String, opcion: String, onOrganizadorChange: (String) -
         "Comunicación",
         "Construcción",
         "Diseño",
-        "Gastronomia",
+        "Gastronomía",
         "Informática y Telecomunicaciones",
         "Ingeniería y Recursos Naturales",
         "Salud y Bienestar",
