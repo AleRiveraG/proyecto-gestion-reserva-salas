@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation("com.airbnb.android:lottie-compose:6.6.7")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     ksp(libs.androidx.room.compiler)
 }

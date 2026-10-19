@@ -56,6 +56,7 @@ object RecordatoriosReservas {
             .setInitialDelay(demora, TimeUnit.MILLISECONDS)
             .setInputData(datos)
             .addTag("recordatorios_reservas")
+            .addTag("reserva_id_${reserva.id}")
             .build()
 
         WorkManager.getInstance(context).enqueueUniqueWork(

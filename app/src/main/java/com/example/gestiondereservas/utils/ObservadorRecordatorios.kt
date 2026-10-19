@@ -5,7 +5,10 @@ import android.content.Context
 import com.example.gestiondereservas.data.room.AppDatabase
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-
+import androidx.work.WorkManager
+import androidx.work.WorkInfo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 object ObservadorRecordatorios {
 
     suspend fun observar(context: Context) {
@@ -20,6 +23,26 @@ object ObservadorRecordatorios {
 
                 val reservasActuales = reservas.associate {
                     it.id to (it.fechaActividad to it.horaInicio)
+                }
+
+                val idsAprobadas = reservasActuales.keys
+
+                val trabajos = withContext(Dispatchers.IO) {
+                    WorkManager.getInstance(context)
+                        .getWorkInfosByTag("recordatorios_reservas")
+                        .get()
+                }
+
+                trabajos.forEach { trabajo ->
+                    if (
+                        trabajo.state == WorkInfo.State.ENQUEUED ||
+                        trabajo.state == WorkInfo.State.BLOCKED
+                    ) {
+                        val reservaId = trabajo.tags
+                            .firstOrNull { it.startsWith("reserva_id_") }
+                            ?.removePrefix("reserva_id_")
+                            ?.toLongOrNull() ?: -1L
+                    }
                 }
 
                 // Cancelar recordatorios de reservas que dejaron de estar aprobadas
