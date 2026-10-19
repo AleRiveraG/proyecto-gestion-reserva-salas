@@ -59,11 +59,15 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.repository.HorarioRepository
 import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
+import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.components.AreaChip
 import com.example.gestiondereservas.ui.viewmodel.FormularioHorarioViewModel
 import com.example.gestiondereservas.utils.FormatoHora
 import com.example.gestiondereservas.utils.ValidacionesHorario
+import com.example.gestiondereservas.utils.formatearHora
+import java.time.LocalDate
 
 @Composable
 fun rememberFormularioHorarioViewModel(
@@ -103,7 +107,8 @@ fun FormularioHorarioScreen(
         salaInicialId,
         diaInicial,
         inicioInicialMin
-    )
+    ),
+    onRegistrarAuditoria: (AuditoriaEntity) -> Unit
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val contexto = LocalContext.current
@@ -117,6 +122,16 @@ fun FormularioHorarioScreen(
         if (estado.hayCambios) confirmarDescarte = true else onVolver()
     }
 
+    fun crearAuditoria(accion: String): AuditoriaEntity{
+        return AuditoriaEntity(
+            accion = accion,
+            detalle = "${d.dia} - ${d.salaId} " ,
+            fecha = LocalDate.now().toString(),
+            hora = formatearHora(),
+            tipo = TipoAuditoria.HORARIOS.name
+        )
+    }
+
     BackHandler { intentarVolver() }
 
     LaunchedEffect(estado.guardado) {
@@ -126,6 +141,8 @@ fun FormularioHorarioScreen(
                 if (estado.esNuevo) "Horario creado" else "Horario actualizado",
                 Toast.LENGTH_SHORT
             ).show()
+            val auditoria = crearAuditoria("Se actualizo un horario")
+            onRegistrarAuditoria(auditoria)
             onVolver()
         }
     }
@@ -133,6 +150,8 @@ fun FormularioHorarioScreen(
     LaunchedEffect(estado.eliminado) {
         if (estado.eliminado) {
             Toast.makeText(contexto, "Horario eliminado", Toast.LENGTH_SHORT).show()
+            val auditoria = crearAuditoria("Se elimino un horario")
+            onRegistrarAuditoria(auditoria)
             onVolver()
         }
     }
