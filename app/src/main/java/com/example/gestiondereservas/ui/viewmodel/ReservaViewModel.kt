@@ -23,10 +23,8 @@ class ReservaViewModel(
         cargarSalas()
     }
 
-    fun registrarReserva(reserva: ReservaEntity) {
-        viewModelScope.launch {
-            repository.registrarReserva(reserva)
-        }
+    suspend fun registrarReserva(reserva: ReservaEntity) {
+        repository.registrarReserva(reserva)
     }
 
     fun cargarSalas() {

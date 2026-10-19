@@ -44,19 +44,30 @@ import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
+import com.example.gestiondereservas.ui.views.accesosDirectos
 import com.example.gestiondereservas.utils.formatearFecha
 
 @Composable
-fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
-                  onReservas: () -> Unit, onMiActividad: () -> Unit) {
-    //FALTA BUSCAR RESERVA POR USUARIO ID EXTRAIDO DEL LOGIN Y USA EL VIEWMODEL PARA ESO
-    Contenido(onReservas, onMiActividad)
+fun RelatorScreen(
+    onReservas: () -> Unit,
+    onBuscarSala: () -> Unit,
+    onCalendario: () -> Unit,
+    onActividad: () -> Unit
+) {
+    Contenido(
+        onReservas,
+        onActividad,
+        onCalendario,
+        onBuscarSala
+    )
 }
 
 @Composable
 private fun Contenido(
     onReservas: () -> Unit,
-    onMiActividad: () -> Unit
+    onActividad: () -> Unit,
+    onCalendario: () -> Unit,
+    onBuscarSala: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -90,7 +101,8 @@ private fun Contenido(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        accesosDirectos(onMiActividad)
+        accesosDirectos(onBuscarSala, onCalendario, onReservas, onActividad)
+
     }
 }
 
@@ -230,7 +242,10 @@ fun infoReserva(onReservas: () -> Unit) {
 }
 
 @Composable
-private fun accesosDirectos(onMiActividad: () -> Unit) {
+private fun accesosDirectos(onBuscarSala: () -> Unit,
+                            onCalendario: () -> Unit,
+                            onReservas: () -> Unit,
+                            onActividad: () -> Unit) {
     Text("Accesos directos",
         color = MaterialTheme.colorScheme.primary,
         fontSize = 20.sp,
@@ -247,7 +262,7 @@ private fun accesosDirectos(onMiActividad: () -> Unit) {
         Column(verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = {},
+            IconButton(onClick = { onBuscarSala() },
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F5)
@@ -269,7 +284,7 @@ private fun accesosDirectos(onMiActividad: () -> Unit) {
         Column(verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = {},
+            IconButton(onClick = { onCalendario() },
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F5)
@@ -291,21 +306,21 @@ private fun accesosDirectos(onMiActividad: () -> Unit) {
         Column(verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = {},
+            IconButton(onClick = { onReservas() },
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F5)
                     )) {
                 Icon(
-                    painter = painterResource(R.drawable.door),
-                    contentDescription = "Icono sala",
+                    painter = painterResource(R.drawable.task),
+                    contentDescription = "Icono reserva",
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Text("Disponibles",
+            Text("Reservar",
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 12.sp)
         }
@@ -313,7 +328,8 @@ private fun accesosDirectos(onMiActividad: () -> Unit) {
         Column(verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = {onMiActividad()},
+
+            IconButton(onClick = { onActividad() },
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(Color(0xFFF5F5F5)
@@ -346,7 +362,10 @@ fun noInfoReserva(onReservas: () -> Unit) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text("No tienes reservas actuales")
+            Text("No tienes reservas actuales",
+                color = MaterialTheme.colorScheme.secondary,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold)
 
             Spacer(modifier = Modifier.height(12.dp))
 

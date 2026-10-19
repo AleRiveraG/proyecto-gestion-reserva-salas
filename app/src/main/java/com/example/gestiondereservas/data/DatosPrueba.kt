@@ -18,11 +18,14 @@ object DatosPrueba {
             codigo = codigo,
             nombre = nombre,
             area = area,
-            encargado = area.encargadoPorDefecto,
             capacidad = capacidad
         ) to (
-                disponibles.map { Equipamiento(salaId = 0, nombre = it) } +
-                        ocupados.map { Equipamiento(salaId = 0, nombre = it, ocupado = true) }
+                disponibles.map {
+                    Equipamiento(salaId = 0, nombre = it)
+                } +
+                        ocupados.map {
+                            Equipamiento(salaId = 0, nombre = it, ocupado = true)
+                        }
                 )
 
     val salas = listOf(

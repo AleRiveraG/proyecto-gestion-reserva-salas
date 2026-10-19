@@ -1,6 +1,12 @@
-
 package com.example.gestiondereservas.ui.viewmodel
 
+import androidx.room.withTransaction
+import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.room.ReservaDao
+import com.example.gestiondereservas.data.room.entidades.EstadoReserva
+import com.example.gestiondereservas.data.room.UsoSalaDao
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,8 +18,16 @@ import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
+import com.example.gestiondereservas.data.room.entidades.UsoSalaEntity
+import com.example.gestiondereservas.utils.calcularInicioReserva
 import java.time.LocalDate
 import java.time.LocalTime
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
+import com.example.gestiondereservas.workers.FinalizacionActividadWorker
+import java.util.concurrent.TimeUnit
 import java.time.format.DateTimeFormatter
 class UsoSalaViewModel : ViewModel() {
 
@@ -38,6 +52,186 @@ class UsoSalaViewModel : ViewModel() {
 
     var salaId by mutableStateOf<Long?>(null)
         private set
+
+    var guardando by mutableStateOf(false)
+        private set
+
+    var errorActividad by mutableStateOf<String?>(null)
+        private set
+
+    companion object {
+        const val TOLERANCIA_CHECK_IN_MINUTOS = 15L
+    }
+
+
+    suspend fun verificarAusencia(
+        usoSalaDao: UsoSalaDao,
+        reservaDao: ReservaDao
+    ) {
+        val id = reservaId ?: return
+        val ahora = LocalDateTime.now()
+        val limite = inicioReserva.plusMinutes(15)
+
+        if (ahora.isBefore(limite)) return
+
+        try {
+            val uso = withContext(Dispatchers.IO) {
+                usoSalaDao.obtenerPorReserva(id)
+            }
+
+            // Si ya inició o finalizó, no corresponde ausencia
+            if (uso?.estado == "EN_CURSO" ||
+                uso?.estado == "FINALIZADA") return
+
+            val cancelada = withContext(Dispatchers.IO) {
+                reservaDao.cancelarReservaAprobada(id)
+            }
+
+            if (cancelada > 0) {
+                withContext(Dispatchers.IO) {
+                    usoSalaDao.guardar(
+                        UsoSalaEntity(
+                            reservaId = id,
+                            estado = "AUSENTE"
+                        )
+                    )
+                }
+
+                errorActividad =
+                    "Reserva cancelada por no realizar check-in dentro de los 15 minutos"
+            }
+
+        } catch (e: Exception) {
+            errorActividad = "No se pudo verificar la ausencia"
+        }
+    }
+
+    suspend fun cargarEstadoGuardado(dao: UsoSalaDao, id: Long) {
+        val uso = withContext(Dispatchers.IO) {
+            dao.obtenerPorReserva(id)
+        }
+        restaurarEstado(uso,dao)
+    }
+
+
+    suspend fun registrarInicio(
+        db: AppDatabase,
+        context: android.content.Context
+    ) {
+        val id = reservaId ?: return
+        val ahora = LocalDateTime.now()
+
+        if (estadoActividad != EstadoActividad.PENDIENTE) return
+
+        val limiteCheckIn =
+            inicioReserva.plusMinutes(TOLERANCIA_CHECK_IN_MINUTOS)
+
+        if (ahora.isBefore(inicioReserva)) {
+            errorActividad = "Todavía no comienza el horario de la reserva"
+            return
+        }
+
+        if (!ahora.isBefore(limiteCheckIn) || !ahora.isBefore(finReserva)) {
+            errorActividad = "El plazo para realizar el check-in ha terminado"
+            return
+        }
+
+        guardando = true
+        errorActividad = null
+
+        try {
+            val registrado = withContext(Dispatchers.IO) {
+                db.withTransaction {
+                    val reserva = db.reservaDao().obtenerReservaPorId(id)
+                    val uso = db.usoSalaDao().obtenerPorReserva(id)
+
+                    if (reserva?.estado != EstadoReserva.APROBADA ||
+                        uso?.estado == "AUSENTE" ||
+                        uso?.estado == "EN_CURSO" ||
+                        uso?.estado == "FINALIZADA"
+                    ) {
+                        false
+                    } else {
+                        val momento = LocalDateTime.now()
+
+                        if (momento.isBefore(inicioReserva) ||
+                            !momento.isBefore(limiteCheckIn) ||
+                            !momento.isBefore(finReserva)
+                        ) {
+                            false
+                        } else {
+                            db.usoSalaDao().guardar(
+                                UsoSalaEntity(
+                                    reservaId = id,
+                                    estado = "EN_CURSO",
+                                    fechaHoraInicio = momento.toString()
+                                )
+                            )
+                            true
+                        }
+                    }
+                }
+            }
+
+            if (registrado) {
+                val espera = Duration.between(
+                    LocalDateTime.now(),
+                    finReserva
+                ).toMillis().coerceAtLeast(0L)
+
+                val solicitud = OneTimeWorkRequestBuilder<FinalizacionActividadWorker>()
+                    .setInitialDelay(espera, TimeUnit.MILLISECONDS)
+                    .setInputData(
+                        workDataOf(
+                            "reservaId" to id,
+                            "finProgramado" to finReserva.toString()
+                        )
+                    )
+                    .build()
+
+                WorkManager.getInstance(context).enqueueUniqueWork(
+                    "finalizacion_$id",
+                    ExistingWorkPolicy.REPLACE,
+                    solicitud
+                )
+                estadoActividad = EstadoActividad.EN_CURSO
+                iniciarCronometro(db.usoSalaDao())
+            } else {
+                errorActividad =
+                    "No se puede iniciar: la reserva ya no está aprobada o el plazo venció"
+            }
+        } catch (e: Exception) {
+            errorActividad = "No se pudo registrar el inicio"
+        } finally {
+            guardando = false
+        }
+    }
+
+
+    suspend fun registrarFinalizacion(dao: UsoSalaDao) {
+        val id = reservaId ?: return
+
+        if (estadoActividad != EstadoActividad.EN_CURSO) return
+
+        guardando = true
+        errorActividad = null
+
+        try {
+            val filasActualizadas = withContext(Dispatchers.IO) {
+                dao.finalizar(id, LocalDateTime.now().toString())
+            }
+
+            if (filasActualizadas > 0) {
+                finalizarActividad()
+            } else {
+                errorActividad = "No se encontró una actividad en curso"
+            }
+        } catch (e: Exception) {
+            errorActividad = "No se pudo finalizar la actividad"
+        } finally {
+            guardando = false
+        }
+    }
     fun cargarReserva(reserva: ReservaEntity) {
 
         reservaId = reserva.id
@@ -47,14 +241,20 @@ class UsoSalaViewModel : ViewModel() {
 
         val anioActual = LocalDate.now().year
         val fechaCompleta = "${reserva.fechaActividad}/$anioActual"
-        val fecha = LocalDate.parse(
-            fechaCompleta,
-        DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        )
+
         val horaInicioFormateada = LocalTime.parse(reserva.horaInicio)
         val horaTerminoFormateada = LocalTime.parse(reserva.horaTermino)
-        val inicio = fecha.atTime(horaInicioFormateada)
-        val fin = fecha.atTime(horaTerminoFormateada)
+
+        val inicio = calcularInicioReserva(
+            reserva.fechaActividad,
+            reserva.horaInicio
+        )
+
+        val fin = inicio.toLocalDate().atTime(
+            LocalTime.parse(reserva.horaTermino)
+        )
+
+        configurarReserva(inicio, fin)
 
         configurarReserva(inicio, fin)
     }
@@ -72,30 +272,25 @@ class UsoSalaViewModel : ViewModel() {
         segundosRestantes = Duration.between(inicio, fin).seconds
     }
 
-    fun iniciarActividad() {
-        if (estadoActividad == EstadoActividad.PENDIENTE &&
-            !LocalDateTime.now().isBefore(inicioReserva) &&
-            LocalDateTime.now().isBefore(finReserva)
 
+    fun iniciarActividad(dao: UsoSalaDao) {
+        if (estadoActividad != EstadoActividad.PENDIENTE) return
+
+        val ahora = LocalDateTime.now()
+        val limiteCheckIn = inicioReserva.plusMinutes(TOLERANCIA_CHECK_IN_MINUTOS)
+
+        if (ahora.isBefore(inicioReserva) ||
+            !ahora.isBefore(limiteCheckIn) ||
+            !ahora.isBefore(finReserva)
         ) {
-            estadoActividad = EstadoActividad.EN_CURSO
-            actualizarTiempoRestante()
-
-            trabajoCronometro?.cancel()
-
-            trabajoCronometro = viewModelScope.launch {
-                while (estadoActividad == EstadoActividad.EN_CURSO) {
-                    actualizarTiempoRestante()
-
-                    if (segundosRestantes == 0L) {
-                        finalizarActividad()
-                        break
-                    }
-                    delay(1000)
-                }
-            }
+            return
         }
+        if (ahora.isBefore(inicioReserva) || !ahora.isBefore(finReserva)) return
+
+        estadoActividad = EstadoActividad.EN_CURSO
+        iniciarCronometro(dao)
     }
+
 
     private fun actualizarTiempoRestante() {
         segundosRestantes = Duration.between(
@@ -110,4 +305,40 @@ class UsoSalaViewModel : ViewModel() {
             trabajoCronometro?.cancel()
         }
     }
+
+
+    private fun iniciarCronometro(dao: UsoSalaDao) {
+        trabajoCronometro?.cancel()
+
+        trabajoCronometro = viewModelScope.launch {
+            while (estadoActividad == EstadoActividad.EN_CURSO) {
+                actualizarTiempoRestante()
+
+                if (segundosRestantes == 0L) {
+                    registrarFinalizacion(dao)
+                    break
+                }
+
+                delay(1000)
+            }
+        }
+    }
+
+
+
+    fun restaurarEstado(uso: UsoSalaEntity?, dao: UsoSalaDao) {
+        trabajoCronometro?.cancel()
+
+        estadoActividad = when (uso?.estado) {
+            "EN_CURSO" -> EstadoActividad.EN_CURSO
+            "FINALIZADA" -> EstadoActividad.FINALIZADA
+            else -> EstadoActividad.PENDIENTE
+        }
+
+        if (estadoActividad == EstadoActividad.EN_CURSO) {
+            actualizarTiempoRestante()
+            iniciarCronometro(dao)
+        }
+    }
+
 }

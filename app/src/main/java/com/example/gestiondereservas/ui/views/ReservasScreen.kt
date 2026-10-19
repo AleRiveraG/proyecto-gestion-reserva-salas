@@ -1,6 +1,11 @@
 package com.example.gestiondereservas.ui.views
 
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -69,11 +74,16 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
+import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
 import com.example.gestiondereservas.utils.formatearFechaPerso
+import com.example.gestiondereservas.utils.formatearHora
 import com.example.gestiondereservas.utils.formatoFecha
+import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.Locale
 import kotlin.collections.listOf
 
@@ -95,9 +105,9 @@ fun rememberReservaViewModel(): ReservaViewModel {
 @Composable
 fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                    onAtras: () -> Unit,
-                   onEnviar: () -> Unit) {
+                   onEnviar: () -> Unit,
+                   onRegistrarAuditoria: (AuditoriaEntity) -> Unit) {
     var paso by remember{ mutableIntStateOf(1)}
-
     var nombre by remember({mutableStateOf("")})
     var responsable by remember({mutableStateOf("")})
     var telefono by remember({mutableStateOf("")})
@@ -106,7 +116,9 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var tipoActividad by remember { mutableStateOf("") }
     var tieneValidacion by remember { mutableStateOf("") }
     var organizador by remember { mutableStateOf("") }
-
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var guardando by remember { mutableStateOf(false) }
     var fechaActividad by remember { mutableStateOf("") }
     var horaInicio by remember { mutableStateOf("") }
     var horaTermino by remember { mutableStateOf("") }
@@ -133,13 +145,13 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             correoResponsable = correo,
             organizador = organizador,
 
-            salaId = salaId?: 1L,
+            salaId = salaId,
             fechaActividad = fechaActividad,
             horaInicio = horaInicio,
             horaTermino = horaTermino,
             fechaMontaje = fechaMontaje,
             horaMontaje = horaMontaje,
-            publico = publicoSelecionado.joinToString {", "},
+            publico = publicoSelecionado.joinToString (", "),
             requiereFormulario = requiereForm == "Si",
             nombreExternos = nombres,
             complementos = complemento,
@@ -150,10 +162,52 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
         )
     }
 
+    fun crearAuditoria(): AuditoriaEntity{
+        return AuditoriaEntity(
+            accion = "Se creo una solicitud de reserva",
+            detalle = nombre,
+            fecha = LocalDate.now().toString(),
+            hora = formatearHora(),
+            tipo = TipoAuditoria.RESERVA.name
+        )
+    }
     fun guardarReserva() {
+        Toast.makeText(
+            context,
+            "ENTRE A GUARDAR RESERVA",
+            Toast.LENGTH_LONG
+        ).show()
+        if (guardando) return
+
         val reserva = crearReserva()
-        viewModel.registrarReserva(reserva )
-        onEnviar()
+        val auditoria = crearAuditoria()
+
+        guardando = true
+
+        scope.launch {
+            try {
+                viewModel.registrarReserva(reserva)
+
+                Toast.makeText(
+                    context,
+                    "Guardado en Room completado",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                onRegistrarAuditoria(auditoria)
+                paso = 4
+            }catch (e: Exception) {
+                Log.e("RESERVA", "Error al guardar reserva", e)
+
+                Toast.makeText(
+                    context,
+                    "No se pudo guardar la reserva",
+                    Toast.LENGTH_LONG
+                ).show()
+            } finally {
+                guardando = false
+            }
+        }
     }
 
     val listaSalas by viewModel.listaSalas.collectAsState()
@@ -198,7 +252,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                 viewModel.buscarSala(id)},
             listaSalas,
             nombres,
-            { nombre = it },
+            { nombres = it },
             onAtras = { paso = 1},
             onSiguiente = { paso = 3}
         )
@@ -210,8 +264,8 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             servicios,
             { categoria, nuevosServicios -> servicios = servicios + ( categoria to nuevosServicios)},
             onAtras = { paso = 2 },
-            onEnviar = { paso = 4} )
-        4 -> Final(onEnviar = { guardarReserva() },
+            onEnviar = { guardarReserva() } )
+        4 -> Final(onEnviar = { onEnviar() },
             sala,
             fechaMontaje,
             horaMontaje,
@@ -1128,7 +1182,7 @@ fun Final(onEnviar: () -> Unit,
                 containerColor = MaterialTheme.colorScheme.tertiary
             )
         ) {
-            Text("Volver al inicio",
+            Text("PRUEBA VERSION NUEVA",
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 18.sp
             )
@@ -1299,7 +1353,7 @@ fun menuEscuelas(titulo: String, opcion: String, onOrganizadorChange: (String) -
         "Comunicación",
         "Construcción",
         "Diseño",
-        "Gastronomia",
+        "Gastronomía",
         "Informática y Telecomunicaciones",
         "Ingeniería y Recursos Naturales",
         "Salud y Bienestar",

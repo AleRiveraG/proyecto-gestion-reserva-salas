@@ -1,3 +1,4 @@
+
 package com.example.gestiondereservas.data.room
 
 import androidx.room.Dao
@@ -18,7 +19,7 @@ interface ReservaDao {
     @Query("SELECT * FROM reserva WHERE estado = 'PENDIENTE'")
     suspend fun obtenerReservasPendientes(): List<ReservaEntity>
 
-    @Query("SELECT COUNT(*) FROM reserva WHERE estado = 'APROBADA' ")
+    @Query("SELECT COUNT(*) FROM reserva WHERE estado = 'APROBADA'")
     suspend fun obtenerAprobadas(): Int
 
     @Query("SELECT COUNT(*) FROM reserva WHERE estado = 'RECHAZADA'")
@@ -27,7 +28,7 @@ interface ReservaDao {
     @Query("SELECT COUNT(*) FROM reserva WHERE estado = 'PENDIENTE'")
     suspend fun obtenerPendientes(): Int
 
-    // Buscar una reserva por su ID
+    // Buscar una reserva por su ID (Uso de Sala)
     @Query("SELECT * FROM reserva WHERE id = :id LIMIT 1")
     suspend fun obtenerReservaPorId(id: Long): ReservaEntity?
 
@@ -35,7 +36,7 @@ interface ReservaDao {
     @Query("SELECT * FROM reserva WHERE estado = 'APROBADA'")
     suspend fun obtenerReservasAprobadas(): List<ReservaEntity>
 
-    // Observar reservas aprobadas para los recordatorios
+    // Observar reservas aprobadas para recordatorios
     @Query("SELECT * FROM reserva WHERE estado = 'APROBADA'")
     fun observarReservasAprobadas(): Flow<List<ReservaEntity>>
 
@@ -46,4 +47,29 @@ interface ReservaDao {
     """)
     fun observarReservasResueltas(): Flow<List<ReservaEntity>>
 
+    // Consultar reservas de una sala (main)
+    @Query("SELECT * FROM reserva WHERE salaId = :salaId")
+    suspend fun obtenerReservasPorSala(salaId: Long): List<ReservaEntity>
+
+    @Query
+        ("""
+        SELECT * FROM reserva
+        WHERE LOWER(TRIM(correoResponsable)) = LOWER(TRIM(:correo))
+        AND estado = 'APROBADA'
+        ORDER BY fechaActividad ASC, horaInicio ASC
+        """)
+
+    suspend fun obtenerReservasAprobadasPorCorreo(
+        correo: String
+    ): List<ReservaEntity>
+
+    @Query
+        ("""
+    UPDATE reserva
+    SET estado = 'CANCELADA'
+    WHERE id = :reservaId
+      AND estado = 'APROBADA'
+    """)
+
+    suspend fun cancelarReservaAprobada(reservaId: Long): Int
 }

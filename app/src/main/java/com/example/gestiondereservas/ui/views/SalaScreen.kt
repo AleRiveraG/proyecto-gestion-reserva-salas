@@ -30,6 +30,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,24 +49,27 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.data.ProveedorDatos
 import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.ui.components.AreaChip
 import com.example.gestiondereservas.ui.viewmodel.SalasViewModel
 import com.example.gestiondereservas.data.room.entidades.Area
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
+import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Composable
-fun rememberSalasViewModel(areaCoordinador: Area): SalasViewModel {
+fun rememberSalasViewModel(): SalasViewModel {
     val contexto = LocalContext.current.applicationContext
     return viewModel(
-        key = "salas-${areaCoordinador.name}",
+        key = "salas-coordinador-infraestructura",
         factory = viewModelFactory {
             initializer {
                 val dao = AppDatabase.getInstance(contexto).salaDao()
                 val repository = SalaRepository(dao)
-                SalasViewModel(repository, areaCoordinador)
+                SalasViewModel(repository)
             }
         }
     )
@@ -73,13 +77,30 @@ fun rememberSalasViewModel(areaCoordinador: Area): SalasViewModel {
 
 @Composable
 fun SalasScreen(
-    areaCoordinador: Area = Area.INFORMATICA,
     onNuevaSala: () -> Unit = {},
     onEditarSala: (Long) -> Unit = {},
-    viewModel: SalasViewModel = rememberSalasViewModel(areaCoordinador)
+    onRegistrarAuditoria: (AuditoriaEntity) -> Unit,
+    viewModel: SalasViewModel = rememberSalasViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     var salaEntityPorCambiar by remember { mutableStateOf<SalaEntity?>(null) }
+    var texto by remember { mutableStateOf(estado.busqueda) }
+
+    LaunchedEffect(estado.busqueda) {
+        if (estado.busqueda != texto) {
+            texto = estado.busqueda
+        }
+    }
+
+    fun crearAuditoria(): AuditoriaEntity{
+        return AuditoriaEntity(
+            accion = "Se actualizaron los datos de la sala",
+            detalle = "${salaEntityPorCambiar?.codigo} - ${salaEntityPorCambiar?.nombre} ",
+            fecha = LocalDate.now().toString(),
+            hora = LocalDateTime.now().toString(),
+            tipo = TipoAuditoria.SALAS.name
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -93,15 +114,17 @@ fun SalasScreen(
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "Gestiona los recintos de tu área",
+            text = "Gestiona los recintos de todas las áreas",
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF666666)
         )
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
-            value = estado.busqueda,
-            onValueChange = viewModel::onBusquedaChange,
+            value = texto,
+            onValueChange = { nuevoTexto ->
+                texto = nuevoTexto
+                viewModel.onBusquedaChange(nuevoTexto) },
             placeholder = { Text("Buscar por código o nombre") },
             singleLine = true,
             shape = RoundedCornerShape(12.dp),

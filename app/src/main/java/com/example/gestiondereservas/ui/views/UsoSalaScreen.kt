@@ -2,6 +2,7 @@
 package com.example.gestiondereservas.ui.views
 
 
+import android.R.attr.enabled
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -33,7 +34,7 @@ import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.ReporteEntity
 import java.time.LocalDateTime
 import androidx.compose.runtime.rememberCoroutineScope
-
+import com.example.gestiondereservas.data.room.entidades.EvaluacionSalaEntity
 
 
 @Composable
@@ -51,15 +52,36 @@ fun UsoSalaScreen(
 
     val context = LocalContext.current
 
+    var reporteGuardado by remember { mutableStateOf(false) }
+
     val scope = rememberCoroutineScope()
 
     val reporteDao = remember(context) {
         AppDatabase.getInstance(context).reporteDao()
     }
 
+    val usoSalaDao = remember(context) {
+        AppDatabase.getInstance(context).usoSalaDao()
+    }
     var enviandoReporte by remember { mutableStateOf(false) }
 
     var errorReporte by remember { mutableStateOf<String?>(null) }
+
+    var mostrarEvaluacion by remember { mutableStateOf(false) }
+
+    var calificacion by remember { mutableIntStateOf(0) }
+
+    var observaciones by remember { mutableStateOf("") }
+
+    var evaluacionGuardada by remember(reservaId) { mutableStateOf(false) }
+
+    var guardandoEvaluacion by remember { mutableStateOf(false) }
+
+    var errorEvaluacion by remember { mutableStateOf<String?>(null) }
+
+    val evaluacionDao = remember(context) {
+        AppDatabase.getInstance(context).evaluacionSalaDao()
+    }
 
     val horaTermino = viewModel.finReserva.format(
         DateTimeFormatter.ofPattern("HH:mm")
@@ -72,6 +94,16 @@ fun UsoSalaScreen(
     ).seconds.coerceAtLeast(1)
 
 
+    val horasDuracion = duracionTotal / 3600
+    val minutosDuracion = (duracionTotal % 3600) / 60
+
+    val duracionFormateada = if (horasDuracion > 0) {
+        "${horasDuracion} h ${minutosDuracion} min"
+    } else {
+        "${minutosDuracion} min"
+    }
+
+
    // Durante la actividad: tiempo real hasta finalizar la reserva
     val tiempoRestante = if (
         estadoActividad == EstadoActividad.PENDIENTE
@@ -80,11 +112,15 @@ fun UsoSalaScreen(
     } else {
         viewModel.segundosRestantes
     }
-
-    val minutos = tiempoRestante / 60
+    val horas = tiempoRestante / 3600
+    val minutos = (tiempoRestante % 3600) / 60
     val segundos = tiempoRestante % 60
 
-    val tiempoFormateado = "%02d:%02d".format(minutos, segundos)
+    val tiempoFormateado = if (horas > 0) {
+        "%02d:%02d:%02d".format(horas, minutos, segundos)
+    } else {
+        "%02d:%02d".format(minutos, segundos)
+    }
 
     // Porcentaje de tiempo transcurrido de la reserva
     val progreso = (
@@ -105,6 +141,10 @@ fun UsoSalaScreen(
         mutableStateOf(true)
     }
 
+    val reservaDao = remember(context) {
+        AppDatabase.getInstance(context).reservaDao()
+    }
+
     LaunchedEffect(reservaId) {
         cargando = true
         reservaAprobada = false
@@ -114,6 +154,28 @@ fun UsoSalaScreen(
 
             if (reserva != null && reserva.estado == EstadoReserva.APROBADA) {
                 viewModel.cargarReserva(reserva)
+                viewModel.cargarEstadoGuardado(usoSalaDao, reservaId)
+
+                viewModel.verificarAusencia(
+                    usoSalaDao,
+                    reservaDao
+                )
+
+                val reservaActualizada = withContext(Dispatchers.IO) {
+                    reservaDao.obtenerReservaPorId(reservaId)
+                }
+
+                if (reservaActualizada?.estado != EstadoReserva.APROBADA) {
+                    reservaAprobada = false
+                    return@LaunchedEffect
+                }
+
+                val evaluacionExistente = withContext(Dispatchers.IO) {
+                    evaluacionDao.obtenerPorReserva(reservaId)
+                }
+
+                evaluacionGuardada = evaluacionExistente != null
+
                 reservaAprobada = true
             }
         } finally {
@@ -232,7 +294,7 @@ fun UsoSalaScreen(
                     text = if (actividadEnCurso) {
                         "Finaliza a las $horaTermino"
                     } else {
-                        "Duración estimada: ${duracionTotal / 60} min"
+                        "Duración estimada: $duracionFormateada"
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = Black,
@@ -276,21 +338,22 @@ fun UsoSalaScreen(
                     confirmButton = {
                         TextButton(
                             onClick = {
-                                val reservaId = viewModel.reservaId
-                                val salaId = viewModel.salaId
+                                val idReserva = viewModel.reservaId
+                                val idSala = viewModel.salaId
 
-                                if (reservaId != null && reservaId > 0L && salaId != null && salaId > 0L) {
+                                if (idReserva != null && idReserva > 0L && idSala != null) {
                                     scope.launch {
                                         enviandoReporte = true
                                         errorReporte = null
 
                                         try {
                                             val ahora = LocalDateTime.now()
-                                            val reporte = ReporteEntity (
-                                                reservaId = reservaId,
-                                                salaId = salaId,
+
+                                            val reporte = ReporteEntity(
+                                                reservaId = idReserva,
+                                                salaId = idSala,
                                                 descripcion = descripcionReporte.trim(),
-                                                fechaReporte =  ahora.toLocalDate().toString(),
+                                                fechaReporte = ahora.toLocalDate().toString(),
                                                 horaReporte = ahora.toLocalTime()
                                                     .format(DateTimeFormatter.ofPattern("HH:mm"))
                                             )
@@ -301,14 +364,16 @@ fun UsoSalaScreen(
 
                                             descripcionReporte = ""
                                             mostrarReporte = false
-                                        } catch (e:Exception) {
-                                            errorReporte= "No se pudo guardar el reporte"
+                                            reporteGuardado = true
+
+                                        } catch (e: Exception) {
+                                            errorReporte = "No se pudo guardar el reporte"
                                         } finally {
                                             enviandoReporte = false
                                         }
                                     }
                                 } else {
-                                    errorReporte = "No hay una reserca cargada para este reporte"
+                                    errorReporte = "No hay una reserva cargada para este reporte"
                                 }
                             },
                             enabled = descripcionReporte.isNotBlank() && !enviandoReporte
@@ -333,12 +398,127 @@ fun UsoSalaScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
+        viewModel.errorActividad?.let { mensaje ->
+            Text(
+                text = mensaje,
+                color = MaterialTheme.colorScheme.error
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+
+        if (mostrarEvaluacion) {
+            AlertDialog(
+                onDismissRequest = {
+                    if (!guardandoEvaluacion) mostrarEvaluacion = false
+                },
+                title = {
+                    Text("Evaluar sala")
+                },
+                text = {
+                    Column {
+                        Text("¿Cómo estaban las condiciones de la sala?")
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            for (estrella in 1..5) {
+                                TextButton(
+                                    onClick = { calificacion = estrella }
+                                ) {
+                                    Text(
+                                        text = if (estrella <= calificacion) "★" else "☆",
+                                        color = Color(0xFFFFB300),
+                                        style = MaterialTheme.typography.headlineMedium
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        OutlinedTextField(
+                            value = observaciones,
+                            onValueChange = { observaciones = it },
+                            label = { Text("Observaciones (opcional)") },
+                            modifier = Modifier.fillMaxWidth(),
+                            minLines = 2
+                        )
+
+                        errorEvaluacion?.let {
+                            Text(
+                                text = it,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        enabled = calificacion in 1..5 && !guardandoEvaluacion,
+                        onClick = {
+                            val idSala = viewModel.salaId
+
+                            if (idSala != null) {
+                                scope.launch {
+                                    guardandoEvaluacion = true
+                                    errorEvaluacion = null
+
+                                    try {
+                                        val evaluacion = EvaluacionSalaEntity(
+                                            reservaId = reservaId,
+                                            salaId = idSala,
+                                            calificacion = calificacion,
+                                            observaciones = observaciones.trim(),
+                                            fechaEvaluacion = LocalDateTime.now().toString()
+                                        )
+
+                                        withContext(Dispatchers.IO) {
+                                            evaluacionDao.guardar(evaluacion)
+                                        }
+
+                                        evaluacionGuardada = true
+                                        mostrarEvaluacion = false
+
+                                    } catch (e: Exception) {
+                                        errorEvaluacion = "No se pudo guardar la evaluación"
+                                    } finally {
+                                        guardandoEvaluacion = false
+                                    }
+                                }
+                            } else {
+                                errorEvaluacion = "No se encontró la sala"
+                            }
+                        }
+                    ) {
+                        Text(if (guardandoEvaluacion) "Guardando..." else "Enviar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { mostrarEvaluacion = false },
+                        enabled = !guardandoEvaluacion
+                    ) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
+
         when (estadoActividad) {
 
             EstadoActividad.PENDIENTE -> {
 
                 Button(
-                    onClick = { viewModel.iniciarActividad() },
+                    onClick = {
+                        scope.launch {
+                            viewModel.registrarInicio(AppDatabase.getInstance(context), context)
+                        }
+                    },
                     enabled = reservaAprobada,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
@@ -367,7 +547,11 @@ fun UsoSalaScreen(
             EstadoActividad.EN_CURSO -> {
 
                 Button(
-                    onClick = { viewModel.finalizarActividad() },
+                    onClick = {
+                        scope.launch {
+                            viewModel.registrarFinalizacion(usoSalaDao)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorBoton,
@@ -398,6 +582,26 @@ fun UsoSalaScreen(
                     color = Black,
                     textAlign = TextAlign.Center
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (evaluacionGuardada) {
+                    Text(
+                        text = "Evaluación registrada. ¡Gracias!",
+                        color = Black
+                    )
+                } else {
+                    Button(
+                        onClick = { mostrarEvaluacion = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Yellow,
+                            contentColor = Black
+                        )
+                    ) {
+                        Text("Evaluar sala")
+                    }
+                }
             }
         }
 

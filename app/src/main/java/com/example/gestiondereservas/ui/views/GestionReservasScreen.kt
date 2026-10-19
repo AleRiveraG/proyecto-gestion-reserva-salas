@@ -30,6 +30,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,10 +52,16 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
+import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.utils.formatearFechaPerso
+import com.example.gestiondereservas.utils.formatearHora
+import java.time.LocalDate
+import kotlin.collections.emptyList
 
 @Composable
 fun rememberGestionReservasViewModel(): GestionReservasViewModel {
@@ -65,25 +72,46 @@ fun rememberGestionReservasViewModel(): GestionReservasViewModel {
                 val dao = AppDatabase.getInstance(contexto).reservaDao()
                 val daoSalas = AppDatabase.getInstance(contexto).salaDao()
                 val repository = ReservaRepository(dao, daoSalas)
-                GestionReservasViewModel(repository)
+                GestionReservasViewModel(repository,contexto)
             }
         }
     )
 }
 @Composable
-fun GestionReservasScreen(viewModel: GestionReservasViewModel = rememberGestionReservasViewModel()
+fun GestionReservasScreen(
+    viewModel: GestionReservasViewModel = rememberGestionReservasViewModel(),
+    onRegistrarAuditoria: (AuditoriaEntity) -> Unit
 ) {
     val reservas by viewModel.reservasPendientes.collectAsState()
     val aprobadas by viewModel.aprobadas.collectAsState()
     val pendientes by viewModel.pendientes.collectAsState()
     val rechazadas by viewModel.rechazadas.collectAsState()
 
+    fun crearAuditoria(accion: String, detalle: String): AuditoriaEntity{
+        return AuditoriaEntity(
+            accion = accion,
+            detalle = detalle,
+            fecha = LocalDate.now().toString(),
+            hora = formatearHora(),
+            tipo = TipoAuditoria.RESERVA.name
+        )
+    }
+
     Contenido(reservas,
         aprobadas,
         rechazadas,
         pendientes,
-        onAprobar = { id -> viewModel.modificarEstado(id, EstadoReserva.APROBADA.name) } ,
-        onRechazar = { id -> viewModel.modificarEstado(id, EstadoReserva.RECHAZADA.name)}
+        onBuscarSala = { id -> viewModel.buscarSala(id)},
+        onAprobar = { id ->
+            viewModel.modificarEstado(id, EstadoReserva.APROBADA.name)
+                    val auditoria = crearAuditoria("Se aprobo una solicitud", "")
+                    onRegistrarAuditoria(auditoria)
+                    } ,
+        onRechazar = { id ->
+            viewModel.modificarEstado(id, EstadoReserva.RECHAZADA.name)
+            val auditoria = crearAuditoria("Se rechazo una solicitud", "")
+            onRegistrarAuditoria(auditoria)
+        }
         )
 }
 
@@ -92,8 +120,9 @@ private fun Contenido(reservas: List<ReservaEntity>,
                       aprobadas: Int,
                       rechazadas: Int,
                       pendientes: Int,
+                      onBuscarSala: suspend (Long) -> SalaEntity?,
                       onAprobar: (Long) -> Unit,
-                      onRechazar: (Long) -> Unit
+                      onRechazar: (Long) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -125,7 +154,9 @@ private fun Contenido(reservas: List<ReservaEntity>,
             reserva(
                 reserva,
                 onAprobar,
-                onRechazar)
+                onRechazar,
+                onBuscarSala)
+
             Spacer(modifier = Modifier.height(12.dp))
         }
     }
@@ -193,9 +224,15 @@ fun contador(pendientes: Int, aprobadas: Int, rechazadas: Int) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun reserva(reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long) -> Unit) {
+fun reserva(reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long) -> Unit,
+            onBuscarSala: suspend (Long) -> SalaEntity?) {
     var mostrarModal by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
+    var sala by remember { mutableStateOf<SalaEntity?>(null) }
+
+    LaunchedEffect(reserva.salaId) {
+        sala = onBuscarSala(reserva.salaId)
+    }
 
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
@@ -282,7 +319,7 @@ fun reserva(reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long
                         Text("Recinto",
                             color = Color(0xFF63788C),
                             fontSize = 14.sp)
-                        Text(text = reserva.salaId.toString(),
+                        Text(text = sala?.codigo ?: reserva.salaId.toString(),
                             color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold)
@@ -409,7 +446,8 @@ fun reserva(reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long
             detalleSolicitud(onCerrar = { mostrarModal = false },
                 reserva,
                 onAprobar,
-                onRechazar)
+                onRechazar,
+                sala)
         }
     }
 }
@@ -510,8 +548,11 @@ fun etiquetaEstado(estado: String) {
 }
 
 @Composable
-fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long) -> Unit) {
-    val scope = rememberCoroutineScope()
+fun detalleSolicitud(onCerrar: () -> Unit,
+                     reserva: ReservaEntity,
+                     onAprobar: (Long) -> Unit,
+                     onRechazar: (Long) -> Unit,
+                     sala: SalaEntity?) {
 
     Column(modifier = Modifier.padding(16.dp)) {
         Row(
@@ -545,7 +586,7 @@ fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, onAprobar: (L
         Spacer(modifier = Modifier.height(12.dp))
 
         Row{
-            Text("Recinto ${reserva.salaId}",
+            Text("Recinto ${sala?.codigo ?: reserva.salaId.toString()}",
                 color = Color(0xFF3B3B3B),
                 fontSize = 16.sp,
                 modifier = Modifier.padding(end = 8.dp)
@@ -570,7 +611,7 @@ fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, onAprobar: (L
                 modifier = Modifier
                     .weight(1f),
                 onClick = {
-                    onAprobar(reserva.id)
+                    onRechazar(reserva.id)
                     onCerrar() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFD00236)
@@ -596,7 +637,7 @@ fun detalleSolicitud(onCerrar: () -> Unit, reserva: ReservaEntity, onAprobar: (L
                 modifier = Modifier
                     .weight(1f),
                 onClick = {
-                    onRechazar(reserva.id)
+                    onAprobar(reserva.id)
                     onCerrar()
                 },
                 colors = ButtonDefaults.buttonColors(

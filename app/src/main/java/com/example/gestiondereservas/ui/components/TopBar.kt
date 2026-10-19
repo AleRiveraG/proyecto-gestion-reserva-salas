@@ -17,12 +17,14 @@ import androidx.compose.ui.unit.dp
 import com.example.gestiondereservas.R
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.material.icons.filled.Logout
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 
 fun TopBar(
-    onNotificacionesClick: () -> Unit = {}
+    onNotificacionesClick: () -> Unit = {},
+    onCerrarSesion: () -> Unit = {}
 ) {
 
     TopAppBar(
@@ -63,7 +65,7 @@ fun TopBar(
 
                 Box(
                     modifier = Modifier
-                        .size(50.dp)
+                        .size(40.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF3B3B3B))
                         .clickable { onNotificacionesClick()  },
@@ -76,34 +78,28 @@ fun TopBar(
                         imageVector = Icons.Default.Notifications,
                         contentDescription = "Icono notificaciones",
                         tint = Color.White,
-                        modifier = Modifier.size(30.dp)
+                        modifier = Modifier.size(25.dp)
                     )
 
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(8.dp))
 
                 Box(
                     modifier = Modifier
-                        .size(50.dp)
+                        .size(40.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF3B3B3B))
-                        .clickable { },
+                        .clickable { onCerrarSesion() },
                     contentAlignment = Alignment.Center
                 ) {
-
-
-                    /*
                     Icon(
-                        painter = painterResource(id = R.drawable.user_circle),
-                        contentDescription = "Icono usuario",
+                        imageVector = Icons.Default.Logout,
+                        contentDescription = "Cerrar sesión",
                         tint = Color.White,
-                        modifier = Modifier.size(30.dp)
+                        modifier = Modifier.size(25.dp)
                     )
-                    */
                 }
-
-                Spacer(modifier = Modifier.width(12.dp))
             }
         }
     )
