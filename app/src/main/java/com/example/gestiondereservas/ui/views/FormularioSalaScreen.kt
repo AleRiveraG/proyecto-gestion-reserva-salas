@@ -80,6 +80,8 @@ import com.example.gestiondereservas.utils.formatearHora
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
+import com.example.gestiondereservas.utils.ConfirmacionSalaGuardada
+import kotlinx.coroutines.delay
 
 @Composable
 fun rememberFormularioSalaViewModel(
@@ -150,17 +152,13 @@ fun FormularioSalaScreen(
 
     LaunchedEffect(estado.guardada) {
         if (estado.guardada) {
-            Toast.makeText(
-                contexto,
-                if (estado.esNueva) "Sala creada" else "Sala actualizada",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            val auditoria = crearAuditoria()
-            onRegistrarAuditoria(auditoria)
-
+            delay(2400)
             onVolver()
         }
+    }
+
+    if (estado.guardada) {
+        ConfirmacionSalaGuardada(esNueva = estado.esNueva)
     }
 
     if (estado.cargando) {

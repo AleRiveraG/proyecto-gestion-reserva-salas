@@ -195,7 +195,7 @@ fun PantallaBaseAdmin(
                         salaInicialId = salaId,
                         diaInicial = dia,
                         inicioInicialMin = inicio,
-                        onVolver = { navController.popBackStack() },
+                        onVolver = { tabNavController.popBackStack() },
                         onRegistrarAuditoria = onRegistrarAuditoria
                     )
                 }
