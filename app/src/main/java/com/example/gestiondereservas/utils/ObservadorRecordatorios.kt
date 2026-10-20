@@ -27,23 +27,6 @@ object ObservadorRecordatorios {
 
                 val idsAprobadas = reservasActuales.keys
 
-                val trabajos = withContext(Dispatchers.IO) {
-                    WorkManager.getInstance(context)
-                        .getWorkInfosByTag("recordatorios_reservas")
-                        .get()
-                }
-
-                trabajos.forEach { trabajo ->
-                    if (
-                        trabajo.state == WorkInfo.State.ENQUEUED ||
-                        trabajo.state == WorkInfo.State.BLOCKED
-                    ) {
-                        val reservaId = trabajo.tags
-                            .firstOrNull { it.startsWith("reserva_id_") }
-                            ?.removePrefix("reserva_id_")
-                            ?.toLongOrNull() ?: -1L
-                    }
-                }
 
                 // Cancelar recordatorios de reservas que dejaron de estar aprobadas
                 (reservasAnteriores.keys - reservasActuales.keys)

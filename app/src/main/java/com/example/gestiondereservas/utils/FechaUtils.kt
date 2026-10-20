@@ -24,13 +24,17 @@ fun formatoFecha(millis: Long): String {
 }
 
 fun formatearFechaPerso(fecha: String): String {
-    val formatoEntrada = DateTimeFormatter.ofPattern("dd/MM")
-    val diaMes = MonthDay.parse(fecha, formatoEntrada)
+    return try {
+        val formatoEntrada = DateTimeFormatter.ofPattern("dd/MM")
+        val diaMes = MonthDay.parse(fecha, formatoEntrada)
 
-    val anio = Year.now().value
-    val fechaCompleta = diaMes.atYear(anio)
+        val anio = Year.now().value
+        val fechaCompleta = diaMes.atYear(anio)
 
-    val formato = DateTimeFormatter.ofPattern("EEEE',' d 'de' MMMM")
+        val formato = DateTimeFormatter.ofPattern("EEEE',' d 'de' MMMM")
 
-    return fechaCompleta.format(formato).replaceFirstChar { it.uppercase() }
+        fechaCompleta.format(formato).replaceFirstChar { it.uppercase() }
+    } catch (e: Exception) {
+        fecha
+    }
 }

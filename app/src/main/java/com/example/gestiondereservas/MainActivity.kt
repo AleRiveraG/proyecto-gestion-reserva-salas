@@ -33,14 +33,34 @@ class MainActivity : ComponentActivity() {
         abrirNotificaciones.value =
             intent?.getBooleanExtra("abrirNotificaciones", false) ?: false
 
+
         lifecycleScope.launch {
-            ObservadorRecordatorios.observar(applicationContext)
+            try {
+                ObservadorRecordatorios.observar(applicationContext)
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+
+                android.util.Log.e(
+                    "Recordatorios",
+                    "Error en observador de recordatorios",
+                    e
+                )
+            }
         }
 
         lifecycleScope.launch {
-            ObservadorNotificaciones.observar(applicationContext)
-        }
+            try {
+                ObservadorNotificaciones.observar(applicationContext)
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
 
+                android.util.Log.e(
+                    "Notificaciones",
+                    "Error en observador de notificaciones",
+                    e
+                )
+            }
+        }
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)

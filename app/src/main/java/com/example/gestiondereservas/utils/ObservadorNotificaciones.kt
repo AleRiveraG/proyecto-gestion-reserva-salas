@@ -2,6 +2,9 @@
 package com.example.gestiondereservas.utils
 
 import android.content.Context
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
@@ -39,6 +42,11 @@ object ObservadorNotificaciones {
                                 esSupervisor = true,
                                 reservaId = reserva.id
                             )
+                        )
+                        mostrarAvisoSiPermitido(
+                            context,
+                            "Nueva solicitud de reserva",
+                            "${reserva.nombreActividad} · ${reserva.fechaActividad}"
                         )
                     }
                 }
@@ -88,9 +96,23 @@ object ObservadorNotificaciones {
                                     .lowercase()
                             )
                         )
+                        mostrarAvisoSiPermitido(context, titulo, descripcion)
                     }
                 }
             }
         }
     }
+
+    private fun mostrarAvisoSiPermitido(context: Context, titulo: String, mensaje: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) return
+
+        try {
+            NotificacionHelper.mostrarNotificacion(context, titulo, mensaje)
+        } catch (e: SecurityException) {
+            android.util.Log.w("ObservadorNotificaciones", "Sin permiso para mostrar notificación", e)
+        }
+    }
+
 }

@@ -24,7 +24,8 @@ import com.example.gestiondereservas.R
 @Composable
 fun TopBar(
     onNotificacionesClick: () -> Unit = {},
-    onCerrarSesion: () -> Unit = {}
+    onCerrarSesion: () -> Unit = {},
+    tieneNotificacionesSinLeer: Boolean = false
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -75,6 +76,15 @@ fun TopBar(
                         tint = Color.White,
                         modifier = Modifier.size(25.dp)
                     )
+                    if (tieneNotificacionesSinLeer) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(top = 5.dp, end = 5.dp)
+                                .size(9.dp)
+                                .background(Color.Red, CircleShape)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))

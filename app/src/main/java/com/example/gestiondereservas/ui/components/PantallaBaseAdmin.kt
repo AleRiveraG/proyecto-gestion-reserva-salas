@@ -8,7 +8,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -16,7 +19,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
+import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
 import com.example.gestiondereservas.ui.viewmodel.AuditoriaViewModel
 import com.example.gestiondereservas.ui.views.AuditoriaScreen
 import com.example.gestiondereservas.ui.views.EvaluacionesSalaScreen
@@ -28,6 +33,7 @@ import com.example.gestiondereservas.ui.views.ReportesScreen
 import com.example.gestiondereservas.ui.views.SalasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
 import com.example.gestiondereservas.ui.views.rememberGestionReservasViewModel
+import kotlinx.coroutines.flow.Flow
 
 object GestionSalasRutas {
     const val SALAS = "gestion_salas"
@@ -60,7 +66,8 @@ fun PantallaBaseAdmin(
     navController: NavHostController,
     auditoriaViewModel: AuditoriaViewModel,
     onRegistrarAuditoria: (AuditoriaEntity) -> Unit,
-    onCerrarSesion: () -> Unit = {}
+    onCerrarSesion: () -> Unit = {},
+    abrirReservas: Boolean = false
 ) {
     val tabNavController = rememberNavController()
 
@@ -75,6 +82,25 @@ fun PantallaBaseAdmin(
         else -> 0
     }
 
+    val contexto = LocalContext.current
+
+    val notificacionDao = remember(contexto) {
+        AppDatabase.getInstance(contexto).notificacionDao()
+    }
+
+    val flujoNotificaciones: Flow<List<NotificacionEntity>> =
+        remember(notificacionDao) {
+            notificacionDao.obtenerNotificacionesSupervisor()
+        }
+
+    val notificaciones by flujoNotificaciones.collectAsStateWithLifecycle(
+        initialValue = emptyList<NotificacionEntity>()
+    )
+
+    val tieneSinLeer: Boolean = notificaciones.any { notificacion ->
+        !notificacion.leida
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -82,7 +108,8 @@ fun PantallaBaseAdmin(
                 onNotificacionesClick = {
                     navController.navigate("notificaciones/true")
                 },
-                onCerrarSesion = onCerrarSesion
+                onCerrarSesion = onCerrarSesion,
+                tieneNotificacionesSinLeer = tieneSinLeer
             )
         },
         bottomBar = {
@@ -112,7 +139,7 @@ fun PantallaBaseAdmin(
         ) {
             NavHost(
                 navController = tabNavController,
-                startDestination = "paginaSupervisor"
+                startDestination = if (abrirReservas) "gestionReserva" else "paginaSupervisor"
             ) {
                 composable("paginaSupervisor") {
                     SupervisorScreen(
@@ -167,7 +194,7 @@ fun PantallaBaseAdmin(
                         onAtras = {
                             tabNavController.navigate("paginaSupervisor")
                         },
-                        auditoriaViewModel = auditoriaViewModel
+                        viewModel = auditoriaViewModel
                     )
                 }
 

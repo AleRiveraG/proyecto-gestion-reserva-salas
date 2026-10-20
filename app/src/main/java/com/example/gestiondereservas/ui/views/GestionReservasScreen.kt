@@ -676,9 +676,13 @@ fun detalleSolicitud(
 fun servicios(reserva: ReservaEntity) {
     val servicios = reserva.servicios
 
+    if (servicios.isBlank()) return
+
     servicios.split("; ").forEach { area ->
+        if (area.isBlank()) return@forEach
 
         val partes = area.split(": ")
+        if (partes.size < 2) return@forEach
 
         val categoria = partes[0]
         val opciones = partes[1].split(",")

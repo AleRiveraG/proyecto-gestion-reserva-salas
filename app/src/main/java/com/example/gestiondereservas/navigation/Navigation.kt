@@ -145,6 +145,7 @@ fun appNavigation(
             PantallaBaseRelator(
                 navController = navController,
                 appState = appState,
+                correoUsuario = correoUsuario,
                 onRegistrarAuditoria = { evento ->
                     auditoriaViewModel.registrarReserva(evento)
                 },
@@ -273,6 +274,7 @@ fun appNavigation(
             PantallaBaseRelator(
                 navController = navController,
                 appState = appState,
+                correoUsuario = correoUsuario,
                 abrirReservas = true,
                 onRegistrarAuditoria = { evento ->
                     auditoriaViewModel.registrarReserva(evento)
@@ -296,6 +298,17 @@ fun appNavigation(
                         launchSingleTop = true
                     }
                 }
+            )
+        }
+
+        composable("baseSupervisor/reservas") {
+            PantallaBaseAdmin(
+                navController = navController,
+                auditoriaViewModel = auditoriaViewModel,
+                onRegistrarAuditoria = { evento ->
+                    auditoriaViewModel.registrarReserva(evento)
+                },
+                abrirReservas = true
             )
         }
 
