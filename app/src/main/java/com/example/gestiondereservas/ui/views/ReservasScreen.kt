@@ -1,6 +1,11 @@
 package com.example.gestiondereservas.ui.views
 
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -114,7 +119,6 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var tipoActividad by remember { mutableStateOf("") }
     var tieneValidacion by remember { mutableStateOf("") }
     var organizador by remember { mutableStateOf("") }
-
     var fechaActividad by remember { mutableStateOf("") }
     var horaInicio by remember { mutableStateOf("") }
     var horaTermino by remember { mutableStateOf("") }
@@ -173,7 +177,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     }
     fun guardarReserva() {
         val reserva = crearReserva()
-        viewModel.registrarReserva(reserva )
+        viewModel.registrarReserva(reserva)
 
         val auditoria = crearAuditoria()
         onRegistrarAuditoria( auditoria )

@@ -72,7 +72,7 @@ fun rememberGestionReservasViewModel(): GestionReservasViewModel {
                 val dao = AppDatabase.getInstance(contexto).reservaDao()
                 val daoSalas = AppDatabase.getInstance(contexto).salaDao()
                 val repository = ReservaRepository(dao, daoSalas)
-                GestionReservasViewModel(repository)
+                GestionReservasViewModel(repository,contexto)
             }
         }
     )
@@ -611,7 +611,7 @@ fun detalleSolicitud(onCerrar: () -> Unit,
                 modifier = Modifier
                     .weight(1f),
                 onClick = {
-                    onAprobar(reserva.id)
+                    onRechazar(reserva.id)
                     onCerrar() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFD00236)
@@ -637,7 +637,7 @@ fun detalleSolicitud(onCerrar: () -> Unit,
                 modifier = Modifier
                     .weight(1f),
                 onClick = {
-                    onRechazar(reserva.id)
+                    onAprobar(reserva.id)
                     onCerrar()
                 },
                 colors = ButtonDefaults.buttonColors(

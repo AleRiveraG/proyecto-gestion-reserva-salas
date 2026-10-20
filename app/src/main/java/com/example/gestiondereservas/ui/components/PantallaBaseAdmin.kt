@@ -25,6 +25,9 @@ import com.example.gestiondereservas.ui.viewmodel.AuditoriaViewModel
 import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.ui.views.AuditoriaScreen
 import com.example.gestiondereservas.ui.views.FormularioHorarioScreen
+import com.example.gestiondereservas.ui.views.AuditoriaScreen
+import com.example.gestiondereservas.ui.views.EvaluacionesSalaScreen
+import com.example.gestiondereservas.ui.views.FormularioHorarioScreen
 import com.example.gestiondereservas.ui.views.FormularioSalaScreen
 import com.example.gestiondereservas.ui.views.GestionReservasScreen
 import com.example.gestiondereservas.ui.views.HorariosScreen
@@ -32,6 +35,8 @@ import com.example.gestiondereservas.ui.views.SalasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
 import com.example.gestiondereservas.ui.views.rememberGestionReservasViewModel
 import com.example.gestiondereservas.ui.views.rememberUsuarioViewModel
+import com.example.gestiondereservas.ui.views.rememberGestionReservasViewModel
+import com.example.gestiondereservas.ui.views.ReportesScreen
 
 object GestionSalasRutas {
     const val SALAS = "gestion_salas"
@@ -61,7 +66,8 @@ fun PantallaBaseAdmin(
     navController: NavHostController,
     idUsuario: Long,
     auditoriaViewModel: AuditoriaViewModel,
-    onRegistrarAuditoria: (AuditoriaEntity) -> Unit
+    onRegistrarAuditoria: (AuditoriaEntity) -> Unit,
+    onCerrarSesion: () -> Unit = {}
 ) {
     val tabNavController = rememberNavController()
 
@@ -78,8 +84,14 @@ fun PantallaBaseAdmin(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { TopBar() },
-        bottomBar = {
+        topBar = {
+            TopBar(
+                onNotificacionesClick = {
+                    navController.navigate("notificaciones/true")
+                },
+                onCerrarSesion = onCerrarSesion
+            )
+        },bottomBar = {
             NavBarAdmin(
                 opcionSeleccionada,
                 onInicio = { tabNavController.navigate("paginaSupervisor") },
@@ -104,7 +116,7 @@ fun PantallaBaseAdmin(
                         onHorarios = { tabNavController.navigate("calendarioSupervisor")},
                         onGestionSalas = { tabNavController.navigate("gestion_salas")},
                         onAuditoria = { tabNavController.navigate("auditoria")},
-                        onReportes = { },
+                        onReportes = { tabNavController.navigate("reportes") },
                         onReservas = { tabNavController.navigate("gestionReserva")},
                         viewModel = rememberGestionReservasViewModel(),
                         usuarioViewModel = rememberUsuarioViewModel()
@@ -200,7 +212,20 @@ fun PantallaBaseAdmin(
                     )
                 }
 
-                //FALTA REPORTES
+                composable("reportes") {
+                    ReportesScreen(
+                        onVolver = { tabNavController.popBackStack() },
+                        onEvaluaciones = {
+                            tabNavController.navigate("evaluaciones")
+                        }
+                    )
+                }
+
+                composable("evaluaciones") {
+                    EvaluacionesSalaScreen(
+                        onVolver = { tabNavController.popBackStack() }
+                    )
+                }
             }
 
         }

@@ -88,7 +88,8 @@ fun rememberHorariosViewModel(): HorariosViewModel {
                 val horarioDao = AppDatabase.getInstance(contexto).horarioDao()
                 val salaDao = AppDatabase.getInstance(contexto).salaDao()
                 val reservaDao = AppDatabase.getInstance(contexto).reservaDao()
-                val repository = HorarioRepository(horarioDao, salaDao, reservaDao)
+                val usoSalaDao = AppDatabase.getInstance(contexto).usoSalaDao()
+                val repository = HorarioRepository(horarioDao, salaDao, reservaDao, usoSalaDao)
                 HorariosViewModel(repository)
             }
         }

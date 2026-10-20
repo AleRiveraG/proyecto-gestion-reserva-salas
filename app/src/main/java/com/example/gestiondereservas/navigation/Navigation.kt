@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.repository.AuditoriaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
@@ -38,7 +39,7 @@ fun rememberAuditoriaViewModel(): AuditoriaViewModel {
     )
 }
 @Composable
-fun AppNavigation(navController: NavHostController) {
+fun AppNavigation(navController: NavHostController, appState: AppState) {
 
     val auditoriaViewModel: AuditoriaViewModel = rememberAuditoriaViewModel()
 
@@ -72,7 +73,7 @@ fun AppNavigation(navController: NavHostController) {
         composable(
             "baseRelator/{idUsuario}",
             arguments = listOf(navArgument("idUsuario") { type = NavType.LongType})
-            ) { backStackEntry ->
+        ) { backStackEntry ->
             val idUsuario = backStackEntry.arguments?.getLong("idUsuario") ?: 0
 
             PantallaBaseRelator(
@@ -80,13 +81,14 @@ fun AppNavigation(navController: NavHostController) {
                 idUsuario,
                 onRegistrarAuditoria = { evento ->
                     auditoriaViewModel.registrarReserva(evento)
-                })
+                },
+                appState = appState)
         }
 
         composable(
             "baseSupervisor/{idUsuario}",
             arguments = listOf(navArgument("idUsuario") { type = NavType.LongType})
-            ){backStackEntry ->
+        ){backStackEntry ->
             val idUsuario = backStackEntry.arguments?.getLong("idUsuario") ?: 0
             PantallaBaseAdmin(
                 navController,

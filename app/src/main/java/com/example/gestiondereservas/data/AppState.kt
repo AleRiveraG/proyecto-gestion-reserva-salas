@@ -29,5 +29,12 @@ class AppState(private val db: AppDatabase) {
         return db.reservaDao().modificarEstado(id, estado)
     }
 
+    suspend fun consultarReservaPorId(id: Long): ReservaEntity? {
+        return db.reservaDao().obtenerReservaPorId(id)
+    }
+
+    suspend fun consultarReservasAprobadas(): List<ReservaEntity> {
+        return db.reservaDao().obtenerReservasAprobadas()
+    }
 
 }

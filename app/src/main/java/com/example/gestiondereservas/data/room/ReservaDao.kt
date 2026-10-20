@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ReservaDao {
@@ -32,4 +33,48 @@ interface ReservaDao {
     @Query("SELECT * FROM reserva WHERE idUsuario = :idUsuario")
     suspend fun obtenerReservasPorUsuario(idUsuario: Long): List<ReservaEntity>
 
+    // Buscar una reserva por su ID (Uso de Sala)
+    @Query("SELECT * FROM reserva WHERE id = :id LIMIT 1")
+    suspend fun obtenerReservaPorId(id: Long): ReservaEntity?
+
+    // Obtener reservas aprobadas
+    @Query("SELECT * FROM reserva WHERE estado = 'APROBADA'")
+    suspend fun obtenerReservasAprobadas(): List<ReservaEntity>
+
+    // Observar reservas aprobadas para recordatorios
+    @Query("SELECT * FROM reserva WHERE estado = 'APROBADA'")
+    fun observarReservasAprobadas(): Flow<List<ReservaEntity>>
+
+    // Observar aprobaciones y rechazos para notificaciones
+    @Query("""
+        SELECT * FROM reserva
+        WHERE estado IN ('APROBADA', 'RECHAZADA')
+    """)
+    fun observarReservasResueltas(): Flow<List<ReservaEntity>>
+
+    // Consultar reservas de una sala (main)
+    @Query("SELECT * FROM reserva WHERE salaId = :salaId")
+    suspend fun obtenerReservasPorSalas(salaId: Long): List<ReservaEntity>
+
+    @Query
+        ("""
+        SELECT * FROM reserva
+        WHERE LOWER(TRIM(correoResponsable)) = LOWER(TRIM(:correo))
+        AND estado = 'APROBADA'
+        ORDER BY fechaActividad ASC, horaInicio ASC
+        """)
+
+    suspend fun obtenerReservasAprobadasPorCorreo(
+        correo: String
+    ): List<ReservaEntity>
+
+    @Query
+        ("""
+    UPDATE reserva
+    SET estado = 'CANCELADA'
+    WHERE id = :reservaId
+      AND estado = 'APROBADA'
+    """)
+
+    suspend fun cancelarReservaAprobada(reservaId: Long): Int
 }

@@ -497,11 +497,9 @@ fun LoginScreen(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun LoginBodyPreview() {
-    GestionDeReservasTheme {
-        LoginScreen(
-            alNavegarARelator = {/* Test local */},
-            alNavegarASupervisor = {/* Test local */},
-            alNavegarARegistro = {/* Test local */}
-        )
-    }
+    LoginBody(
+        alIniciarSesionExitoso = { correo, contrasena, rol ->
+            //Acción de prueba local
+        }
+    )
 }

@@ -1,0 +1,209 @@
+﻿
+package com.example.gestiondereservas.navigation
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import androidx.compose.ui.platform.LocalContext
+import com.example.gestiondereservas.data.room.AppDatabase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
+import com.example.gestiondereservas.ui.components.PantallaBaseRelator
+import com.example.gestiondereservas.ui.components.TopBar
+import com.example.gestiondereservas.ui.views.*
+
+
+@Composable
+fun appNavigation(
+    navController: NavHostController,
+    appState: AppState
+) {
+    var correoUsuario by remember { mutableStateOf<String?>(null) }
+
+    NavHost(
+        navController = navController,
+        startDestination = "login"
+    ) {
+
+        composable("login") {
+            LoginScreen(
+                alNavegarARegistro = {
+                    navController.navigate("registro")
+                },
+                alNavegarARelator = {
+                    navController.navigate("baseRelator") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                },
+                alNavegarASupervisor = {
+                    navController.navigate("baseSupervisor") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                },
+                alIniciarSesionExitoso = { correo, _, _ ->
+                    correoUsuario = correo.trim().lowercase()
+                }
+            )
+        }
+
+        composable("registro") {
+            RegistroScreen(
+                alRegistrarExitoso = { _, correo, password, rol ->
+                    val correoLimpio = correo.trim().lowercase()
+
+                    val rolLogin =
+                        if (rol == RolRegistroUsuario.RELATOR) {
+                            RolUsuario.RELATOR
+                        } else {
+                            RolUsuario.COORDINADOR
+                        }
+
+                    usuariosRegistradosMemoria[correoLimpio] = rolLogin
+                    passwordsUsuariosMemoria[correoLimpio] = password
+
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable("baseRelator") {
+            val context = LocalContext.current
+            val scope = rememberCoroutineScope()
+
+            PantallaBaseRelator(
+                navController = navController,
+                onMiActividad = {
+                    val correo = correoUsuario
+
+                    if (correo.isNullOrBlank()) {
+                        android.widget.Toast.makeText(
+                            context,
+                            "No se encontr├│ el usuario de la sesi├│n",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        scope.launch {
+                            try {
+                                val reservas = withContext(Dispatchers.IO) {
+                                    AppDatabase.getInstance(context)
+                                        .reservaDao()
+                                        .obtenerReservasAprobadasPorCorreo(correo)
+                                }
+
+                                val reserva = reservas.firstOrNull()
+
+                                if (reserva != null) {
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        "Reserva encontrada: ${reserva.id}",
+                                        android.widget.Toast.LENGTH_LONG
+                                    ).show()
+
+                                    navController.navigate("usoSala/${reserva.id}")
+                                } else {
+                                    android.widget.Toast.makeText(
+                                        context,
+                                        "No tienes reservas aprobadas",
+                                        android.widget.Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                android.util.Log.e(
+                                    "USO_SALA",
+                                    "Error al consultar reservas",
+                                    e
+                                )
+
+                                android.widget.Toast.makeText(
+                                    context,
+                                    "Error: ${e.message}",
+                                    android.widget.Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    }
+                },
+                onCerrarSesion = {
+                    correoUsuario = null
+
+                    navController.navigate("login") {
+                        popUpTo("baseRelator") {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable("baseSupervisor") {
+            PantallaBaseAdmin(
+                navController = navController,
+                onCerrarSesion = {
+                    correoUsuario = null
+
+                    navController.navigate("login") {
+                        popUpTo("baseSupervisor") {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                }
+            )
+        }
+
+        composable("baseRelator/reservas") {
+            PantallaBaseRelator(
+                navController = navController,
+                abrirReservas = true
+            )
+        }
+
+
+
+
+        composable("notificaciones/{esSupervisor}") { backStackEntry ->
+            val esSupervisor = backStackEntry.arguments
+                ?.getString("esSupervisor")
+                ?.toBoolean() ?: false
+
+            NotificacionesScreen(
+                navController = navController,
+                esSupervisor = esSupervisor,
+                onVolver = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = "usoSala/{reservaId}",
+            arguments = listOf(
+                navArgument("reservaId") {
+                    type = NavType.LongType
+                }
+            )
+        ) { backStackEntry ->
+
+            val reservaId = backStackEntry.arguments
+                ?.getLong("reservaId")
+                ?: return@composable
+
+            UsoSalaScreen(
+                reservaId = reservaId,
+                appState = appState
+            )
+        }
+    }
+}
+

@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.room.util.TableInfo
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.repository.ReservaRepository
@@ -56,6 +57,7 @@ import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
+import com.example.gestiondereservas.ui.views.accesosDirectos
 import com.example.gestiondereservas.ui.viewmodel.UsuarioViewModel
 import com.example.gestiondereservas.utils.formatearFecha
 @Composable
@@ -111,23 +113,28 @@ private fun Contenido(
             .padding(horizontal = 16.dp, vertical = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(text = formatearFecha(),
+        Text(
+            text = formatearFecha(),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF3B3B3B),
+            color = Color(0xFF3B3B3B)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text("Hola, $nombreUsuario",
+        Text(
+            "Hola, $nombreUsuario",
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary)
+            color = MaterialTheme.colorScheme.primary
+        )
 
-        Text("¿Qué espacio necesitas hoy?",
+        Text(
+            "¿Qué espacio necesitas hoy?",
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
-            color = Color(0xFF3B3B3B))
+            color = Color(0xFF3B3B3B)
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -138,7 +145,7 @@ private fun Contenido(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                reservas.forEach{ reserva ->
+                reservas.forEach { reserva ->
                     infoReserva(reserva)
                 }
             }
