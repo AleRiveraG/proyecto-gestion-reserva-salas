@@ -28,12 +28,17 @@ import com.example.gestiondereservas.ui.views.SalasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
 import com.example.gestiondereservas.utils.ObservadorRecordatorios
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import com.example.gestiondereservas.data.DatosPruebaUsuariosReservas
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         lifecycleScope.launch {
             ObservadorRecordatorios.observar(applicationContext)
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            DatosPruebaUsuariosReservas.sembrar(AppDatabase.getInstance(applicationContext))
         }
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
