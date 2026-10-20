@@ -59,139 +59,7 @@ import androidx.compose.ui.unit.dp
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
 
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-//Encabezado
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ReporteTopBar() {
-    TopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            titleContentColor = MaterialTheme.colorScheme.secondary
-        ),
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo),
-                    contentDescription = "Logo Duoc Uc",
-                    modifier = Modifier.size(100.dp),
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text("Reserva", color = MaterialTheme.colorScheme.secondary)
-                Text("Salas", color = MaterialTheme.colorScheme.tertiary)
-            }
-        },
-        actions = {
-            Row() {
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF3B3B3B))
-                        .clickable {},
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.bell),
-                        contentDescription = "Icono notificaciones",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF3B3B3B))
-                        .clickable {},
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.user_circle),
-                        contentDescription = "Icono usuario",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-            }
-        }
-    )
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-//Pie de página
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-
-@Composable
-fun ReporteNavBar() {
-    var seleccion by remember { mutableIntStateOf(0) }
-
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.primary
-    ) {
-        NavigationBarItem(
-            selected = seleccion == 0,
-            onClick = { seleccion = 0 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.home),
-                    contentDescription = "Icono inicio"
-                )
-            },
-            label = { Text("Inicio") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-        NavigationBarItem(
-            selected = seleccion == 1,
-            onClick = { seleccion = 1 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.calendar),
-                    contentDescription = "Icono calendario"
-                )
-            },
-            label = { Text("Calendario") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-        NavigationBarItem(
-            selected = seleccion == 2,
-            onClick = { seleccion = 2 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.door),
-                    contentDescription = "Icono puerta"
-                )
-            },
-            label = { Text("Salas") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-    }
-}
-
-
-//= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-//Modelo de datos representativo para un elemento del reporte consolidado (RF16)
+//Modelo de datos por cada elemento de la lista de ocupación (RF16)
 data class ItemReporteSala(
     val codigoSala: String,
     val tipoEspacio: String,
@@ -213,22 +81,52 @@ enum class PeriodoAcademico(val etiqueta: String) {
 
 @Composable
 fun ReporteBody(
-    modifier: Modifier = Modifier,
-    estaExportando: Boolean = false,
-    alExportarPlanilla: (periodo: PeriodoAcademico) -> Unit = {}
+    modifier: Modifier = Modifier
 ) {
     //Estados de filtros locales
-    var periodoSeleccionado by remember { mutableStateOf(PeriodoAcademico.SEMESTRAL) }
+    var periodoSeleccionado by remember { mutableStateOf(PeriodoAcademico.MENSUAL) }
 
     //Datos simulados estructurados según las reglas de negocio de la institución
     val itemsReporte = remember(periodoSeleccionado) {
-        listOf(
-            ItemReporteSala("SALA-101", "Sala de Clases", 24, 72, 85),
-            ItemReporteSala("LAB-COM-02", "Laboratorio de Computación", 18, 54, 70),
-            ItemReporteSala("AUD-MAGNO", "Espacio Multipropósito", 12, 36, 60),
-            ItemReporteSala("SALA-204", "Sala de Clases", 15, 45, 65)
-        )
+        when (periodoSeleccionado) {
+            PeriodoAcademico.SEMANAL -> {  //Exclusivamente salas con reservas activas durante la semana actual (jornada diurna/vespertina)
+                listOf(
+                    ItemReporteSala("A105", "Sala de Conferencias", 6, 18, 23),
+                    ItemReporteSala("C204", "Laboratorio Multimedia", 12, 48, 61),
+                    ItemReporteSala("C205", "Laboratorio Desarrollo", 14, 56, 71),
+                    ItemReporteSala("D302", "Taller de Diseño", 10, 40, 51),
+                    ItemReporteSala("G104", "Aula Gastronómica", 8, 32, 41)
+                )
+            }
+            PeriodoAcademico.MENSUAL -> {  //Carga consolidada típica del mes actual en curso (~4 semanas hábiles)
+                listOf(
+                    ItemReporteSala("A105", "Sala de Conferencias", 22, 66, 21),
+                    ItemReporteSala("C204", "Laboratorio Multimedia", 46, 184, 59),
+                    ItemReporteSala("C205", "Laboratorio Desarrollo", 52, 208, 66),
+                    ItemReporteSala("D302", "Taller de Diseño", 40, 160, 51),
+                    ItemReporteSala("F101", "Estudio Fotográfico", 28, 112, 36),
+                    ItemReporteSala("G104", "Aula Gastronómica", 34, 136, 43),
+                    ItemReporteSala("S210", "Sala Clínica", 38, 152, 48),
+                    ItemReporteSala("T305", "Sala Turismo", 30, 120, 38)
+                )
+            }
+            PeriodoAcademico.SEMESTRAL -> {  //Total acumulado del Semestre 2026-1 (~18 semanas académicas)
+                listOf(
+                    ItemReporteSala("A105", "Sala de Conferencias", 95, 285, 20),
+                    ItemReporteSala("C204", "Laboratorio Multimedia", 210, 840, 60),
+                    ItemReporteSala("C205", "Laboratorio Desarrollo", 235, 940, 67),
+                    ItemReporteSala("D302", "Taller de Diseño", 180, 720, 51),
+                    ItemReporteSala("F101", "Estudio Fotográfico", 125, 500, 35),
+                    ItemReporteSala("G104", "Aula Gastronómica", 155, 620, 44),
+                    ItemReporteSala("S210", "Sala Clínica", 170, 680, 48),
+                    ItemReporteSala("T305", "Sala Turismo", 130, 520, 37)
+                )
+            }
+        }
     }
+
+    val totalReservasCalculado = itemsReporte.sumOf { it.totalReservas }
+    val horasUsoCalculadas = itemsReporte.sumOf { it.horasOcupadas }
 
     LazyColumn(
         modifier = modifier
@@ -297,75 +195,21 @@ fun ReporteBody(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 TarjetaMetrica(
-                    titulo = "Total Reservas",
-                    valor = "62",
+                    titulo = "Total de Reservas",
+                    valor = "$totalReservasCalculado",
                     icono = Icons.Default.DateRange,
                     modifier = Modifier.weight(1f)
                 )
                 TarjetaMetrica(
                     titulo = "Horas de Uso",
-                    valor = "207 hrs",
+                    valor = "$horasUsoCalculadas hrs",
                     icono = Icons.Default.MeetingRoom,
                     modifier = Modifier.weight(1f)
                 )
             }
         }
 
-        //4. Acción de exportación (RF16)
-        item {
-            Card(
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text(
-                        text = "Exportación consolidada",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Genera una plantilla formal (.xlsx) con la programación académica y ocupación por sala.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Button(
-                        onClick = { alExportarPlanilla(periodoSeleccionado) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        enabled = !estaExportando
-                    ) {
-                        if (estaExportando) {
-                            CircularProgressIndicator(
-                                strokeWidth = 2.dp,
-                                modifier = Modifier
-                                    .height(20.dp)
-                                    .width(20.dp),
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text("Generando reporte...")
-                        } else {
-                            Icon(
-                                imageVector = Icons.Default.Download,
-                                contentDescription = "Descargar"
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Descargar Planilla (.xlsx)")
-                        }
-                    }
-                }
-            }
-        }
-
-        //5. Encabezado de detalle por sala
+        //4. Encabezado de detalle por sala
         item {
             Text(
                 text = "Detalle por recinto",
@@ -375,7 +219,7 @@ fun ReporteBody(
             )
         }
 
-        //6. Listado dinámico de salas
+        //5. Listado dinámico de salas
         items(itemsReporte) { item ->
             TarjetaDetalleSala(item = item)
         }
@@ -478,22 +322,10 @@ fun TarjetaDetalleSala(
 
 //Pantalla completa que une TopBar, NavBar y ReporteBody
 @Composable
-fun ReporteScreen(
-    estaExportando: Boolean = false,
-    alExportarPlanilla: (periodo: PeriodoAcademico) -> Unit = {}
-) {
-    Scaffold(
-        topBar = { ReporteTopBar() },
-        bottomBar = { ReporteNavBar() }
-    ) { paddingValues ->
-        ReporteBody(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            estaExportando = estaExportando,
-            alExportarPlanilla = alExportarPlanilla
-        )
-    }
+fun ReporteScreen() {
+    ReporteBody(
+        modifier = Modifier.fillMaxSize()
+    )
 }
 
 //Preview local
@@ -501,9 +333,6 @@ fun ReporteScreen(
 @Composable
 fun ReporteBodyPreview() {
     GestionDeReservasTheme {
-        ReporteScreen(
-            estaExportando = false,
-            alExportarPlanilla = {}
-        )
+        ReporteScreen()
     }
 }
