@@ -31,7 +31,7 @@ fun AppNavigation(navController: NavHostController = rememberNavController()) {
                         popUpTo("login") { inclusive = true }
                     }
                 },
-                alNavegarASupervisor = {
+                alNavegarAPantallaBaseAdmin = {
                     navController.navigate("baseSupervisor") {
                         popUpTo("login") { inclusive = true }
                     }

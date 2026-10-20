@@ -65,17 +65,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
 import com.example.gestiondereservas.ui.theme.*
 import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.utils.AnimacionLogin
-import com.example.gestiondereservas.utils.AnimacionLottie
 
 //- - - - - - - - - - - - - - - - - - - - - - - - -
 //Encabezado
 //- - - - - - - - - - - - - - - - - - - - - - - - -
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -604,35 +602,9 @@ fun LoginScreen(
     passwordsRegistrados: Map<String, String> = passwordsUsuariosMemoria, //Recibe las contraseñas válidas
     alNavegarARegistro: () -> Unit = {},
     alNavegarARelator: () -> Unit = {},
-    alNavegarASupervisor: () -> Unit = {},
+    alNavegarAPantallaBaseAdmin: () -> Unit = {},
     alIniciarSesionExitoso: (correo: String, password: String, rol: RolUsuario) -> Unit = {_, _, _ -> }
 ) {
-    var pantallaDestinoInterna by remember { mutableStateOf<String?>(null) }
-
-    when (pantallaDestinoInterna) {
-        "relator" -> {
-            RelatorScreen(
-                onReservas = {},
-                onBuscarSala = {},
-                onCalendario = {},
-                onActividad = {}
-            )
-            return
-        }
-        "supervisor" -> {
-            val supervisorVm: GestionReservasViewModel = viewModel()
-            SupervisorScreen(
-                onHorarios = {},
-                onGestionSalas = {},
-                onAuditoria = {},
-                onReportes = {},
-                onReservas = {},
-                viewModel = supervisorVm
-            )
-            return
-        }
-    }
-
     Scaffold(
         topBar = { LoginTopBar() },
         bottomBar = { LoginNavBar() }
@@ -662,20 +634,8 @@ fun LoginScreen(
                 alIniciarSesionExitoso(correo, password, rol)
 
                 when (rol) {
-                    RolUsuario.RELATOR -> {
-                        try {
-                            alNavegarARelator() //Intenta navegación por grafo
-                        } catch (e: Exception) {
-                        }
-                        pantallaDestinoInterna = "relator"
-                    }
-                    RolUsuario.COORDINADOR -> {
-                        try {
-                            alNavegarASupervisor() //Intenta navegación por grafo
-                        } catch (e: Exception) {
-                        }
-                        pantallaDestinoInterna = "supervisor"
-                    }
+                    RolUsuario.RELATOR -> alNavegarARelator()
+                    RolUsuario.COORDINADOR -> alNavegarAPantallaBaseAdmin()
                 }
             }
         )
@@ -688,7 +648,7 @@ fun LoginBodyPreview() {
     GestionDeReservasTheme {
         LoginScreen(
             alNavegarARelator = {/* Test local */},
-            alNavegarASupervisor = {/* Test local */},
+            alNavegarAPantallaBaseAdmin = {/* Test local */},
             alNavegarARegistro = {/* Test local */}
         )
     }

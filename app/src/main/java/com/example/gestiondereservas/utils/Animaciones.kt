@@ -47,7 +47,7 @@ fun AnimacionLogin(
     )
 }
 
-//Animación específica para Registro (apunta a res/raw/registro.json).
+//Animación específica para Registro (apunta a res/raw/registro.json)
 
 @Composable
 fun AnimacionRegistro(

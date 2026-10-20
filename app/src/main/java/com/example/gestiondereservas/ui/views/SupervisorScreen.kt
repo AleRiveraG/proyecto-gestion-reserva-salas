@@ -40,10 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
-import com.example.gestiondereservas.ui.components.NavBarAdmin
 import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.utils.formatearFecha
 
