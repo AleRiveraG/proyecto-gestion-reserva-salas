@@ -1,5 +1,6 @@
 package com.example.gestiondereservas.ui.theme
 
+import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -32,18 +33,7 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF1C1B1F),
     */
 )
-private val EsquemaDuoc = lightColorScheme(
-    primary = Black,
-    onPrimary = White,
-    secondary = White,
-    onSecondary = Black,
-    tertiary = Yellow,
-    onTertiary = Black,
-    background = White,
-    onBackground = Black,
-    surface = White,
-    onSurface = Black
-)
+
 @Composable
 fun GestionDeReservasTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -58,8 +48,7 @@ fun GestionDeReservasTheme(
         }
 
         darkTheme -> DarkColorScheme
-        //else -> DarkColorScheme
-        else -> EsquemaDuoc
+        else -> LightColorScheme  //Utiliza los mismos colores negro-blanco-amarillo
     }
     */
 

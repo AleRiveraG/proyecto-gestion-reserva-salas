@@ -36,7 +36,7 @@ import com.example.gestiondereservas.ui.views.SupervisorScreen
 import com.example.gestiondereservas.ui.views.rememberGestionReservasViewModel
 import com.example.gestiondereservas.ui.views.rememberUsuarioViewModel
 import com.example.gestiondereservas.ui.views.rememberGestionReservasViewModel
-import com.example.gestiondereservas.ui.views.ReportesScreen
+import com.example.gestiondereservas.ui.views.ReporteScreen
 
 object GestionSalasRutas {
     const val SALAS = "gestion_salas"
@@ -213,11 +213,7 @@ fun PantallaBaseAdmin(
                 }
 
                 composable("reportes") {
-                    ReportesScreen(
-                        onVolver = { tabNavController.popBackStack() },
-                        onEvaluaciones = {
-                            tabNavController.navigate("evaluaciones")
-                        }
+                    ReporteScreen(
                     )
                 }
 

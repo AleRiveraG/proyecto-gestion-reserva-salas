@@ -24,6 +24,10 @@ import com.example.gestiondereservas.ui.views.RelatorScreen
 import com.example.gestiondereservas.ui.views.RolRegistroUsuario
 import com.example.gestiondereservas.ui.views.RolUsuario
 import com.example.gestiondereservas.ui.views.SupervisorScreen
+import com.example.gestiondereservas.data.repository.UsuarioRepository
+import com.example.gestiondereservas.ui.viewmodel.RegistroViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 @Composable
 fun rememberAuditoriaViewModel(): AuditoriaViewModel {
@@ -38,6 +42,21 @@ fun rememberAuditoriaViewModel(): AuditoriaViewModel {
         }
     )
 }
+
+@Composable
+fun rememberRegistroViewModel(): RegistroViewModel {
+    val contexto = LocalContext.current.applicationContext
+    return viewModel(
+        factory = viewModelFactory {
+            initializer {
+                val dao = AppDatabase.getInstance(contexto).usuarioDao()
+                val repository = UsuarioRepository(dao)
+                RegistroViewModel(repository)
+            }
+        }
+    )
+}
+
 @Composable
 fun AppNavigation(navController: NavHostController, appState: AppState) {
 
@@ -63,9 +82,23 @@ fun AppNavigation(navController: NavHostController, appState: AppState) {
         }
 
         composable("registro") {
+            val registroViewModel: RegistroViewModel = rememberRegistroViewModel()
+            val estaCargando by registroViewModel.estaCargando.collectAsState()
+            val mensajeError by registroViewModel.mensajeError.collectAsState()
+
             RegistroScreen(
-                alRegistrarExitoso = {
-                    navController.popBackStack()
+                estaCargando = estaCargando,
+                mensajeErrorGeneral = mensajeError,
+                alRegistrarExitoso = { nombre, correo, password, rol ->
+                    registroViewModel.registrarUsuario(
+                        nombre = nombre,
+                        correo = correo,
+                        contrasena = password,
+                        rol = rol.nombreMostrar,
+                        onRegistroExitoso = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
             )
         }
