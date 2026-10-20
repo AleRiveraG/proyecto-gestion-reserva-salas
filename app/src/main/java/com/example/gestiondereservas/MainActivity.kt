@@ -19,11 +19,15 @@ class MainActivity : ComponentActivity() {
         )
         setContent {
             GestionDeReservasTheme {
-                GestionSalasNavigation()
+                //GestionSalasNavigation()
                 //DESCOMENTEN LA LINEA DE ABAJO PARA PROBAR LA PANTALLA DE HORARIOS PARA ROL TRABAJADOR Y
-                // PARA OCUPAR EL DE COORDINADOR SOLO PONGAN gestionHorariosNavigation()
+                // PARA OCUPAR EL DE COORDINADOR SOLO PONGAN
+            GestionHorariosNavigation()
                 //GestionHorariosNavigation(puedeEditar = false)
             }
         }
     }
 }
+
+
+

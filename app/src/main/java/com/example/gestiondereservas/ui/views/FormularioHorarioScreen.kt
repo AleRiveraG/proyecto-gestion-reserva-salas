@@ -66,6 +66,13 @@ import com.example.gestiondereservas.ui.viewmodel.FormularioHorarioViewModel
 import com.example.gestiondereservas.utils.FormatoHora
 import com.example.gestiondereservas.utils.ValidacionesHorario
 
+
+import androidx.compose.ui.window.Dialog
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
+import kotlinx.coroutines.delay
 @Composable
 fun rememberFormularioHorarioViewModel(
     horarioId: Long,
@@ -123,7 +130,7 @@ fun FormularioHorarioScreen(
 
     BackHandler { intentarVolver() }
 
-    LaunchedEffect(estado.guardado) {
+    /*LaunchedEffect(estado.guardado) {
         if (estado.guardado) {
             Toast.makeText(
                 contexto,
@@ -132,6 +139,17 @@ fun FormularioHorarioScreen(
             ).show()
             onVolver()
         }
+    }*/
+
+    LaunchedEffect(estado.guardado) {
+        if (estado.guardado) {
+            delay(2400)
+            onVolver()
+        }
+    }
+
+    if (estado.guardado) {
+        ConfirmacionHorarioGuardado(esNuevo = estado.esNuevo)
     }
 
     LaunchedEffect(estado.eliminado) {
@@ -424,6 +442,54 @@ fun FormularioHorarioScreen(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun ConfirmacionHorarioGuardado(esNuevo: Boolean) {
+    // Animación "Calendar Check" de LottieFiles, bajo Lottie Simple License.
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.calendar_check)
+    )
+
+    val progreso by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = 1
+    )
+
+    Dialog(onDismissRequest = {}) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progreso },
+                    modifier = Modifier.size(156.dp)
+                )
+
+                Text(
+                    text = if (esNuevo) "Horario creado" else "Horario actualizado",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                Text(
+                    text = "El bloque horario se guardó correctamente.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 
