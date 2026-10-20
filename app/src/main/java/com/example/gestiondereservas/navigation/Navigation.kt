@@ -1,27 +1,50 @@
 
 package com.example.gestiondereservas.navigation
 
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-
-import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.repository.AuditoriaRepository
+import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
 import com.example.gestiondereservas.ui.components.PantallaBaseRelator
+import com.example.gestiondereservas.ui.theme.Black
+import com.example.gestiondereservas.ui.theme.White
+import com.example.gestiondereservas.ui.theme.Yellow
 import com.example.gestiondereservas.ui.viewmodel.AuditoriaViewModel
 import com.example.gestiondereservas.ui.views.LoginScreen
 import com.example.gestiondereservas.ui.views.NotificacionesScreen
 import com.example.gestiondereservas.ui.views.RegistroScreen
 import com.example.gestiondereservas.ui.views.RolRegistroUsuario
 import com.example.gestiondereservas.ui.views.RolUsuario
+import com.example.gestiondereservas.ui.views.UsoSalaScreen
 import com.example.gestiondereservas.ui.views.passwordsUsuariosMemoria
 import com.example.gestiondereservas.ui.views.usuariosRegistradosMemoria
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun rememberAuditoriaViewModel(): AuditoriaViewModel {
@@ -31,8 +54,7 @@ fun rememberAuditoriaViewModel(): AuditoriaViewModel {
         factory = viewModelFactory {
             initializer {
                 val dao = AppDatabase.getInstance(contexto).auditoriaDao()
-                val repository = AuditoriaRepository(dao)
-                AuditoriaViewModel(repository)
+                AuditoriaViewModel(AuditoriaRepository(dao))
             }
         }
     )
@@ -41,8 +63,11 @@ fun rememberAuditoriaViewModel(): AuditoriaViewModel {
 @Composable
 fun appNavigation(
     navController: NavHostController,
+    appState: AppState,
     abrirNotificaciones: Boolean = false
 ) {
+    val contexto = LocalContext.current
+    val scope = rememberCoroutineScope()
     val auditoriaViewModel = rememberAuditoriaViewModel()
 
     var correoUsuario by remember { mutableStateOf<String?>(null) }
@@ -105,17 +130,149 @@ fun appNavigation(
         }
 
         composable("baseRelator") {
+            var reservasParaElegir by remember {
+                mutableStateOf<List<ReservaEntity>>(emptyList())
+            }
+
+            var mostrarSelectorReservas by remember {
+                mutableStateOf(false)
+            }
+
+            var abrirActividadSeleccionada by remember {
+                mutableStateOf<(Long) -> Unit>({})
+            }
+
             PantallaBaseRelator(
                 navController = navController,
+                appState = appState,
                 onRegistrarAuditoria = { evento ->
                     auditoriaViewModel.registrarReserva(evento)
+                },
+                onMiActividad = { abrirActividad ->
+                    abrirActividadSeleccionada = abrirActividad
+
+                    val correo = correoUsuario
+
+                    if (correo.isNullOrBlank()) {
+                        Toast.makeText(
+                            contexto,
+                            "No se encontró el usuario de la sesión",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        scope.launch {
+                            try {
+                                val reservas = withContext(Dispatchers.IO) {
+                                    AppDatabase.getInstance(contexto)
+                                        .reservaDao()
+                                        .obtenerReservasAprobadasPorCorreo(correo)
+                                }
+
+                                if (reservas.isNotEmpty()) {
+                                    reservasParaElegir = reservas
+                                    mostrarSelectorReservas = true
+                                } else {
+                                    Toast.makeText(
+                                        contexto,
+                                        "No tienes reservas aprobadas",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                Log.e(
+                                    "USO_SALA",
+                                    "Error al consultar reservas",
+                                    e
+                                )
+
+                                Toast.makeText(
+                                    contexto,
+                                    "Error al consultar tus reservas",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    }
+                },
+                onCerrarSesion = {
+                    correoUsuario = null
+                    rolUsuario = null
+
+                    navController.navigate("login") {
+                        popUpTo("baseRelator") { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
+
+            if (mostrarSelectorReservas) {
+                AlertDialog(
+                    onDismissRequest = {
+                        mostrarSelectorReservas = false
+                    },
+                    title = {
+                        Text(
+                            "Selecciona tu actividad",
+                            color = Black,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    text = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            reservasParaElegir.forEach { reserva ->
+                                Card(
+                                    onClick = {
+                                        mostrarSelectorReservas = false
+                                        abrirActividadSeleccionada(reserva.id)
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 5.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Yellow
+                                    )
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(14.dp)
+                                    ) {
+                                        Text(
+                                            text = reserva.nombreActividad,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Black
+                                        )
+
+                                        Text(
+                                            text = "${reserva.fechaActividad} · " +
+                                                    "${reserva.horaInicio} - ${reserva.horaTermino}",
+                                            color = Black
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                mostrarSelectorReservas = false
+                            }
+                        ) {
+                            Text("Cancelar", color = Black)
+                        }
+                    },
+                    containerColor = White
+                )
+            }
         }
 
         composable("baseRelator/reservas") {
             PantallaBaseRelator(
                 navController = navController,
+                appState = appState,
                 abrirReservas = true,
                 onRegistrarAuditoria = { evento ->
                     auditoriaViewModel.registrarReserva(evento)
@@ -129,12 +286,42 @@ fun appNavigation(
                 auditoriaViewModel = auditoriaViewModel,
                 onRegistrarAuditoria = { evento ->
                     auditoriaViewModel.registrarReserva(evento)
+                },
+                onCerrarSesion = {
+                    correoUsuario = null
+                    rolUsuario = null
+
+                    navController.navigate("login") {
+                        popUpTo("baseSupervisor") { inclusive = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
 
-        composable("notificaciones/{esSupervisor}") { backStackEntry ->
-            val rolDeRuta = backStackEntry.arguments
+        composable("usoSala/{reservaId}") { entrada ->
+            val reservaId = entrada.arguments
+                ?.getString("reservaId")
+                ?.toLongOrNull()
+
+            if (reservaId != null) {
+                UsoSalaScreen(
+                    reservaId = reservaId,
+                    appState = appState,
+                    onReservaCancelada = {
+                        navController.navigate("baseRelator") {
+                            popUpTo("baseRelator") {
+                                inclusive = false
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                )
+            }
+        }
+
+        composable("notificaciones/{esSupervisor}") { entrada ->
+            val rolDeRuta = entrada.arguments
                 ?.getString("esSupervisor")
                 ?.toBoolean() ?: false
 

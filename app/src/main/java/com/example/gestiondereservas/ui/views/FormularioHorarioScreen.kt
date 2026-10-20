@@ -84,12 +84,12 @@ fun rememberFormularioHorarioViewModel(
                 val horarioDao = AppDatabase.getInstance(contexto).horarioDao()
                 val salaDao = AppDatabase.getInstance(contexto).salaDao()
                 val reservaDao = AppDatabase.getInstance(contexto).reservaDao()
-                val repository = HorarioRepository(horarioDao, salaDao, reservaDao)
-                FormularioHorarioViewModel(repository,
-                    horarioId,
-                    salaInicialId,
-                    diaInicial?.let { nombre -> runCatching { DiaSemana.valueOf(nombre) }.getOrNull() },
-                    inicioInicialMin)
+                val repository = HorarioRepository(
+                    horarioDao,
+                    salaDao,
+                    reservaDao,
+                    AppDatabase.getInstance(contexto).usoSalaDao()
+                )
             }
         }
     )

@@ -9,10 +9,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.content.Context
 
 class GestionReservasViewModel(
-    private val repository: ReservaRepository
-): ViewModel() {
+    private val repository: ReservaRepository,
+    private val context: Context
+) : ViewModel() {
+
     private val reservasPendiente = MutableStateFlow<List<ReservaEntity>>(emptyList())
     val reservasPendientes: StateFlow<List<ReservaEntity>> = reservasPendiente.asStateFlow()
 
@@ -42,6 +45,7 @@ class GestionReservasViewModel(
     fun modificarEstado(id: Long, estado: String) {
         viewModelScope.launch {
             repository.modificarEstado(id, estado)
+            cargarDatos()
         }
     }
 

@@ -1,33 +1,27 @@
+
 package com.example.gestiondereservas
 
+import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.navigation.appNavigation
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
-import com.example.gestiondereservas.ui.views.GestionReservasScreen
-import com.example.gestiondereservas.ui.views.RelatorScreen
-import com.example.gestiondereservas.ui.views.UsoSalaScreen
-import com.example.gestiondereservas.ui.views.ReservasScreen
-import com.example.gestiondereservas.ui.views.SupervisorScreen
-import android.graphics.Color
-import androidx.activity.SystemBarStyle
-import androidx.lifecycle.lifecycleScope
-
-//este import es por para probar la vista de las distintas areas
-import com.example.gestiondereservas.data.room.entidades.Area
-import com.example.gestiondereservas.ui.views.SalasScreen
 import com.example.gestiondereservas.utils.ObservadorNotificaciones
 import com.example.gestiondereservas.utils.ObservadorRecordatorios
 import kotlinx.coroutines.launch
-import android.content.Intent
-import androidx.compose.runtime.mutableStateOf
 
 class MainActivity : ComponentActivity() {
 
@@ -42,23 +36,19 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             ObservadorRecordatorios.observar(applicationContext)
         }
+
         lifecycleScope.launch {
             ObservadorNotificaciones.observar(applicationContext)
         }
+
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
         )
-        enableEdgeToEdge()
 
         setContent {
             GestionDeReservasTheme {
-                //ReservasScreen(appState)
-                //GestionReservasScreen(appState)
-                //RelatorScreen()
-                //SupervisorScreen(appState)
-                //SalasScreen()
-                myApp(
+                MyApp(
                     abrirNotificaciones = abrirNotificaciones.value
                 )
             }
@@ -75,13 +65,19 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun myApp(abrirNotificaciones: Boolean = false) {
+fun MyApp(abrirNotificaciones: Boolean = false) {
 
     val navController = rememberNavController()
+    val context = LocalContext.current
+
+    val appState = remember {
+        AppState(AppDatabase.getInstance(context))
+    }
 
     MaterialTheme {
         appNavigation(
             navController = navController,
+            appState = appState,
             abrirNotificaciones = abrirNotificaciones
         )
     }

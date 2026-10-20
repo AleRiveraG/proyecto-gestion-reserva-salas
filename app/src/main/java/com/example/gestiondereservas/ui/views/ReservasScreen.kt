@@ -82,6 +82,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.Locale
 import kotlin.collections.listOf
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 
 @Composable
 fun rememberReservaViewModel(): ReservaViewModel {
@@ -133,6 +138,10 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var telefonoError by remember { mutableStateOf(false) }
     var correoError by remember { mutableStateOf(false) }
 
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var guardando by remember { mutableStateOf(false) }
+
     fun crearReserva(): ReservaEntity {
         return ReservaEntity(
             nombreActividad = nombre,
@@ -171,13 +180,33 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
         )
     }
     fun guardarReserva() {
+        if (guardando) return
+
         val reserva = crearReserva()
-        viewModel.registrarReserva(reserva )
-
         val auditoria = crearAuditoria()
-        onRegistrarAuditoria( auditoria )
 
-        onEnviar()
+        guardando = true
+
+        scope.launch {
+            try {
+                viewModel.registrarReserva(reserva)
+
+                onRegistrarAuditoria(auditoria)
+
+                paso = 4
+
+            } catch (e: Exception) {
+                Log.e("RESERVA", "Error al guardar reserva", e)
+
+                Toast.makeText(
+                    context,
+                    "No se pudo guardar la reserva",
+                    Toast.LENGTH_LONG
+                ).show()
+            } finally {
+                guardando = false
+            }
+        }
     }
 
     val listaSalas by viewModel.listaSalas.collectAsState()
@@ -247,8 +276,9 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             servicios,
             { categoria, nuevosServicios -> servicios = servicios + ( categoria to nuevosServicios)},
             onAtras = { paso = 2 },
-            onEnviar = { paso = 4} )
-        4 -> Final(onEnviar = { guardarReserva() },
+            onEnviar = { guardarReserva() }
+        )
+        4 -> Final(onEnviar = { onEnviar() },
             sala,
             fechaMontaje,
             horaMontaje,

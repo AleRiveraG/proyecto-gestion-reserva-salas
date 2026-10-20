@@ -63,6 +63,7 @@ import com.example.gestiondereservas.utils.FormatoHora
 import com.example.gestiondereservas.utils.ValidacionesHorario
 import java.util.Calendar
 import kotlin.collections.isNotEmpty
+import androidx.compose.ui.platform.LocalContext
 
 private val ColorLibre = Color.White
 private val ColorBloqueado = Color(0xFFC9C9C9)
@@ -88,7 +89,12 @@ fun rememberHorariosViewModel(): HorariosViewModel {
                 val horarioDao = AppDatabase.getInstance(contexto).horarioDao()
                 val salaDao = AppDatabase.getInstance(contexto).salaDao()
                 val reservaDao = AppDatabase.getInstance(contexto).reservaDao()
-                val repository = HorarioRepository(horarioDao, salaDao, reservaDao)
+                val repository = HorarioRepository(
+                    horarioDao,
+                    salaDao,
+                    reservaDao,
+                    AppDatabase.getInstance(contexto).usoSalaDao()
+                )
                 HorariosViewModel(repository)
             }
         }

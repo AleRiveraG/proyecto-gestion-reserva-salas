@@ -10,11 +10,13 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.Equipamiento
+import com.example.gestiondereservas.data.room.entidades.EvaluacionSalaEntity
 import com.example.gestiondereservas.data.room.entidades.HorarioEntity
+import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
+import com.example.gestiondereservas.data.room.entidades.ReporteEntity
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
-import com.example.gestiondereservas.data.room.entidades.ReporteEntity
-import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
+import com.example.gestiondereservas.data.room.entidades.UsoSalaEntity
 import com.example.gestiondereservas.utils.Converters
 
 @TypeConverters(Converters::class)
@@ -25,10 +27,12 @@ import com.example.gestiondereservas.utils.Converters
         Equipamiento::class,
         ReporteEntity::class,
         NotificacionEntity::class,
+        UsoSalaEntity::class,
+        HorarioEntity::class,
         AuditoriaEntity::class,
-        HorarioEntity::class
+        EvaluacionSalaEntity::class
     ],
-    version = 6,
+    version = 8,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -37,10 +41,15 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun salaDao(): SalaDao
     abstract fun reporteDao(): ReporteDao
     abstract fun notificacionDao(): NotificacionDao
+    abstract fun usoSalaDao(): UsoSalaDao
     abstract fun horarioDao(): HorarioDao
     abstract fun auditoriaDao(): AuditoriaDao
+    abstract fun evaluacionSalaDao(): EvaluacionSalaDao
 
     companion object {
+
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
 
         private val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -88,8 +97,22 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS evaluacion_sala (
+                        reservaId INTEGER NOT NULL,
+                        salaId INTEGER NOT NULL,
+                        calificacion INTEGER NOT NULL,
+                        observaciones TEXT NOT NULL,
+                        fechaEvaluacion TEXT NOT NULL,
+                        PRIMARY KEY(reservaId)
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
 
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -98,7 +121,12 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "gestion_reservas_db"
                 )
-                    .fallbackToDestructiveMigration(true)
+                    .addMigrations(
+                        MIGRATION_2_3,
+                        MIGRATION_3_4,
+                        MIGRATION_4_5,
+                        MIGRATION_7_8
+                    )
                     .build()
                     .also { INSTANCE = it }
             }

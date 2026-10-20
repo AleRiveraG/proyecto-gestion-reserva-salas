@@ -72,7 +72,7 @@ fun rememberGestionReservasViewModel(): GestionReservasViewModel {
                 val dao = AppDatabase.getInstance(contexto).reservaDao()
                 val daoSalas = AppDatabase.getInstance(contexto).salaDao()
                 val repository = ReservaRepository(dao, daoSalas)
-                GestionReservasViewModel(repository)
+                GestionReservasViewModel(repository,contexto)
             }
         }
     )
@@ -448,6 +448,7 @@ fun reserva(reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long
                 reserva = reserva,
                 onAprobar = onAprobar,
                 onRechazar = onRechazar,
+                soloLectura = false,
                 sala = sala
             )
         }

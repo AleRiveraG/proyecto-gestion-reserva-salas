@@ -70,7 +70,6 @@ import com.example.gestiondereservas.R
 import com.example.gestiondereservas.ui.theme.*
 import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.utils.AnimacionLogin
-import com.example.gestiondereservas.utils.AnimacionLottie
 
 //- - - - - - - - - - - - - - - - - - - - - - - - -
 //Encabezado
@@ -607,31 +606,7 @@ fun LoginScreen(
     alNavegarASupervisor: () -> Unit = {},
     alIniciarSesionExitoso: (correo: String, password: String, rol: RolUsuario) -> Unit = {_, _, _ -> }
 ) {
-    var pantallaDestinoInterna by remember { mutableStateOf<String?>(null) }
 
-    when (pantallaDestinoInterna) {
-        "relator" -> {
-            RelatorScreen(
-                onReservas = {},
-                onBuscarSala = {},
-                onCalendario = {},
-                onActividad = {}
-            )
-            return
-        }
-        "supervisor" -> {
-            val supervisorVm: GestionReservasViewModel = viewModel()
-            SupervisorScreen(
-                onHorarios = {},
-                onGestionSalas = {},
-                onAuditoria = {},
-                onReportes = {},
-                onReservas = {},
-                viewModel = supervisorVm
-            )
-            return
-        }
-    }
 
     Scaffold(
         topBar = { LoginTopBar() },
@@ -662,20 +637,8 @@ fun LoginScreen(
                 alIniciarSesionExitoso(correo, password, rol)
 
                 when (rol) {
-                    RolUsuario.RELATOR -> {
-                        try {
-                            alNavegarARelator() //Intenta navegación por grafo
-                        } catch (e: Exception) {
-                        }
-                        pantallaDestinoInterna = "relator"
-                    }
-                    RolUsuario.COORDINADOR -> {
-                        try {
-                            alNavegarASupervisor() //Intenta navegación por grafo
-                        } catch (e: Exception) {
-                        }
-                        pantallaDestinoInterna = "supervisor"
-                    }
+                    RolUsuario.RELATOR -> alNavegarARelator()
+                    RolUsuario.COORDINADOR -> alNavegarASupervisor()
                 }
             }
         )
