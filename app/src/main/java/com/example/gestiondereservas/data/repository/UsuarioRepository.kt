@@ -11,7 +11,7 @@ class UsuarioRepository(
         usuarioDao.registrarUsuario(usuario)
     }
 
-    suspend fun obtenerPorId(id: Long): UsuarioEntity {
+    suspend fun obtenerPorId(id: Long): UsuarioEntity? {
         return usuarioDao.obtenerUsuarioPorId(id)
     }
 

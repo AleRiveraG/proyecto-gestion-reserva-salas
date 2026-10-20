@@ -1,5 +1,6 @@
 package com.example.gestiondereservas.ui.components
 
+import com.example.gestiondereservas.ui.views.UsoSalaScreen
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,14 +21,20 @@ import com.example.gestiondereservas.ui.views.BusquedaSalasScreen
 import com.example.gestiondereservas.ui.views.HorariosScreen
 import com.example.gestiondereservas.ui.views.RelatorScreen
 import com.example.gestiondereservas.ui.views.ReservasScreen
+import com.example.gestiondereservas.ui.views.UsoSalaScreen
+import com.example.gestiondereservas.data.AppState
 
 @Composable
 fun PantallaBaseRelator(
     navController: NavHostController,
-    onRegistrarAuditoria: (AuditoriaEntity) -> Unit = {}
+    idUsuario: Long,
+    onRegistrarAuditoria: (AuditoriaEntity) -> Unit = {},
+    abrirReservas: Boolean = false,
+    onCerrarSesion: () -> Unit = {},
+    appState: AppState,
+    onMiActividad: ((Long) -> Unit) -> Unit = {}
 ) {
     val contexto = LocalContext.current
-
     val tabNavController = rememberNavController()
 
     val navBackStackEntry by tabNavController.currentBackStackEntryAsState()
@@ -42,7 +49,15 @@ fun PantallaBaseRelator(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { TopBar() },
+        topBar = {
+            TopBar(
+                onNotificacionesClick = {
+                    navController.navigate("notificaciones/false")
+
+                },
+                onCerrarSesion = onCerrarSesion
+            )
+        },
         bottomBar = {
             NavBar(
                 opcionSeleccionada,
@@ -56,21 +71,32 @@ fun PantallaBaseRelator(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-        ){
+        ) {
             NavHost(
                 navController = tabNavController,
-                startDestination = "paginaRelator"
+                startDestination = if (abrirReservas) "reservas" else "paginaRelator"
             ) {
                 composable("paginaRelator") {
                     RelatorScreen(
-                        onReservas = { tabNavController.navigate("reservas") },
-                        onBuscarSala = { tabNavController.navigate("salasRelator")},
-                        onCalendario = { tabNavController.navigate("calendarioRelator")},
-                        onActividad = { }
+                        idUsuario = idUsuario,
+                        onReservas = {
+                            tabNavController.navigate("reservas")
+                        },
+                        onBuscarSala = {
+                            tabNavController.navigate("salasRelator")
+                        },
+                        onCalendario = {
+                            tabNavController.navigate("calendarioRelator")
+                        },
+                        onActividad = {
+                            onMiActividad { reservaId ->
+                                tabNavController.navigate("usoSala/$reservaId")
+                            }
+                        }
                     )
                 }
 
-                composable("calendarioRelator"){
+                composable("calendarioRelator") {
                     HorariosScreen(
                         puedeEditar = false,
                         onSolicitarBloque = { salaId, fecha, horaInicio, horaTermino ->
@@ -91,18 +117,23 @@ fun PantallaBaseRelator(
                             )
                         },
                         onEditarHorario = { id ->
-                            navController.navigate(GestionHorariosRutas.formularioHorario(id))
+                            navController.navigate(
+                                GestionHorariosRutas.formularioHorario(id)
+                            )
                         }
                     )
                 }
 
                 composable("salasRelator") {
                     BusquedaSalasScreen(
-                        onReservas = { tabNavController.navigate("reservas")}
+                        onReservas = {
+                            tabNavController.navigate("reservas")
+                        }
                     )
                 }
                 composable("reservas") {
                     ReservasScreen(
+                        idUsuario = idUsuario,
                         onAtras = { tabNavController.navigate("paginaRelator")},
                         onEnviar = { tabNavController.navigate("paginaRelator")},
                         onRegistrarAuditoria = onRegistrarAuditoria
@@ -110,6 +141,21 @@ fun PantallaBaseRelator(
                     )
                 }
 
+                composable("usoSala/{reservaId}") { backStackEntry ->
+                    val reservaId = backStackEntry.arguments
+                        ?.getString("reservaId")
+                        ?.toLongOrNull()
+
+                    if (reservaId != null) {
+                        UsoSalaScreen(
+                            reservaId = reservaId,
+                            appState = appState,
+                            onReservaCancelada = {
+                                tabNavController.navigate("paginaRelator")
+                            }
+                        )
+                    }
+                }
             }
         }
     }

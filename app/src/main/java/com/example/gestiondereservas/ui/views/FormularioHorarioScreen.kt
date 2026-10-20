@@ -1,5 +1,6 @@
 package com.example.gestiondereservas.ui.views
 
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -68,6 +69,8 @@ import com.example.gestiondereservas.utils.FormatoHora
 import com.example.gestiondereservas.utils.ValidacionesHorario
 import com.example.gestiondereservas.utils.formatearHora
 import java.time.LocalDate
+import com.example.gestiondereservas.utils.ConfirmacionHorarioGuardado
+import kotlinx.coroutines.delay
 
 @Composable
 fun rememberFormularioHorarioViewModel(
@@ -84,7 +87,8 @@ fun rememberFormularioHorarioViewModel(
                 val horarioDao = AppDatabase.getInstance(contexto).horarioDao()
                 val salaDao = AppDatabase.getInstance(contexto).salaDao()
                 val reservaDao = AppDatabase.getInstance(contexto).reservaDao()
-                val repository = HorarioRepository(horarioDao, salaDao, reservaDao)
+                val usoSalaDao = AppDatabase.getInstance(contexto).usoSalaDao()
+                val repository = HorarioRepository(horarioDao, salaDao, reservaDao, usoSalaDao)
                 FormularioHorarioViewModel(repository,
                     horarioId,
                     salaInicialId,
@@ -136,15 +140,13 @@ fun FormularioHorarioScreen(
 
     LaunchedEffect(estado.guardado) {
         if (estado.guardado) {
-            Toast.makeText(
-                contexto,
-                if (estado.esNuevo) "Horario creado" else "Horario actualizado",
-                Toast.LENGTH_SHORT
-            ).show()
-            val auditoria = crearAuditoria("Se actualizo un horario")
-            onRegistrarAuditoria(auditoria)
+            delay(2400)
             onVolver()
         }
+    }
+
+    if (estado.guardado) {
+        ConfirmacionHorarioGuardado(esNuevo = estado.esNuevo)
     }
 
     LaunchedEffect(estado.eliminado) {
@@ -155,6 +157,7 @@ fun FormularioHorarioScreen(
             onVolver()
         }
     }
+
 
     if (estado.cargando) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

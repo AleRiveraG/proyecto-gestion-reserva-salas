@@ -1,66 +1,104 @@
 package com.example.gestiondereservas.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.data.repository.AuditoriaRepository
+import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
 import com.example.gestiondereservas.ui.components.PantallaBaseRelator
+import com.example.gestiondereservas.ui.viewmodel.AuditoriaViewModel
+import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.ui.views.LoginScreen
 import com.example.gestiondereservas.ui.views.RegistroScreen
+import com.example.gestiondereservas.ui.views.RelatorScreen
 import com.example.gestiondereservas.ui.views.RolRegistroUsuario
 import com.example.gestiondereservas.ui.views.RolUsuario
-
-//Almacén de credenciales y perfiles centralizado en navegación
-val usuariosRegistradosGlobal = mutableMapOf<String, RolUsuario>()
-val passwordsRegistradosGlobal = mutableMapOf<String, String>()
+import com.example.gestiondereservas.ui.views.SupervisorScreen
 
 @Composable
-fun AppNavigation(navController: NavHostController = rememberNavController()) {
+fun rememberAuditoriaViewModel(): AuditoriaViewModel {
+    val contexto = LocalContext.current.applicationContext
+    return viewModel(
+        factory = viewModelFactory {
+            initializer {
+                val dao = AppDatabase.getInstance(contexto).auditoriaDao()
+                val repository = AuditoriaRepository(dao)
+                AuditoriaViewModel(repository)
+            }
+        }
+    )
+}
+@Composable
+fun AppNavigation(navController: NavHostController, appState: AppState) {
+
+    val auditoriaViewModel: AuditoriaViewModel = rememberAuditoriaViewModel()
+
     NavHost(
-        navController = navController,
-        startDestination = "login"
+        navController = navController, startDestination = "login"
     ) {
-        //Ruta oficial de LoginScreen
-        composable("login") { _ ->
+        composable("login") {
             LoginScreen(
                 alNavegarARegistro = { navController.navigate("registro") },
-                alNavegarARelator = {
-                    navController.navigate("baseRelator") {
+                alNavegarARelator = { idUsuario ->
+                    navController.navigate("baseRelator/$idUsuario") {
                         popUpTo("login") { inclusive = true }
                     }
                 },
-                alNavegarAPantallaBaseAdmin = {
-                    navController.navigate("baseSupervisor") {
+                alNavegarASupervisor = { idUsuario ->
+                    navController.navigate("baseSupervisor/$idUsuario") {
                         popUpTo("login") { inclusive = true }
                     }
                 }
             )
         }
 
-        //Ruta de RegistroScreen con almacenamiento seguro
-        composable("registro") { _ ->
+        composable("registro") {
             RegistroScreen(
-                alRegistrarExitoso = { _, correo, pass, rol ->
-                    val correoLimpio = correo.trim().lowercase()
-                    val rolLogin = if (rol == RolRegistroUsuario.RELATOR) RolUsuario.RELATOR else RolUsuario.COORDINADOR
-
-                    usuariosRegistradosGlobal[correoLimpio] = rolLogin
-                    passwordsRegistradosGlobal[correoLimpio] = pass
-
+                alRegistrarExitoso = {
                     navController.popBackStack()
                 }
             )
         }
 
-        //Llamadas nativas a las bases de relator y administrador
-        composable("baseRelator") { _ ->
-            PantallaBaseRelator(navController = navController)
+        composable(
+            "baseRelator/{idUsuario}",
+            arguments = listOf(navArgument("idUsuario") { type = NavType.LongType})
+        ) { backStackEntry ->
+            val idUsuario = backStackEntry.arguments?.getLong("idUsuario") ?: 0
+
+            PantallaBaseRelator(
+                navController,
+                idUsuario,
+                onRegistrarAuditoria = { evento ->
+                    auditoriaViewModel.registrarReserva(evento)
+                },
+                appState = appState)
         }
 
-        composable("baseSupervisor") { _ ->
-            PantallaBaseAdmin(navController = navController)
+        composable(
+            "baseSupervisor/{idUsuario}",
+            arguments = listOf(navArgument("idUsuario") { type = NavType.LongType})
+        ){backStackEntry ->
+            val idUsuario = backStackEntry.arguments?.getLong("idUsuario") ?: 0
+            PantallaBaseAdmin(
+                navController,
+                idUsuario,
+                onRegistrarAuditoria = { evento ->
+                    auditoriaViewModel.registrarReserva(evento)
+                },
+                auditoriaViewModel = auditoriaViewModel
+            )
         }
+
     }
 }

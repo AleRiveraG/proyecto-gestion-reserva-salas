@@ -46,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +58,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -65,141 +67,31 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
+import com.example.gestiondereservas.data.repository.UsuarioRepository
+import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.ui.theme.*
 import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
+import com.example.gestiondereservas.ui.viewmodel.LoginViewModel
 import com.example.gestiondereservas.utils.AnimacionLogin
+import com.example.gestiondereservas.utils.AnimacionLottie
 
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-//Encabezado
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginTopBar() {
-    TopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            titleContentColor = MaterialTheme.colorScheme.secondary
-        ),
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo),
-                    contentDescription = "Logo Duoc Uc",
-                    modifier = Modifier.size(100.dp),
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text("Reserva", color = MaterialTheme.colorScheme.secondary)
-                Text("Salas", color = MaterialTheme.colorScheme.tertiary)
-            }
-        },
-        actions = {
-            Row() {
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF3B3B3B))
-                        .clickable {},
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.bell),
-                        contentDescription = "Icono notificaciones",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF3B3B3B))
-                        .clickable {},
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.user_circle),
-                        contentDescription = "Icono usuario",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
+fun rememberLoginViewModel(): LoginViewModel {
+    val contexto = LocalContext.current.applicationContext
+    return viewModel(
+        factory = viewModelFactory {
+            initializer {
+                val dao = AppDatabase.getInstance(contexto).usuarioDao()
+                val repository = UsuarioRepository(dao)
+                LoginViewModel(repository)
             }
         }
     )
 }
-
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-//Pie de página
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-
-@Composable
-fun LoginNavBar() {
-    var seleccion by remember { mutableIntStateOf(0) }
-
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.primary
-    ) {
-        NavigationBarItem(
-            selected = seleccion == 0,
-            onClick = { seleccion = 0 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.home),
-                    contentDescription = "Icono inicio"
-                )
-            },
-            label = { Text("Inicio") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-        NavigationBarItem(
-            selected = seleccion == 1,
-            onClick = { seleccion = 1 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.calendar),
-                    contentDescription = "Icono calendario"
-                )
-            },
-            label = { Text("Calendario") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-        NavigationBarItem(
-            selected = seleccion == 2,
-            onClick = { seleccion = 2 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.door),
-                    contentDescription = "Icono puerta"
-                )
-            },
-            label = { Text("Salas") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-    }
-}
-
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -218,8 +110,6 @@ fun LoginBody(
     modifier: Modifier = Modifier,
     estaCargando: Boolean = false,
     mensajeErrorGeneral: String? = null,
-    usuariosRegistrados: Map<String, RolUsuario> = emptyMap(), //Mapa de validación de roles registrados
-    passwordsRegistrados: Map<String, String> = emptyMap(), //Mapa de contraseñas de usuarios registrados
     alHacerClicEnRegistrarse: () -> Unit = {},
     alIniciarSesionExitoso: (correo: String, password: String, rol: RolUsuario) -> Unit
 ) {
@@ -264,9 +154,6 @@ fun LoginBody(
 
     //Valida requisitos de formato Y coincidencia con la contraseña creada al registrarse
     fun validarPassword(): Boolean {
-        val correoLimpio = correo.trim().lowercase()
-        val passEsperada = passwordsRegistrados[correoLimpio] //Obtiene la contraseña registrada
-
         return when {
             password.isBlank() -> {
                 errorPassword = "La constraseña es obligatoria"
@@ -288,10 +175,6 @@ fun LoginBody(
                 errorPassword = "Debe contener al menos un número"
                 false
             }
-            passEsperada != null && passEsperada != password -> { //Rechaza si no coincide con la guardada en el registro
-                errorPassword = "La contraseña no coincide con la registrada"
-                false
-            }
             else -> {
                 errorPassword = null
                 true
@@ -299,25 +182,12 @@ fun LoginBody(
         }
     }
 
-    //Función para comprobar que no ingrese con otro perfil
-    fun validarRolRegistrado(): Boolean {
-        val correoLimpio = correo.trim().lowercase()
-        val rolReal = usuariosRegistrados[correoLimpio]
-        return if (rolReal != null && rolReal != rolSeleccionado) {
-            errorMensajeRol = "Este correo está registrado como ${rolReal.nombreMostrar}. No puedes ingresar como ${rolSeleccionado.nombreMostrar}."
-            false
-        } else {
-            errorMensajeRol = null
-            true
-        }
-    }
 
     fun manejarEnvio() {
         val esCorreoValido = validarCorreo()
         val esPasswordValido = validarPassword()
-        val esRolValido = validarRolRegistrado() //Comprueba el perfil antes de enviar
 
-        if (esCorreoValido && esPasswordValido && esRolValido) { //Exige que el rol sea correcto
+        if (esCorreoValido && esPasswordValido) {
             administradorFoco.clearFocus()
             alIniciarSesionExitoso(correo.trim(), password, rolSeleccionado)
         }
@@ -380,7 +250,6 @@ fun LoginBody(
                         selected = rolSeleccionado == rol,
                         onClick = {
                             rolSeleccionado = rol
-                            if (errorMensajeRol != null) validarRolRegistrado() //Revalida al cambiar chip
                         },
                         label = { Text(rol.nombreMostrar) }
                     )
@@ -411,7 +280,6 @@ fun LoginBody(
                 onValueChange = {
                     correo = it
                     if (errorCorreo != null) validarCorreo()
-                    if (errorMensajeRol != null) validarRolRegistrado() //Limpia error de rol al escribir
                     if (errorPassword != null) validarPassword() //Revalida la contraseña si se cambia el correo
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -419,7 +287,7 @@ fun LoginBody(
                 placeholder = { Text("usuario@duocuc.cl") },
                 singleLine = true,
                 maxLines = 1,
-                isError = errorCorreo != null || errorMensajeRol != null, //Marca error en el campo
+                isError = errorCorreo != null,//Marca error en el campo
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     autoCorrectEnabled = false,
@@ -589,25 +457,22 @@ fun LoginBody(
     }
 }
 
-//Almacén de usuarios y perfiles para evitar cambio indebido de perfil en tiempo de ejecución
-val usuariosRegistradosMemoria = mutableMapOf<String, RolUsuario>() //Registro global en memoria
-val passwordsUsuariosMemoria = mutableMapOf<String, String>() //Almacén global de contraseñas de usuarios registrados
 
 //Pantalla completa que une TopBar, NavBar y LoginBody
 @Composable
 fun LoginScreen(
-    estaCargando: Boolean = false,
-    mensajeErrorGeneral: String? = null,
-    usuariosRegistrados: Map<String, RolUsuario> = usuariosRegistradosMemoria, //Recibe los usuarios válidos
-    passwordsRegistrados: Map<String, String> = passwordsUsuariosMemoria, //Recibe las contraseñas válidas
-    alNavegarARegistro: () -> Unit = {},
-    alNavegarARelator: () -> Unit = {},
-    alNavegarAPantallaBaseAdmin: () -> Unit = {},
-    alIniciarSesionExitoso: (correo: String, password: String, rol: RolUsuario) -> Unit = {_, _, _ -> }
-) {
+    viewModel: LoginViewModel = rememberLoginViewModel(),
+    alNavegarARegistro: () -> Unit,
+    alNavegarARelator: (Long) -> Unit,
+    alNavegarASupervisor: (Long) -> Unit
+    ) {
+    var pantallaDestinoInterna by remember { mutableStateOf<String?>(null) }
+
+    val estaCargando by viewModel.estaCargando.collectAsState()
+    val mensajeErrorGeneral by viewModel.mensajeError.collectAsState()
+
+
     Scaffold(
-        topBar = { LoginTopBar() },
-        bottomBar = { LoginNavBar() }
     ) { paddingValues ->
         LoginBody(
             modifier = Modifier
@@ -615,27 +480,14 @@ fun LoginScreen(
                 .padding(paddingValues),
             estaCargando = estaCargando,
             mensajeErrorGeneral = mensajeErrorGeneral,
-            usuariosRegistrados = usuariosRegistrados, //Pasa el mapa de usuarios a LoginBody
-            passwordsRegistrados = passwordsRegistrados, //Pasa el mapa de contraseñas a LoginBody
             alHacerClicEnRegistrarse = alNavegarARegistro,
             alIniciarSesionExitoso = { correo, password, rol ->
-                val correoLimpio = correo.trim().lowercase()
-
-                //Asegura el registro del usuario con el rol con el que ingresó por primera vez
-                if (!usuariosRegistradosMemoria.containsKey(correoLimpio)) {
-                    usuariosRegistradosMemoria[correoLimpio] = rol
-                }
-                //Registra la contraseña si fue creado en primera sesión
-                if (!passwordsUsuariosMemoria.containsKey(correoLimpio)) {
-                    passwordsUsuariosMemoria[correoLimpio] = password
-                }
-
-                //Notifica a la lógica de negocio
-                alIniciarSesionExitoso(correo, password, rol)
-
-                when (rol) {
-                    RolUsuario.RELATOR -> alNavegarARelator()
-                    RolUsuario.COORDINADOR -> alNavegarAPantallaBaseAdmin()
+                viewModel.iniciarSesion(correo, password, rol) { idUsuario ->
+                    if (rol == RolUsuario.RELATOR) {
+                        alNavegarARelator(idUsuario)
+                    } else {
+                        alNavegarASupervisor(idUsuario)
+                    }
                 }
             }
         )
@@ -645,11 +497,9 @@ fun LoginScreen(
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun LoginBodyPreview() {
-    GestionDeReservasTheme {
-        LoginScreen(
-            alNavegarARelator = {/* Test local */},
-            alNavegarAPantallaBaseAdmin = {/* Test local */},
-            alNavegarARegistro = {/* Test local */}
-        )
-    }
+    LoginBody(
+        alIniciarSesionExitoso = { correo, contrasena, rol ->
+            //Acción de prueba local
+        }
+    )
 }

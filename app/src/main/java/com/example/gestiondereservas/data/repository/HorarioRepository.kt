@@ -14,11 +14,16 @@ import com.example.gestiondereservas.utils.ValidacionesHorario
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.time.LocalDateTime
+import java.time.LocalTime
+import com.example.gestiondereservas.data.room.UsoSalaDao
+import com.example.gestiondereservas.data.TipoOcupacion
 
 class HorarioRepository(
     private val dao: HorarioDao,
     private val salaDao: SalaDao,
-    private val reservaDao: ReservaDao
+    private val reservaDao: ReservaDao,
+    private val usoSalaDao: UsoSalaDao
 ) {
     fun observarTodos(busqueda: String): Flow<List<HorarioConSala>> =
         dao.observarTodos(busqueda.trim())
@@ -85,8 +90,41 @@ class HorarioRepository(
         val lista = mutableListOf<Ocupacion>()
 
         reservas.forEach { reserva ->
-            lista.addAll(OcupacionMapper.desdeReserva(reserva))
+
+            if (reserva.estado.name == "APROBADA") {
+
+                val uso = usoSalaDao.obtenerPorReserva(reserva.id)
+
+                val ocupaciones = OcupacionMapper.desdeReserva(reserva)
+
+                if (uso?.estado == "FINALIZADA" && uso.fechaHoraFin != null) {
+
+                    val horaFinReal = LocalDateTime
+                        .parse(uso.fechaHoraFin)
+                        .toLocalTime()
+                        .toSecondOfDay() / 60
+
+                    ocupaciones.forEach { ocupacion ->
+                        if (ocupacion.tipo == TipoOcupacion.MONTAJE) {
+                            lista.add(ocupacion)
+                        } else if (horaFinReal > ocupacion.inicioMin) {
+                            lista.add(
+                                ocupacion.copy(
+                                    finMin = minOf(ocupacion.finMin, horaFinReal)
+                                )
+                            )
+                        }
+                    }
+
+                } else {
+                    lista.addAll(ocupaciones)
+                }
+            }
         }
+
         return lista
     }
+
+
+
 }

@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -26,6 +28,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,35 +40,71 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.room.util.TableInfo
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.data.repository.ReservaRepository
+import com.example.gestiondereservas.data.repository.UsuarioRepository
+import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
+import com.example.gestiondereservas.ui.views.accesosDirectos
+import com.example.gestiondereservas.ui.viewmodel.UsuarioViewModel
 import com.example.gestiondereservas.utils.formatearFecha
-
+@Composable
+fun rememberUsuarioViewModel(): UsuarioViewModel {
+    val contexto = LocalContext.current.applicationContext
+    return viewModel(
+        factory = viewModelFactory {
+            initializer {
+                val dao = AppDatabase.getInstance(contexto).usuarioDao()
+                val repository = UsuarioRepository(dao, )
+                UsuarioViewModel(repository)
+            }
+        }
+    )
+}
 @Composable
 fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
+                  usuarioViewModel: UsuarioViewModel = rememberUsuarioViewModel(),
+                  idUsuario: Long,
                   onReservas: () -> Unit,
                   onBuscarSala: () -> Unit,
                   onCalendario: () -> Unit,
-                  onActividad: () -> Unit) {
-    //FALTA BUSCAR RESERVA POR USUARIO ID EXTRAIDO DEL LOGIN Y USA EL VIEWMODEL PARA ESO
-    Contenido(onReservas,
+                  onActividad: () -> Unit)
+{
+    val reservas by viewModel.reservas.collectAsState()
+    val usuario by usuarioViewModel.usuario.collectAsState()
+
+    LaunchedEffect(idUsuario) {
+        viewModel.buscarReservaPorId(idUsuario)
+        usuarioViewModel.cargarUsuario(idUsuario)
+    }
+    Contenido(nombreUsuario = usuario?.nombre?.split(" ")[0] ?: "usuario",
+        onReservas,
         onActividad,
         onCalendario,
-        onBuscarSala)
+        onBuscarSala,
+        reservas)
 }
 
 @Composable
 private fun Contenido(
+    nombreUsuario: String,
     onReservas: () -> Unit,
     onActividad: () -> Unit,
     onCalendario: () -> Unit,
-    onBuscarSala: () -> Unit
+    onBuscarSala: () -> Unit,
+    reservas: List<ReservaEntity>
 ) {
     Column(
         modifier = Modifier
@@ -73,28 +113,44 @@ private fun Contenido(
             .padding(horizontal = 16.dp, vertical = 24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Text(text = formatearFecha(),
+        Text(
+            text = formatearFecha(),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF3B3B3B),
+            color = Color(0xFF3B3B3B)
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text("Hola, usuario",
+        Text(
+            "Hola, $nombreUsuario",
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary)
+            color = MaterialTheme.colorScheme.primary
+        )
 
-        Text("¿Qué espacio necesitas hoy?",
+        Text(
+            "¿Qué espacio necesitas hoy?",
             fontSize = 12.sp,
             fontWeight = FontWeight.Light,
-            color = Color(0xFF3B3B3B))
+            color = Color(0xFF3B3B3B)
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        //infoReserva()
-        noInfoReserva(onReservas)
+        if (reservas.isEmpty()) {
+            noInfoReserva(onReservas)
+        } else {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                reservas.forEach { reserva ->
+                    infoReserva(reserva)
+                }
+            }
+        }
+
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -104,7 +160,8 @@ private fun Contenido(
 
 
 @Composable
-fun infoReserva(onReservas: () -> Unit) {
+fun infoReserva(
+                reserva: ReservaEntity) {
     var checked by remember { mutableStateOf(false) }
 
     Box(
@@ -127,7 +184,14 @@ fun infoReserva(onReservas: () -> Unit) {
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Light
                 )
-                etiquetaEstado("PENDIENTE")
+
+                if(reserva.estado == EstadoReserva.PENDIENTE) {
+                    etiquetaEstado("PENDIENTE")
+                } else if (reserva.estado == EstadoReserva.APROBADA) {
+                    etiquetaEstado("APROBADA")
+                } else {
+                    etiquetaEstado("RECHAZADA")
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -150,7 +214,7 @@ fun infoReserva(onReservas: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text("Titulo de la actividad",
+            Text(reserva.nombreActividad,
                 color = MaterialTheme.colorScheme.secondary,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold)
@@ -168,7 +232,7 @@ fun infoReserva(onReservas: () -> Unit) {
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    Text("Fecha",
+                    Text(reserva.fechaActividad,
                         color = MaterialTheme.colorScheme.secondary,
                         fontSize = 10.sp)
                 }
@@ -185,7 +249,7 @@ fun infoReserva(onReservas: () -> Unit) {
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    Text("Inicio-Termino",
+                    Text("${reserva.horaInicio} - ${reserva.horaTermino}",
                         color = MaterialTheme.colorScheme.secondary,
                         fontSize = 10.sp)
                 }
@@ -202,7 +266,7 @@ fun infoReserva(onReservas: () -> Unit) {
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    Text("Sala sala",
+                    Text("${reserva.salaId}",
                         color = MaterialTheme.colorScheme.secondary,
                         fontSize = 10.sp)
                 }
