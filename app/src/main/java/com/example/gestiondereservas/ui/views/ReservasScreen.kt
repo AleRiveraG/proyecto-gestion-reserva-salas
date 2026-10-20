@@ -100,6 +100,7 @@ fun rememberReservaViewModel(): ReservaViewModel {
 
 @Composable
 fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
+                   idUsuario: Long,
                    onAtras: () -> Unit,
                    onEnviar: () -> Unit,
                    onRegistrarAuditoria: (AuditoriaEntity) -> Unit) {
@@ -135,6 +136,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
 
     fun crearReserva(): ReservaEntity {
         return ReservaEntity(
+            idUsuario = idUsuario,
             nombreActividad = nombre,
             descripcion = descripcion,
             tipoActividad = tipoActividad,
@@ -155,7 +157,6 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             nombreExternos = nombres,
             complementos = complemento,
             proveedores = proveedores,
-
             servicios = servicios.entries.joinToString("; ") { (categoria, opciones) ->
                 "$categoria: ${opciones.joinToString(", ")}" },
         )
@@ -181,7 +182,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     }
 
     val listaSalas by viewModel.listaSalas.collectAsState()
-    val sala by viewModel.salaSeleccionada.collectAsState()
+    val sala by viewModel.sala.collectAsState()
 
     when (paso) {
         1 -> ContentPaso1(

@@ -462,38 +462,15 @@ fun LoginBody(
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = rememberLoginViewModel(),
-    alNavegarARegistro: () -> Unit = {},
-    alNavegarARelator: () -> Unit = {},
-    alNavegarASupervisor: () -> Unit = {}
+    alNavegarARegistro: () -> Unit,
+    alNavegarARelator: (Long) -> Unit,
+    alNavegarASupervisor: (Long) -> Unit
     ) {
     var pantallaDestinoInterna by remember { mutableStateOf<String?>(null) }
 
     val estaCargando by viewModel.estaCargando.collectAsState()
     val mensajeErrorGeneral by viewModel.mensajeError.collectAsState()
 
-    when (pantallaDestinoInterna) {
-        "relator" -> {
-            RelatorScreen(
-                onReservas = {},
-                onBuscarSala = {},
-                onCalendario = {},
-                onActividad = {}
-            )
-            return
-        }
-        "supervisor" -> {
-            val supervisorVm: GestionReservasViewModel = rememberGestionReservasViewModel()
-            SupervisorScreen(
-                onHorarios = {},
-                onGestionSalas = {},
-                onAuditoria = {},
-                onReportes = {},
-                onReservas = {},
-                viewModel = supervisorVm
-            )
-            return
-        }
-    }
 
     Scaffold(
     ) { paddingValues ->
@@ -505,23 +482,11 @@ fun LoginScreen(
             mensajeErrorGeneral = mensajeErrorGeneral,
             alHacerClicEnRegistrarse = alNavegarARegistro,
             alIniciarSesionExitoso = { correo, password, rol ->
-                viewModel.iniciarSesion(correo, password, rol) {
-                    when (rol) {
-                        RolUsuario.RELATOR -> {
-                            try {
-                                alNavegarARelator() //Intenta navegación por grafo
-                            } catch (e: Exception) {
-                            }
-                            pantallaDestinoInterna = "relator"
-                        }
-
-                        RolUsuario.COORDINADOR -> {
-                            try {
-                                alNavegarASupervisor() //Intenta navegación por grafo
-                            } catch (e: Exception) {
-                            }
-                            pantallaDestinoInterna = "supervisor"
-                        }
+                viewModel.iniciarSesion(correo, password, rol) { idUsuario ->
+                    if (rol == RolUsuario.RELATOR) {
+                        alNavegarARelator(idUsuario)
+                    } else {
+                        alNavegarASupervisor(idUsuario)
                     }
                 }
             }

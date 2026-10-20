@@ -14,10 +14,12 @@ class ReservaViewModel(
     private val repository: ReservaRepository
 ): ViewModel() {
 
-    private val sala = MutableStateFlow<SalaEntity?>(null)
-    val salaSeleccionada: StateFlow<SalaEntity?> = sala.asStateFlow()
-    private val salas = MutableStateFlow<List<SalaEntity>>(emptyList())
-    val listaSalas: StateFlow<List<SalaEntity>> = salas.asStateFlow()
+    private val _sala = MutableStateFlow<SalaEntity?>(null)
+    val sala: StateFlow<SalaEntity?> = _sala.asStateFlow()
+    private val _listasalas = MutableStateFlow<List<SalaEntity>>(emptyList())
+    val listaSalas: StateFlow<List<SalaEntity>> = _listasalas.asStateFlow()
+    private val _reservas = MutableStateFlow<List<ReservaEntity>>(emptyList())
+    val reservas: StateFlow<List<ReservaEntity>> = _reservas
 
     init {
         cargarSalas()
@@ -31,17 +33,22 @@ class ReservaViewModel(
 
     fun cargarSalas() {
         viewModelScope.launch {
-            salas.value = repository.obtenerSalas()
+            _listasalas.value = repository.obtenerSalas()
         }
     }
 
     fun buscarSala(id: Long){
         viewModelScope.launch {
-            sala.value = repository.obtenerSalaPorId(id)
+            _sala.value = repository.obtenerSalaPorId(id)
         }
     }
 
 
-    //FALTA BUSCAR LA RESERVA POR ID DEL USUARIO
+    fun buscarReservaPorId(id:Long) {
+        viewModelScope.launch {
+            val reservasUsuario = repository.obtenerReservaPorIdUsuario(id)
+            _reservas.value = reservasUsuario
+        }
+    }
 
 }

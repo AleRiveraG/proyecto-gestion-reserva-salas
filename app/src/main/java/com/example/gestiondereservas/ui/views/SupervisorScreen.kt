@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -45,20 +46,29 @@ import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.ui.components.NavBarAdmin
 import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
+import com.example.gestiondereservas.ui.viewmodel.UsuarioViewModel
 import com.example.gestiondereservas.utils.formatearFecha
 
 @Composable
 fun SupervisorScreen(
+                     idUsuario: Long,
                      onHorarios: () -> Unit,
                      onGestionSalas: () -> Unit,
                      onAuditoria: () -> Unit,
                      onReportes: () -> Unit,
                      onReservas: () -> Unit,
+                     usuarioViewModel: UsuarioViewModel,
                      viewModel: GestionReservasViewModel
 ) {
     val listaReservas by viewModel.reservasPendientes.collectAsState()
+    val usuario by usuarioViewModel.usuario.collectAsState()
 
-    Contenido(onHorarios,
+    LaunchedEffect(idUsuario) {
+        usuarioViewModel.cargarUsuario(idUsuario)
+    }
+
+    Contenido(nombreUsuario = usuario?.nombre?.split(" ")[0] ?: "usuario",
+            onHorarios,
             onGestionSalas,
             onAuditoria,
             onReportes,
@@ -68,7 +78,8 @@ fun SupervisorScreen(
 }
 
 @Composable
-private fun Contenido(onHorarios: () -> Unit,
+private fun Contenido(nombreUsuario: String,
+                      onHorarios: () -> Unit,
                       onGestionSalas: () -> Unit,
                       onAuditoria: () -> Unit,
                       onReportes: () -> Unit,
@@ -90,7 +101,7 @@ private fun Contenido(onHorarios: () -> Unit,
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text("Hola, usuario",
+        Text("Hola, $nombreUsuario",
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary)

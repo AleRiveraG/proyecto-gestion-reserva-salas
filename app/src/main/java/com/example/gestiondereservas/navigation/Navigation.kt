@@ -6,9 +6,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.gestiondereservas.data.repository.AuditoriaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
@@ -41,18 +43,18 @@ fun AppNavigation(navController: NavHostController) {
     val auditoriaViewModel: AuditoriaViewModel = rememberAuditoriaViewModel()
 
     NavHost(
-        navController = navController, startDestination = "login" //"baseRelator" //"login"
+        navController = navController, startDestination = "login"
     ) {
         composable("login") {
             LoginScreen(
                 alNavegarARegistro = { navController.navigate("registro") },
-                alNavegarARelator = {
-                    navController.navigate("baseRelator") {
+                alNavegarARelator = { idUsuario ->
+                    navController.navigate("baseRelator/$idUsuario") {
                         popUpTo("login") { inclusive = true }
                     }
                 },
-                alNavegarASupervisor = {
-                    navController.navigate("baseSupervisor") {
+                alNavegarASupervisor = { idUsuario ->
+                    navController.navigate("baseSupervisor/$idUsuario") {
                         popUpTo("login") { inclusive = true }
                     }
                 }
@@ -67,15 +69,28 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
 
-        composable("baseRelator") {
-            PantallaBaseRelator(navController,
+        composable(
+            "baseRelator/{idUsuario}",
+            arguments = listOf(navArgument("idUsuario") { type = NavType.LongType})
+            ) { backStackEntry ->
+            val idUsuario = backStackEntry.arguments?.getLong("idUsuario") ?: 0
+
+            PantallaBaseRelator(
+                navController,
+                idUsuario,
                 onRegistrarAuditoria = { evento ->
                     auditoriaViewModel.registrarReserva(evento)
                 })
         }
 
-        composable("baseSupervisor"){
-            PantallaBaseAdmin(navController,
+        composable(
+            "baseSupervisor/{idUsuario}",
+            arguments = listOf(navArgument("idUsuario") { type = NavType.LongType})
+            ){backStackEntry ->
+            val idUsuario = backStackEntry.arguments?.getLong("idUsuario") ?: 0
+            PantallaBaseAdmin(
+                navController,
+                idUsuario,
                 onRegistrarAuditoria = { evento ->
                     auditoriaViewModel.registrarReserva(evento)
                 },

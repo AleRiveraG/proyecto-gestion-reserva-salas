@@ -41,4 +41,7 @@ class ReservaRepository(
         return salaDao.obtenerSalaPorId(id)
     }
 
+    suspend fun obtenerReservaPorIdUsuario(id: Long): List<ReservaEntity> {
+        return reservaDao.obtenerReservasPorUsuario(id)
+    }
 }

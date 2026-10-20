@@ -31,6 +31,7 @@ import com.example.gestiondereservas.ui.views.HorariosScreen
 import com.example.gestiondereservas.ui.views.SalasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
 import com.example.gestiondereservas.ui.views.rememberGestionReservasViewModel
+import com.example.gestiondereservas.ui.views.rememberUsuarioViewModel
 
 object GestionSalasRutas {
     const val SALAS = "gestion_salas"
@@ -58,6 +59,7 @@ object GestionHorariosRutas {
 @Composable
 fun PantallaBaseAdmin(
     navController: NavHostController,
+    idUsuario: Long,
     auditoriaViewModel: AuditoriaViewModel,
     onRegistrarAuditoria: (AuditoriaEntity) -> Unit
 ) {
@@ -98,12 +100,14 @@ fun PantallaBaseAdmin(
             ) {
                 composable("paginaSupervisor") {
                     SupervisorScreen(
+                        idUsuario = idUsuario,
                         onHorarios = { tabNavController.navigate("calendarioSupervisor")},
                         onGestionSalas = { tabNavController.navigate("gestion_salas")},
                         onAuditoria = { tabNavController.navigate("auditoria")},
                         onReportes = { },
                         onReservas = { tabNavController.navigate("gestionReserva")},
-                        viewModel = rememberGestionReservasViewModel()
+                        viewModel = rememberGestionReservasViewModel(),
+                        usuarioViewModel = rememberUsuarioViewModel()
                     )
                 }
 

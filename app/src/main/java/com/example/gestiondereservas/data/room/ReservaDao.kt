@@ -29,4 +29,7 @@ interface ReservaDao {
     @Query("SELECT * FROM reserva WHERE salaId = :salaId")
     suspend fun obtenerReservasPorSala(salaId: Long): List<ReservaEntity>
 
+    @Query("SELECT * FROM reserva WHERE idUsuario = :idUsuario")
+    suspend fun obtenerReservasPorUsuario(idUsuario: Long): List<ReservaEntity>
+
 }

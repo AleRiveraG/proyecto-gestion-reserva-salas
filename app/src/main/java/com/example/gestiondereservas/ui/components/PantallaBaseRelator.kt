@@ -24,6 +24,7 @@ import com.example.gestiondereservas.ui.views.ReservasScreen
 @Composable
 fun PantallaBaseRelator(
     navController: NavHostController,
+    idUsuario: Long,
     onRegistrarAuditoria: (AuditoriaEntity) -> Unit = {}
 ) {
     val contexto = LocalContext.current
@@ -63,6 +64,7 @@ fun PantallaBaseRelator(
             ) {
                 composable("paginaRelator") {
                     RelatorScreen(
+                        idUsuario = idUsuario,
                         onReservas = { tabNavController.navigate("reservas") },
                         onBuscarSala = { tabNavController.navigate("salasRelator")},
                         onCalendario = { tabNavController.navigate("calendarioRelator")},
@@ -103,6 +105,7 @@ fun PantallaBaseRelator(
                 }
                 composable("reservas") {
                     ReservasScreen(
+                        idUsuario = idUsuario,
                         onAtras = { tabNavController.navigate("paginaRelator")},
                         onEnviar = { tabNavController.navigate("paginaRelator")},
                         onRegistrarAuditoria = onRegistrarAuditoria

@@ -21,7 +21,7 @@ class LoginViewModel(
     fun iniciarSesion(correo: String,
                       contrasena: String,
                       rolUsuario: RolUsuario,
-                      onIniciarSesion: () -> Unit) {
+                      onIniciarSesion: (Long) -> Unit) {
         viewModelScope.launch {
             _estaCargando.value = true
             _mensajeError.value = null
@@ -33,7 +33,7 @@ class LoginViewModel(
             } else if (usuario.rol != rolUsuario.nombreMostrar) {
                 _mensajeError.value = "Este correo es ${usuario.rol}"
             } else {
-                onIniciarSesion()
+                onIniciarSesion(usuario.idUsuario)
             }
 
             _estaCargando.value = false
