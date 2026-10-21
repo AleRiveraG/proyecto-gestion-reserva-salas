@@ -27,6 +27,10 @@ interface ReservaDao {
     @Query("SELECT COUNT(*) FROM reserva WHERE estado = 'PENDIENTE'")
     suspend fun obtenerPendientes(): Int
 
+    // Notificaciones: nuevas solicitudes
+    @Query("SELECT * FROM reserva WHERE estado = 'PENDIENTE'")
+    fun observarReservasPendientes(): Flow<List<ReservaEntity>>
+
     @Query("SELECT * FROM reserva WHERE salaId = :salaId")
     suspend fun obtenerReservasPorSala(salaId: Long): List<ReservaEntity>
 
@@ -37,44 +41,42 @@ interface ReservaDao {
     @Query("SELECT * FROM reserva WHERE id = :id LIMIT 1")
     suspend fun obtenerReservaPorId(id: Long): ReservaEntity?
 
-    // Obtener reservas aprobadas
-    @Query("SELECT * FROM reserva WHERE estado = 'APROBADA'")
-    suspend fun obtenerReservasAprobadas(): List<ReservaEntity>
-
-    // Observar reservas aprobadas para recordatorios
+    // Recordatorios: cambios en reservas aprobadas
     @Query("SELECT * FROM reserva WHERE estado = 'APROBADA'")
     fun observarReservasAprobadas(): Flow<List<ReservaEntity>>
 
-    // Observar aprobaciones y rechazos para notificaciones
+    // Notificaciones: aprobaciones y rechazos
     @Query("""
         SELECT * FROM reserva
         WHERE estado IN ('APROBADA', 'RECHAZADA')
     """)
     fun observarReservasResueltas(): Flow<List<ReservaEntity>>
 
-    // Consultar reservas de una sala (main)
+    // Uso de Sala: consultar reservas aprobadas
+    @Query("SELECT * FROM reserva WHERE estado = 'APROBADA'")
+    suspend fun obtenerReservasAprobadas(): List<ReservaEntity>
+
+    // Consultar reservas de una sala
     @Query("SELECT * FROM reserva WHERE salaId = :salaId")
     suspend fun obtenerReservasPorSalas(salaId: Long): List<ReservaEntity>
 
-    @Query
-        ("""
+    // Uso de Sala: reservas aprobadas del relator
+    @Query("""
         SELECT * FROM reserva
         WHERE LOWER(TRIM(correoResponsable)) = LOWER(TRIM(:correo))
-        AND estado = 'APROBADA'
+          AND estado = 'APROBADA'
         ORDER BY fechaActividad ASC, horaInicio ASC
-        """)
-
+    """)
     suspend fun obtenerReservasAprobadasPorCorreo(
         correo: String
     ): List<ReservaEntity>
 
-    @Query
-        ("""
-    UPDATE reserva
-    SET estado = 'CANCELADA'
-    WHERE id = :reservaId
-      AND estado = 'APROBADA'
+    // Uso de Sala: cancelar una reserva aprobada
+    @Query("""
+        UPDATE reserva
+        SET estado = 'CANCELADA'
+        WHERE id = :reservaId
+          AND estado = 'APROBADA'
     """)
-
     suspend fun cancelarReservaAprobada(reservaId: Long): Int
 }

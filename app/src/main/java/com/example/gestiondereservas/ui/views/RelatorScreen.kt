@@ -98,6 +98,7 @@ fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
         reservas)
 }
 
+
 @Composable
 private fun Contenido(
     nombreUsuario: String,

@@ -443,11 +443,14 @@ fun reserva(reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.secondary
         ) {
-            detalleSolicitud(onCerrar = { mostrarModal = false },
-                reserva,
-                onAprobar,
-                onRechazar,
-                sala)
+            detalleSolicitud(
+                onCerrar = { mostrarModal = false },
+                reserva = reserva,
+                onAprobar = onAprobar,
+                onRechazar = onRechazar,
+                soloLectura = false,
+                sala = sala
+            )
         }
     }
 }
@@ -556,11 +559,15 @@ fun etiquetaEstado(estado: String) {
 }
 
 @Composable
-fun detalleSolicitud(onCerrar: () -> Unit,
-                     reserva: ReservaEntity,
-                     onAprobar: (Long) -> Unit,
-                     onRechazar: (Long) -> Unit,
-                     sala: SalaEntity?) {
+fun detalleSolicitud(
+    onCerrar: () -> Unit,
+    reserva: ReservaEntity,
+    onAprobar: (Long) -> Unit,
+    onRechazar: (Long) -> Unit,
+    soloLectura: Boolean = false,
+    sala: SalaEntity? = null
+) {
+    val scope = rememberCoroutineScope()
 
     Column(modifier = Modifier.padding(16.dp)) {
         Row(
@@ -608,6 +615,8 @@ fun detalleSolicitud(onCerrar: () -> Unit,
         Spacer(modifier = Modifier.height(12.dp))
 
         servicios(reserva)
+
+        if (!soloLectura && reserva.estado == EstadoReserva.PENDIENTE) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -666,6 +675,8 @@ fun detalleSolicitud(onCerrar: () -> Unit,
                 )
             }
         }
+
+        }
     }
 }
 
@@ -673,9 +684,13 @@ fun detalleSolicitud(onCerrar: () -> Unit,
 fun servicios(reserva: ReservaEntity) {
     val servicios = reserva.servicios
 
+    if (servicios.isBlank()) return
+
     servicios.split("; ").forEach { area ->
+        if (area.isBlank()) return@forEach
 
         val partes = area.split(": ")
+        if (partes.size < 2) return@forEach
 
         val categoria = partes[0]
         val opciones = partes[1].split(",")

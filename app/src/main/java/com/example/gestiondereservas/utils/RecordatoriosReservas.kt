@@ -26,21 +26,31 @@ object RecordatoriosReservas {
 
     fun programar(context: Context, reserva: ReservaEntity) {
 
-        val inicio = obtenerFechaHora(reserva) ?: return
+        val inicio = obtenerFechaHora(reserva)
 
-        val momentoAviso = inicio.minusHours(1)
-        val ahora = LocalDateTime.now()
-
-        if (!momentoAviso.isAfter(ahora)) {
+        if (inicio == null) {
             cancelar(context, reserva.id)
             return
         }
 
-        val demora = Duration.between(ahora, momentoAviso).toMillis()
+        val momentoAviso = inicio.minusHours(1)
+        val ahora = LocalDateTime.now()
+
+        if (!inicio.isAfter(ahora)) {
+            cancelar(context, reserva.id)
+            return
+        }
+
+        // Si faltan menos de 60 minutos, avisar inmediatamente.
+        val demora = if (momentoAviso.isAfter(ahora)) {
+            Duration.between(ahora, momentoAviso).toMillis()
+        } else {
+            0L
+        }
 
         val datos = Data.Builder()
             .putLong("reservaId", reserva.id)
-            .putString("titulo", "Tu actividad comienza en 1 hora")
+            .putString("titulo", if (demora == 0L) "Tu actividad comienza pronto" else "Tu actividad comienza en 1 hora")
             .putString(
                 "mensaje",
                 "${reserva.nombreActividad} comienza a las ${reserva.horaInicio}"
@@ -51,6 +61,7 @@ object RecordatoriosReservas {
             .setInitialDelay(demora, TimeUnit.MILLISECONDS)
             .setInputData(datos)
             .addTag("recordatorios_reservas")
+            .addTag("reserva_id_${reserva.id}")
             .build()
 
         WorkManager.getInstance(context).enqueueUniqueWork(

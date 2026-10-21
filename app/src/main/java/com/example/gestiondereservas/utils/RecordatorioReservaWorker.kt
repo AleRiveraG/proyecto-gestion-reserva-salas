@@ -1,6 +1,8 @@
 package com.example.gestiondereservas.utils
 
+import android.Manifest
 import android.content.Context
+import androidx.annotation.RequiresPermission
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.gestiondereservas.data.room.AppDatabase
@@ -11,6 +13,7 @@ class RecordatorioReservaWorker(
     params: WorkerParameters
 ) : CoroutineWorker(context, params) {
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override suspend fun doWork(): Result {
         return try {
             val reservaId = inputData.getLong("reservaId", -1L)

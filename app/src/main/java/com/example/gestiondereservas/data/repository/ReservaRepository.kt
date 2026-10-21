@@ -37,7 +37,7 @@ class ReservaRepository(
         return salaDao.obtenerSalas()
     }
 
-    suspend fun obtenerSalaPorId(id: Long): SalaEntity{
+    suspend fun obtenerSalaPorId(id: Long): SalaEntity? {
         return salaDao.obtenerSalaPorId(id)
     }
 

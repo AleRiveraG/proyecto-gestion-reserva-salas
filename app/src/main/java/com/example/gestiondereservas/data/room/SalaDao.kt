@@ -69,6 +69,6 @@ interface SalaDao {
     suspend fun obtenerSalas(): List<SalaEntity>
 
     @Query("SELECT * FROM salas WHERE id = :id")
-    suspend fun obtenerSalaPorId(id: Long): SalaEntity
+    suspend fun obtenerSalaPorId(id: Long): SalaEntity?
 
 }

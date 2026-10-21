@@ -12,5 +12,6 @@ data class NotificacionEntity(
     val tipo: String,
     val esSupervisor: Boolean,
     val leida: Boolean = false,
-    val reservaId: Long? = null
+    val reservaId: Long? = null,
+    val correoDestinatario: String? = null
 )

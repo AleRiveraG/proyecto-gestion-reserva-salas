@@ -92,8 +92,11 @@ fun rememberFormularioHorarioViewModel(
                 FormularioHorarioViewModel(repository,
                     horarioId,
                     salaInicialId,
-                    diaInicial?.let { nombre -> runCatching { DiaSemana.valueOf(nombre) }.getOrNull() },
-                    inicioInicialMin)
+                    diaInicial?.let { nombre ->
+                        runCatching { DiaSemana.valueOf(nombre) }.getOrNull()
+                    },
+                    inicioInicialMin
+                )
             }
         }
     )

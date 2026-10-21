@@ -1,11 +1,6 @@
 package com.example.gestiondereservas.ui.views
 
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -87,6 +82,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.Locale
 import kotlin.collections.listOf
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
 
 @Composable
 fun rememberReservaViewModel(): ReservaViewModel {
@@ -119,6 +119,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var tipoActividad by remember { mutableStateOf("") }
     var tieneValidacion by remember { mutableStateOf("") }
     var organizador by remember { mutableStateOf("") }
+
     var fechaActividad by remember { mutableStateOf("") }
     var horaInicio by remember { mutableStateOf("") }
     var horaTermino by remember { mutableStateOf("") }
