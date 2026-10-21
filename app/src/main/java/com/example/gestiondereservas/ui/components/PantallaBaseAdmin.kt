@@ -113,7 +113,7 @@ fun PantallaBaseAdmin(
         topBar = {
             TopBar(
                 onNotificacionesClick = {
-                    navController.navigate("notificaciones/true")
+                    tabNavController.navigate("notificaciones/true")
                 },
                 onCerrarSesion = onCerrarSesion,
                 tieneNotificacionesSinLeer = tieneSinLeer
