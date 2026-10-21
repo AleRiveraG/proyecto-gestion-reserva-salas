@@ -30,9 +30,8 @@ fun PantallaBaseRelator(
     idUsuario: Long,
     onRegistrarAuditoria: (AuditoriaEntity) -> Unit = {},
     abrirReservas: Boolean = false,
-    onCerrarSesion: () -> Unit = {},
-    appState: AppState,
-    onMiActividad: ((Long) -> Unit) -> Unit = {}
+    onCerrarSesion: () -> Unit,
+    appState: AppState
 ) {
     val contexto = LocalContext.current
     val tabNavController = rememberNavController()
@@ -88,10 +87,8 @@ fun PantallaBaseRelator(
                         onCalendario = {
                             tabNavController.navigate("calendarioRelator")
                         },
-                        onActividad = {
-                            onMiActividad { reservaId ->
-                                tabNavController.navigate("usoSala/$reservaId")
-                            }
+                        onActividad = { reservaId ->
+                            tabNavController.navigate("usoSala/$reservaId")
                         }
                     )
                 }
@@ -134,10 +131,9 @@ fun PantallaBaseRelator(
                 composable("reservas") {
                     ReservasScreen(
                         idUsuario = idUsuario,
-                        onAtras = { tabNavController.navigate("paginaRelator")},
+                        onAtras = { tabNavController.navigate("calendarioSupervisor")},
                         onEnviar = { tabNavController.navigate("paginaRelator")},
                         onRegistrarAuditoria = onRegistrarAuditoria
-                    // TIENE QUE DEVOLVER A CALENDARIO
                     )
                 }
 

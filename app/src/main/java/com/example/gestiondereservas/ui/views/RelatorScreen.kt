@@ -1,6 +1,7 @@
 package com.example.gestiondereservas.ui.views
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -80,7 +81,7 @@ fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                   onReservas: () -> Unit,
                   onBuscarSala: () -> Unit,
                   onCalendario: () -> Unit,
-                  onActividad: () -> Unit)
+                  onActividad: (Long) -> Unit)
 {
     val reservas by viewModel.reservas.collectAsState()
     val usuario by usuarioViewModel.usuario.collectAsState()
@@ -101,7 +102,7 @@ fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
 private fun Contenido(
     nombreUsuario: String,
     onReservas: () -> Unit,
-    onActividad: () -> Unit,
+    onActividad: (Long) -> Unit,
     onCalendario: () -> Unit,
     onBuscarSala: () -> Unit,
     reservas: List<ReservaEntity>
@@ -146,7 +147,8 @@ private fun Contenido(
                 modifier = Modifier.fillMaxSize()
             ) {
                 reservas.forEach { reserva ->
-                    infoReserva(reserva)
+                    infoReserva(onActividad = { onActividad(reserva.id) },
+                        reserva = reserva)
                 }
             }
         }
@@ -154,13 +156,13 @@ private fun Contenido(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        accesosDirectos(onBuscarSala, onCalendario, onReservas, onActividad)
+        accesosDirectos(onBuscarSala, onCalendario, onReservas)
     }
 }
 
 
 @Composable
-fun infoReserva(
+fun infoReserva(onActividad: (Long) -> Unit,
                 reserva: ReservaEntity) {
     var checked by remember { mutableStateOf(false) }
 
@@ -169,6 +171,7 @@ fun infoReserva(
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.primary)
+            .clickable(onClick = { onActividad(reserva.id) })
     ){
         Column(
             modifier = Modifier.padding(16.dp)
@@ -304,8 +307,8 @@ fun infoReserva(
 @Composable
 private fun accesosDirectos(onBuscarSala: () -> Unit,
                             onCalendario: () -> Unit,
-                            onReservas: () -> Unit,
-                            onActividad: () -> Unit) {
+                            onReservas: () -> Unit
+) {
     Text("Accesos directos",
         color = MaterialTheme.colorScheme.primary,
         fontSize = 20.sp,
@@ -381,28 +384,6 @@ private fun accesosDirectos(onBuscarSala: () -> Unit,
             Spacer(modifier = Modifier.height(4.dp))
 
             Text("Reservar",
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 12.sp)
-        }
-
-        Column(verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            IconButton(onClick = { onActividad() },
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFF5F5F5)
-                    )) {
-                Icon(
-                    painter = painterResource(R.drawable.clock),
-                    contentDescription = "Icono reloj",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text("Mi actividad",
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 12.sp)
         }

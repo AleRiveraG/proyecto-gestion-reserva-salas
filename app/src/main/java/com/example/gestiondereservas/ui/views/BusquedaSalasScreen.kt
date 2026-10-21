@@ -135,11 +135,18 @@ private fun Contenido(uiState: SalasUiState,
                 containerColor = MaterialTheme.colorScheme.tertiary
             )
             ) {
-            Row() {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
                 Icon(
                     painter = painterResource(R.drawable.search),
-                    contentDescription = "Icono busqueda"
+                    contentDescription = "Icono busqueda",
+                    tint = MaterialTheme.colorScheme.primary
                 )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
                 Text("Buscar salas",
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold)
@@ -211,7 +218,9 @@ fun barraBusqueda(texto: String,
         value = texto,
         onValueChange = onTextoChange,
         singleLine = true,
-        placeholder = { Text("Búsqueda por código o nombre de sala", fontSize = 12.sp) },
+        placeholder = { Text("Búsqueda por código o nombre de sala",
+            color = MaterialTheme.colorScheme.secondary.copy(0.75f),
+            fontSize = 12.sp) },
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.search),

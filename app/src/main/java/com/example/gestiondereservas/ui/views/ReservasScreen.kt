@@ -1213,7 +1213,8 @@ fun campoTexto(titulo: String,
                mensajeError: String
 ) {
     Text(text = titulo,
-        color = MaterialTheme.colorScheme.primary)
+        color = MaterialTheme.colorScheme.primary,
+        fontSize = 14.sp)
 
     Spacer(modifier = Modifier.height(8.dp))
 
@@ -1240,7 +1241,8 @@ fun campoTexto(titulo: String,
 @Composable
 fun campoDescripcion(titulo: String, variable: String, onValorChange: (String) -> Unit) {
     Text(text = titulo,
-        color = MaterialTheme.colorScheme.primary)
+        color = MaterialTheme.colorScheme.primary,
+        fontSize = 14.sp)
 
     Spacer(modifier = Modifier.height(8.dp))
 
@@ -1273,7 +1275,8 @@ fun tipoActividad(titulo: String, opcion: String, onOpcionChange: (String) -> Un
     )
     Column {
         Text(text = titulo,
-            color = MaterialTheme.colorScheme.primary)
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 14.sp)
     }
 
     Spacer(modifier = Modifier.height(8.dp))
@@ -1328,7 +1331,8 @@ fun tieneAutorizacion(titulo: String, opcion: String, onTieneAutorizacionChange:
     Column{
         Text(
             text = titulo,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 14.sp
         )
     }
 
@@ -1392,7 +1396,8 @@ fun menuEscuelas(titulo: String, opcion: String, onOrganizadorChange: (String) -
     Column {
         Text(
             text = titulo,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 14.sp
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -1450,7 +1455,9 @@ fun recinto(titulo: String, listaSalas: List<SalaEntity>, onRecintoChange: (Long
 
     Column {
         Text(text = titulo,
-            color = MaterialTheme.colorScheme.primary)
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 14.sp
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -1524,7 +1531,7 @@ fun seleccionarFecha(titulo: String, fecha:String, onFechaChange: (String) -> Un
         Text(
             text = titulo,
             color = MaterialTheme.colorScheme.primary,
-            fontSize = 15.sp
+            fontSize = 14.sp
         )
 
         Box(
@@ -1564,7 +1571,7 @@ fun seleccionarFecha(titulo: String, fecha:String, onFechaChange: (String) -> Un
                             }
                         ) {
                             Text("Aceptar",
-                                color = MaterialTheme.colorScheme.secondary)
+                                color = MaterialTheme.colorScheme.primary)
                         }
                     },
                     dismissButton = {
@@ -1572,9 +1579,9 @@ fun seleccionarFecha(titulo: String, fecha:String, onFechaChange: (String) -> Un
                             onClick = { mostrar = false }
                         ) {
                             Text("Cancelar",
-                                color = MaterialTheme.colorScheme.secondary)
+                                color = MaterialTheme.colorScheme.primary)
                         }
-                    }
+                    },
                 ) {
                     DatePicker(state = datePickerState)
                 }
@@ -1591,7 +1598,7 @@ fun seleccionarHora(titulo: String, hora: String, onHoraChange: (String) -> Unit
     Column{
         Text(text = titulo,
             color = MaterialTheme.colorScheme.primary,
-            fontSize = 15.sp)
+            fontSize = 14.sp)
 
         Box(
             modifier = Modifier.fillMaxWidth()
@@ -1643,13 +1650,13 @@ fun seleccionarHora(titulo: String, hora: String, onHoraChange: (String) -> Unit
                     }
                     ) {
                         Text("Aceptar",
-                            color = MaterialTheme.colorScheme.secondary)
+                            color = MaterialTheme.colorScheme.primary)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { mostrar = false }) {
                         Text("Cancelar",
-                            color = MaterialTheme.colorScheme.secondary)
+                            color = MaterialTheme.colorScheme.primary)
                     }
                 }
             )
@@ -1668,8 +1675,9 @@ fun publico(titulo: String, publicoSeleccionado: Set<String>, onPublicoChange: (
     )
 
     Column {
-        Text(text = titulo  ,
-            color = MaterialTheme.colorScheme.primary)
+        Text(text = titulo,
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 14.sp)
     }
 
     Spacer(modifier = Modifier.height(8.dp))
@@ -1731,7 +1739,8 @@ fun necesitaForm(opcion: String, onOpcionChange: (String) -> Unit){
     Column{
         Text(
             "¿Requiere formulario de inscripción de público asistente?",
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
+            fontSize = 14.sp
         )
     }
 
@@ -1778,7 +1787,8 @@ fun necesitaForm(opcion: String, onOpcionChange: (String) -> Unit){
 @Composable
 fun nombres(nombres: String, onNombresChange: (String) -> Unit){
     Text("Especifique nombres de expositores, charlistas, y autoridades invitadas, internas y externas",
-        color = MaterialTheme.colorScheme.primary)
+        color = MaterialTheme.colorScheme.primary,
+        fontSize = 14.sp)
 
     Spacer(modifier = Modifier.height(8.dp))
 
@@ -1858,7 +1868,9 @@ fun menuOpciones(titulo: String,
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = titulo, color = MaterialTheme.colorScheme.primary)
+            Text(text = titulo,
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 14.sp)
 
             Spacer(modifier = Modifier.height(8.dp))
 

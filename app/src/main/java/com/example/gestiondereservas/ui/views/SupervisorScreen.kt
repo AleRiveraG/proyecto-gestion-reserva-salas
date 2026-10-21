@@ -15,7 +15,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -93,6 +95,7 @@ private fun Contenido(nombreUsuario: String,
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.secondary)
             .padding(16.dp)
+            .verticalScroll(rememberScrollState())
     ) {
         Text(text = formatearFecha(),
             fontSize = 12.sp,
@@ -223,22 +226,38 @@ fun reservasPendientes(reserva: ReservaEntity,
 
                Column(
                    modifier = Modifier.weight(1f)
+                       .fillMaxHeight()
                ) {
                    etiquetaOrganizador(reserva.organizador)
+
+                   Spacer(modifier = Modifier.height(4.dp))
+
                    Text(
                        reserva.nombreActividad,
                        color = MaterialTheme.colorScheme.primary,
-                       fontSize = 14.sp)
+                       fontSize = 14.sp,
+                       fontWeight = FontWeight.Bold)
+
+                   Spacer(modifier = Modifier.height(4.dp))
 
                    Text(
-                       reserva.nombreResponsable,
+                       "Encargado/a: ${reserva.nombreResponsable}",
                        color = Color(0xFF3B3B3B),
                        fontSize = 12.sp)
-                   Row {
+
+                   Spacer(modifier = Modifier.height(2.dp))
+
+                   Row (
+                       verticalAlignment = Alignment.CenterVertically
+                   ){
                        Icon(
                            painter = painterResource(R.drawable.calendar_alt),
-                           contentDescription = "Icono calendario"
+                           contentDescription = "Icono calendario",
+                           modifier = Modifier.size(15.dp)
                        )
+
+                       Spacer(modifier = Modifier.width(4.dp))
+
                        Text(
                            "${reserva.fechaActividad} - ${reserva.horaInicio}",
                            color = Color(0xFF3B3B3B),

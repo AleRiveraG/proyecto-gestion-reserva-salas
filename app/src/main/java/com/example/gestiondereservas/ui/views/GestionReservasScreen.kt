@@ -514,7 +514,15 @@ fun etiquetaOrganizador(organizador: String){
                 modifier = Modifier.padding(start = 8.dp),
                 fontWeight = FontWeight.Bold)
             Text(
-                text = organizador,
+                text = if (organizador == "Informática y Telecomunicaciones") "Informática"
+                else if (organizador == "Administración y Negocios") "Negocios"
+                else if (organizador == "Comunicación") "Comunicación"
+                else if (organizador == "Construcción") organizador
+                else if (organizador == "Diseño") organizador
+                else if (organizador == "Gastronomía") organizador
+                else if (organizador == "Ingeniería y Recursos Naturales") "Ingeniería, RN"
+                else if (organizador == "Salud y Bienestar") "Salud"
+                else "Turismo",
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(start = 4.dp, end = 8.dp),

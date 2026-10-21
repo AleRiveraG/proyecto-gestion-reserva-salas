@@ -18,20 +18,17 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = Yellow
 )
 
-private val LightColorScheme = lightColorScheme(
+private val EsquemaDuoc = lightColorScheme(
     primary = Black,
+    onPrimary = White,
     secondary = White,
-    tertiary = Yellow
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    onSecondary = Black,
+    tertiary = Yellow,
+    onTertiary = Black,
+    background = White,
+    onBackground = Black,
+    surface = White,
+    onSurface = Black
 )
 
 @Composable
@@ -40,22 +37,8 @@ fun GestionDeReservasTheme(
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    /*
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme  //Utiliza los mismos colores negro-blanco-amarillo
-    }
-    */
-
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = EsquemaDuoc,
         typography = Typography(),
         content = content
     )

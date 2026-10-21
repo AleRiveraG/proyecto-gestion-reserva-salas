@@ -67,7 +67,7 @@ fun PantallaBaseAdmin(
     idUsuario: Long,
     auditoriaViewModel: AuditoriaViewModel,
     onRegistrarAuditoria: (AuditoriaEntity) -> Unit,
-    onCerrarSesion: () -> Unit = {}
+    onCerrarSesion: () -> Unit
 ) {
     val tabNavController = rememberNavController()
 

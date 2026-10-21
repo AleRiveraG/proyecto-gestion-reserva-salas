@@ -24,7 +24,7 @@ import androidx.compose.material.icons.filled.Logout
 
 fun TopBar(
     onNotificacionesClick: () -> Unit = {},
-    onCerrarSesion: () -> Unit = {}
+    onCerrarSesion: () -> Unit
 ) {
 
     TopAppBar(
@@ -62,7 +62,6 @@ fun TopBar(
 
         actions = {
             Row {
-
                 Box(
                     modifier = Modifier
                         .size(40.dp)
@@ -72,7 +71,6 @@ fun TopBar(
 
                     contentAlignment = Alignment.Center
                 ) {
-
 
                     Icon(
                         imageVector = Icons.Default.Notifications,

@@ -66,40 +66,7 @@ object DatosPruebaUsuariosReservas {
             servicios = "comunicaciones: Registro de Fotos & Videos; digitales: Microfonos, Streaming",
             complementos = "Mesa para expositores"
         ),
-        // PENDIENTE esta la ve el coordinador para aprovar o rechazar
-        SemillaReserva(
-            codigoSala = "C204",
-            estado = EstadoReserva.PENDIENTE,
-            nombreActividad = "Taller de Ciberseguridad",
-            descripcion = "Taller práctico de introducción a ciberseguridad para estudiantes de Informática.",
-            tipoActividad = "Actividad Académica",
-            organizador = "Informática y Telecomunicaciones",
-            fecha = "28/10",
-            horaInicio = "14:00",
-            horaTermino = "16:00",
-            fechaMontaje = "",
-            horaMontaje = "",
-            publico = "Estudiantes",
-            servicios = "digitales: Proyección",
-            complementos = ""
-        ),
-        // RECHAZADA porque choca con la clase de los viernes 08:30-10:00 del Taller de Diseño de la sala D302
-        SemillaReserva(
-            codigoSala = "D302",
-            estado = EstadoReserva.RECHAZADA,
-            nombreActividad = "Exposición de Proyectos de Diseño",
-            descripcion = "Muestra de trabajos finales del semestre.",
-            tipoActividad = "Actividad Sede",
-            organizador = "Diseño",
-            fecha = "30/10",
-            horaInicio = "09:00",
-            horaTermino = "11:00",
-            fechaMontaje = "",
-            horaMontaje = "",
-            publico = "Estudiantes, Docentes, Administrativos",
-            servicios = "generales: Mesas Plegables",
-            complementos = "Paneles de exhibición"
-        )
+
     )
 
     // de aqui abajo en adelante es el encargado de insertar los datos si aun no existen

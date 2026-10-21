@@ -115,6 +115,11 @@ fun AppNavigation(navController: NavHostController, appState: AppState) {
                 onRegistrarAuditoria = { evento ->
                     auditoriaViewModel.registrarReserva(evento)
                 },
+                onCerrarSesion = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
                 appState = appState)
         }
 
@@ -128,6 +133,11 @@ fun AppNavigation(navController: NavHostController, appState: AppState) {
                 idUsuario,
                 onRegistrarAuditoria = { evento ->
                     auditoriaViewModel.registrarReserva(evento)
+                },
+                onCerrarSesion = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
                 },
                 auditoriaViewModel = auditoriaViewModel
             )

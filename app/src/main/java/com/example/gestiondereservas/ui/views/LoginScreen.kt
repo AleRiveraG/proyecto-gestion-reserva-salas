@@ -31,9 +31,11 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -251,6 +253,9 @@ fun LoginBody(
                         onClick = {
                             rolSeleccionado = rol
                         },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(0.5f)
+                        ),
                         label = { Text(rol.nombreMostrar) }
                     )
                 }
@@ -417,6 +422,9 @@ fun LoginBody(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(46.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary
+                ),
                 enabled = !estaCargando
             ) {
                 if (estaCargando) {
@@ -431,7 +439,8 @@ fun LoginBody(
                     Text(
                         text = "Ingresar",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -445,12 +454,16 @@ fun LoginBody(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(46.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
                 enabled = !estaCargando
             ) {
                 Text(
                     text = "Registrarse",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.secondary
                 )
             } }
 
@@ -466,7 +479,6 @@ fun LoginScreen(
     alNavegarARelator: (Long) -> Unit,
     alNavegarASupervisor: (Long) -> Unit
     ) {
-    var pantallaDestinoInterna by remember { mutableStateOf<String?>(null) }
 
     val estaCargando by viewModel.estaCargando.collectAsState()
     val mensajeErrorGeneral by viewModel.mensajeError.collectAsState()
@@ -477,7 +489,8 @@ fun LoginScreen(
         LoginBody(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .padding(16.dp),
             estaCargando = estaCargando,
             mensajeErrorGeneral = mensajeErrorGeneral,
             alHacerClicEnRegistrarse = alNavegarARegistro,

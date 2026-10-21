@@ -212,7 +212,7 @@ fun NotificacionesScreen(
     val pendientes = notificaciones.count { !it.leida }
 
     Scaffold(
-        topBar = { TopBar() },
+        topBar = {  },
         bottomBar = {
             NavBar(
                 inicial = 0,

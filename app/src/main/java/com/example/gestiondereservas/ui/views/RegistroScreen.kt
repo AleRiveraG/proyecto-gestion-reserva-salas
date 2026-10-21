@@ -30,9 +30,11 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -70,134 +72,6 @@ import com.example.gestiondereservas.R
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
 import com.example.gestiondereservas.utils.AnimacionRegistro
 
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-//Encabezado
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RegistroTopBar() {
-    TopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            titleContentColor = MaterialTheme.colorScheme.secondary
-        ),
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo),
-                    contentDescription = "Logo Duoc Uc",
-                    modifier = Modifier.size(100.dp),
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text("Reserva", color = MaterialTheme.colorScheme.secondary)
-                Text("Salas", color = MaterialTheme.colorScheme.tertiary)
-            }
-        },
-        actions = {
-            Row() {
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF3B3B3B))
-                        .clickable {},
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.bell),
-                        contentDescription = "Icono notificaciones",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF3B3B3B))
-                        .clickable {},
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.user_circle),
-                        contentDescription = "Icono usuario",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-            }
-        }
-    )
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-//Pie de página
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-
-@Composable
-fun RegistroNavBar() {
-    var seleccion by remember { mutableIntStateOf(0) }
-
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.primary
-    ) {
-        NavigationBarItem(
-            selected = seleccion == 0,
-            onClick = { seleccion = 0 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.home),
-                    contentDescription = "Icono inicio"
-                )
-            },
-            label = { Text("Inicio") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-        NavigationBarItem(
-            selected = seleccion == 1,
-            onClick = { seleccion = 1 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.calendar),
-                    contentDescription = "Icono calendario"
-                )
-            },
-            label = { Text("Calendario") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-        NavigationBarItem(
-            selected = seleccion == 2,
-            onClick = { seleccion = 2 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.door),
-                    contentDescription = "Icono puerta"
-                )
-            },
-            label = { Text("Salas") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-    }
-}
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -382,7 +256,10 @@ fun RegistroBody(
                 FilterChip(
                     selected = rolSeleccionado == rol,
                     onClick = { rolSeleccionado = rol },
-                    label = { Text(rol.nombreMostrar) }
+                    label = { Text(rol.nombreMostrar) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(0.5f)
+                    )
                 )
             }
         }
@@ -644,6 +521,9 @@ fun RegistroBody(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.tertiary
+            ),
             enabled = !estaCargando
         ) {
             if (estaCargando) {
@@ -658,7 +538,8 @@ fun RegistroBody(
                 Text(
                     text = "Registrarse",
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -673,8 +554,6 @@ fun RegistroScreen(
     alRegistrarExitoso: (nombre: String, correo: String, password: String, rol: RolRegistroUsuario) -> Unit
 ) {
     Scaffold(
-        topBar = { RegistroTopBar() },
-        bottomBar = { RegistroNavBar() }
     ) { paddingValues ->
         RegistroBody(
             modifier = Modifier
