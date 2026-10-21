@@ -152,6 +152,7 @@ fun FormularioSalaScreen(
 
     LaunchedEffect(estado.guardada) {
         if (estado.guardada) {
+            onRegistrarAuditoria(crearAuditoria())
             delay(2400)
             onVolver()
         }

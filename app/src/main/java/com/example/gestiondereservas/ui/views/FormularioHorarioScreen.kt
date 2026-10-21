@@ -143,6 +143,7 @@ fun FormularioHorarioScreen(
 
     LaunchedEffect(estado.guardado) {
         if (estado.guardado) {
+            onRegistrarAuditoria(crearAuditoria("Se creo un horario"))
             delay(2400)
             onVolver()
         }
