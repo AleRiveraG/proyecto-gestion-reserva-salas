@@ -138,6 +138,9 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var responsableError by remember { mutableStateOf(false) }
     var telefonoError by remember { mutableStateOf(false) }
     var correoError by remember { mutableStateOf(false) }
+    var menuTipoActividadError by remember { mutableStateOf(false) }
+    var menuTieneValidacionError by remember { mutableStateOf(false) }
+    var menuAreaError by remember { mutableStateOf(false) }
 
     fun crearReserva(): ReservaEntity {
         return ReservaEntity(
@@ -210,13 +213,19 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             responsableError,
             telefonoError,
             correoError,
+            menuTipoActividadError,
+            menuTieneValidacionError,
+            menuAreaError,
             onAtras = { onAtras() },
             onSiguiente = {
                 nombreError = !ValidacionesReserva.validarTexto(nombre)
                 responsableError = !ValidacionesReserva.validarTexto(responsable)
                 correoError = !ValidacionesReserva.correoValido(correo)
                 telefonoError = !ValidacionesReserva.validarTelefono(telefono)
-                if(!nombreError && !responsableError && !correoError && !telefonoError) {
+                menuAreaError = !ValidacionesReserva.validarMenu(organizador)
+                menuTipoActividadError = !ValidacionesReserva.validarMenu(tipoActividad)
+                menuTieneValidacionError = !ValidacionesReserva.validarMenu(tieneValidacion)
+                if(!nombreError && !responsableError && !correoError && !telefonoError && !menuAreaError && !menuTipoActividadError && !menuTieneValidacionError) {
                     paso = 2
                 }
             }
@@ -285,6 +294,9 @@ fun ContentPaso1(nombre: String,
                  responsableError: Boolean,
                  telefonoError: Boolean,
                  correoError: Boolean,
+                 menuAreaError: Boolean,
+                 menuTipoActividadError: Boolean,
+                 menuTieneValidacionError: Boolean,
                  onAtras: () -> Unit,
                  onSiguiente: () -> Unit ) {
     Column(
@@ -444,11 +456,11 @@ fun ContentPaso1(nombre: String,
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                tipoActividad("Tipo de actividad *", actividad, onActividadChange)
+                tipoActividad("Tipo de actividad *", actividad, onActividadChange, menuTipoActividadError)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                tieneAutorizacion("¿Tu actividad tiene la validación de la dirección de la sede o de la subdirección de tu área?", tieneAutorizacion, onTieneAutorizacionChange)
+                tieneAutorizacion("¿Tu actividad tiene la validación de la dirección de la sede o de la subdirección de tu área?", tieneAutorizacion, onTieneAutorizacionChange, menuTieneValidacionError)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -491,7 +503,7 @@ fun ContentPaso1(nombre: String,
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                menuEscuelas("Área o Escuela que organiza la actividad", organizador, onOrganizadorChange)
+                menuEscuelas("Área o Escuela que organiza la actividad", organizador, onOrganizadorChange, menuAreaError)
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -1264,7 +1276,11 @@ fun campoDescripcion(titulo: String, variable: String, onValorChange: (String) -
 }
 
 @Composable
-fun tipoActividad(titulo: String, opcion: String, onOpcionChange: (String) -> Unit) {
+fun tipoActividad(titulo: String,
+                  opcion: String,
+                  onOpcionChange: (String) -> Unit,
+                  menuTipoActividadError: Boolean
+) {
     val opciones = listOf(
         "",
         "Ceremonia Institucional",
@@ -1307,22 +1323,34 @@ fun tipoActividad(titulo: String, opcion: String, onOpcionChange: (String) -> Un
                     selectedLabelColor = MaterialTheme.colorScheme.primary,
                     selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
                     containerColor = MaterialTheme.colorScheme.secondary,
-                    labelColor = Color(0xFF4B5563)
+                    labelColor =  if(menuTipoActividadError) MaterialTheme.colorScheme.error else Color(0xFF4B5563)
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isSelected,
-                    borderColor = Color(0xFFE5E7EB),
+                    borderColor = if(menuTipoActividadError) MaterialTheme.colorScheme.error else Color(0xFFE5E7EB),
                     selectedBorderColor = MaterialTheme.colorScheme.tertiary
                 ),
                 shape = RoundedCornerShape(12.dp)
             )
         }
     }
+
+    if(menuTipoActividadError) {
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text("Seleccione una opción",
+            color = MaterialTheme.colorScheme.error,
+            fontSize = 10.sp
+        )
+    }
 }
 
 @Composable
-fun tieneAutorizacion(titulo: String, opcion: String, onTieneAutorizacionChange: (String) -> Unit) {
+fun tieneAutorizacion(titulo: String,
+                      opcion: String,
+                      onTieneAutorizacionChange: (String) -> Unit,
+                      menuTieneValidacionError: Boolean) {
     val opciones = listOf(
         "",
         "Si",
@@ -1363,22 +1391,34 @@ fun tieneAutorizacion(titulo: String, opcion: String, onTieneAutorizacionChange:
                     selectedLabelColor = MaterialTheme.colorScheme.primary,
                     selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
                     containerColor = MaterialTheme.colorScheme.secondary,
-                    labelColor = Color(0xFF4B5563)
+                    labelColor = if(menuTieneValidacionError) MaterialTheme.colorScheme.error else Color(0xFF4B5563)
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isSelected,
-                    borderColor = Color(0xFFE5E7EB),
+                    borderColor = if(menuTieneValidacionError) MaterialTheme.colorScheme.error else Color(0xFFE5E7EB),
                     selectedBorderColor = MaterialTheme.colorScheme.tertiary
                 ),
                 shape = RoundedCornerShape(12.dp)
             )
         }
     }
+
+    if(menuTieneValidacionError) {
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text("Seleccione una opción",
+            color = MaterialTheme.colorScheme.error,
+            fontSize = 10.sp
+        )
+    }
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun menuEscuelas(titulo: String, opcion: String, onOrganizadorChange: (String) -> Unit) {
+fun menuEscuelas(titulo: String,
+                 opcion: String,
+                 onOrganizadorChange: (String) -> Unit,
+                 menuAreaError: Boolean) {
     val opciones = listOf(
         "",
         "Administración y Negocios",
@@ -1411,6 +1451,13 @@ fun menuEscuelas(titulo: String, opcion: String, onOrganizadorChange: (String) -
                 value = opcion,
                 onValueChange = { },
                 readOnly = true,
+                isError = menuAreaError,
+                supportingText = {
+                    if(menuAreaError) {
+                        Text("Seleccione una opción",
+                            color = MaterialTheme.colorScheme.error)
+                    }
+                },
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                 },
@@ -1421,8 +1468,8 @@ fun menuEscuelas(titulo: String, opcion: String, onOrganizadorChange: (String) -
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.primary,
                     unfocusedTextColor = MaterialTheme.colorScheme.primary,
-                    focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
-                    unfocusedTrailingIconColor = MaterialTheme.colorScheme.primary
+                    unfocusedContainerColor = Color(0xFFF5F5F5),
+                    focusedContainerColor = Color(0xFFF5F5F5)
                 )
             )
 

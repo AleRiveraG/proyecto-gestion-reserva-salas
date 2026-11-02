@@ -18,5 +18,9 @@ object ValidacionesReserva {
         return TELEFONO_REGEX.matches(telefono)
     }
 
+    fun validarMenu(opcion: String): Boolean {
+        return opcion.isNotBlank()
+    }
+
 }
 
