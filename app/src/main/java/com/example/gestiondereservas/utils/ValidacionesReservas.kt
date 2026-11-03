@@ -6,6 +6,8 @@ object ValidacionesReserva {
     private val TEXTO_REGEX = "^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$".toRegex()
     private val TELEFONO_REGEX = "^[0-9]{8,10}$".toRegex()
 
+    private val FECHASHORAS_REGEX = "^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9:/ ]+$".toRegex()
+
     fun correoValido(correo: String): Boolean {
         return correo.isNotBlank() && CORREO_REGEX.matches(correo)
     }
@@ -20,6 +22,18 @@ object ValidacionesReserva {
 
     fun validarMenu(opcion: String): Boolean {
         return opcion.isNotBlank()
+    }
+
+    fun validarMenuMultiple(opcion: Set<String>): Boolean {
+        return opcion.isNotEmpty()
+    }
+
+    fun validarSala(opcion: Long): Boolean {
+        return opcion != 0L
+    }
+
+    fun validarFechasHoras(opcion: String): Boolean {
+        return opcion.isNotBlank() && FECHASHORAS_REGEX.matches(opcion)
     }
 
 }

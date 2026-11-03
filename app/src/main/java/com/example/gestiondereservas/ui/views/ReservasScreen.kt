@@ -108,8 +108,11 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                    idUsuario: Long,
                    onAtras: () -> Unit,
                    onEnviar: () -> Unit,
-                   onRegistrarAuditoria: (AuditoriaEntity) -> Unit) {
+                   onRegistrarAuditoria: (AuditoriaEntity) -> Unit
+) {
     var paso by remember{ mutableIntStateOf(1)}
+    var validacionReactivaPaso1 by remember { mutableStateOf(false) }
+    var validacionReactivaPaso2 by remember { mutableStateOf(false) }
 
     var nombre by remember({mutableStateOf("")})
     var responsable by remember({mutableStateOf("")})
@@ -134,13 +137,23 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var complemento by remember { mutableStateOf("") }
     var proveedores by remember { mutableStateOf("")}
 
-    var nombreError by remember { mutableStateOf(false) }
-    var responsableError by remember { mutableStateOf(false) }
-    var telefonoError by remember { mutableStateOf(false) }
-    var correoError by remember { mutableStateOf(false) }
-    var menuTipoActividadError by remember { mutableStateOf(false) }
-    var menuTieneValidacionError by remember { mutableStateOf(false) }
-    var menuAreaError by remember { mutableStateOf(false) }
+    val nombreError = validacionReactivaPaso1 && !ValidacionesReserva.validarTexto(nombre)
+    val responsableError = validacionReactivaPaso1 && !ValidacionesReserva.validarTexto(responsable)
+    val telefonoError = validacionReactivaPaso1 && !ValidacionesReserva.validarTelefono(telefono)
+    val correoError = validacionReactivaPaso1 && !ValidacionesReserva.correoValido(correo)
+    val menuTipoActividadError = validacionReactivaPaso1 && !ValidacionesReserva.validarMenu(tipoActividad)
+    val menuTieneValidacionError = validacionReactivaPaso1 && !ValidacionesReserva.validarMenu(tieneValidacion)
+    val menuAreaError = validacionReactivaPaso1 && !ValidacionesReserva.validarMenu(organizador)
+    val menuRecintoError = validacionReactivaPaso2 && !ValidacionesReserva.validarSala(salaId)
+    val fechaActividadError = validacionReactivaPaso2 && !ValidacionesReserva.validarFechasHoras(fechaActividad)
+    val horaInicioError = validacionReactivaPaso2 && !ValidacionesReserva.validarFechasHoras(horaInicio)
+    val horaTerminoError = validacionReactivaPaso2 && !ValidacionesReserva.validarFechasHoras(horaTermino)
+    val fechaMontajeError = validacionReactivaPaso2 && !ValidacionesReserva.validarFechasHoras(fechaMontaje)
+    val horaMontajeError = validacionReactivaPaso2 && !ValidacionesReserva.validarFechasHoras(horaMontaje)
+    val publicoSeleccionadoError = validacionReactivaPaso2 && !ValidacionesReserva.validarMenuMultiple(publicoSelecionado)
+    val requiereFormError = validacionReactivaPaso2 && !ValidacionesReserva.validarMenu(requiereForm)
+    val nombresInvitadosError = validacionReactivaPaso2 && publicoSelecionado.contains("Externos") && !ValidacionesReserva.validarTexto(nombres)
+
 
     fun crearReserva(): ReservaEntity {
         return ReservaEntity(
@@ -218,14 +231,15 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             menuAreaError,
             onAtras = { onAtras() },
             onSiguiente = {
-                nombreError = !ValidacionesReserva.validarTexto(nombre)
-                responsableError = !ValidacionesReserva.validarTexto(responsable)
-                correoError = !ValidacionesReserva.correoValido(correo)
-                telefonoError = !ValidacionesReserva.validarTelefono(telefono)
-                menuAreaError = !ValidacionesReserva.validarMenu(organizador)
-                menuTipoActividadError = !ValidacionesReserva.validarMenu(tipoActividad)
-                menuTieneValidacionError = !ValidacionesReserva.validarMenu(tieneValidacion)
-                if(!nombreError && !responsableError && !correoError && !telefonoError && !menuAreaError && !menuTipoActividadError && !menuTieneValidacionError) {
+                validacionReactivaPaso1 = true
+
+                if(ValidacionesReserva.validarTexto(nombre) &&
+                    ValidacionesReserva.validarTexto(responsable) &&
+                    ValidacionesReserva.correoValido(correo) &&
+                    ValidacionesReserva.validarTelefono(telefono) &&
+                    ValidacionesReserva.validarMenu(organizador) &&
+                    ValidacionesReserva.validarMenu(tipoActividad) &&
+                    ValidacionesReserva.validarMenu(tieneValidacion)) {
                     paso = 2
                 }
             }
@@ -251,8 +265,33 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             listaSalas,
             nombres,
             { nombres = it },
-            onAtras = { paso = 1},
-            onSiguiente = { paso = 3}
+            menuRecintoError,
+            fechaActividadError,
+            horaInicioError,
+            horaTerminoError,
+            fechaMontajeError,
+            horaMontajeError,
+            publicoSeleccionadoError,
+            requiereFormError,
+            nombresInvitadosError,
+            onAtras = { paso = 1
+                      validacionReactivaPaso1 = false},
+            onSiguiente = {
+                validacionReactivaPaso2 = true
+
+                if(ValidacionesReserva.validarSala(salaId) &&
+                    ValidacionesReserva.validarFechasHoras(fechaActividad) &&
+                    ValidacionesReserva.validarFechasHoras(horaInicio) &&
+                    ValidacionesReserva.validarFechasHoras(horaTermino) &&
+                    ValidacionesReserva.validarFechasHoras(fechaMontaje) &&
+                    ValidacionesReserva.validarFechasHoras(horaMontaje) &&
+                    ValidacionesReserva.validarMenuMultiple(publicoSelecionado) &&
+                    ValidacionesReserva.validarMenu(requiereForm) &&
+                    (ValidacionesReserva.validarTexto(nombres) || !publicoSelecionado.contains("Externos"))
+                    ) {
+                    paso = 3
+                }
+            }
         )
         3 -> ContentPaso3(
             complemento,
@@ -261,7 +300,8 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             { proveedores = it },
             servicios,
             { categoria, nuevosServicios -> servicios = servicios + ( categoria to nuevosServicios)},
-            onAtras = { paso = 2 },
+            onAtras = { paso = 2
+                      validacionReactivaPaso2 = false},
             onEnviar = { paso = 4} )
         4 -> Final(onEnviar = { guardarReserva() },
             sala,
@@ -298,7 +338,8 @@ fun ContentPaso1(nombre: String,
                  menuTipoActividadError: Boolean,
                  menuTieneValidacionError: Boolean,
                  onAtras: () -> Unit,
-                 onSiguiente: () -> Unit ) {
+                 onSiguiente: () -> Unit
+) {
     Column(
         modifier = Modifier
             .background(Color(0xFFFFFFFF))
@@ -444,7 +485,7 @@ fun ContentPaso1(nombre: String,
                 .padding(24.dp)
         ) {
             Column {
-                campoTexto("Nombre de la actividad *",
+                CampoTexto("Nombre de la actividad *",
                     nombre,
                     onNombreChange,
                     nombreError,
@@ -452,19 +493,19 @@ fun ContentPaso1(nombre: String,
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                campoDescripcion("Descripción de la actividad", descripcion, onDescripcionChange)
+                CampoDescripcion("Descripción de la actividad", descripcion, onDescripcionChange)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                tipoActividad("Tipo de actividad *", actividad, onActividadChange, menuTipoActividadError)
+                TipoActividad("Tipo de actividad *", actividad, onActividadChange, menuTipoActividadError)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                tieneAutorizacion("¿Tu actividad tiene la validación de la dirección de la sede o de la subdirección de tu área?", tieneAutorizacion, onTieneAutorizacionChange, menuTieneValidacionError)
+                TieneAutorizacion("¿Tu actividad tiene la validación de la dirección de la sede o de la subdirección de tu área?", tieneAutorizacion, onTieneAutorizacionChange, menuTieneValidacionError)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                campoTexto("Responsable de la actividad *",
+                CampoTexto("Responsable de la actividad *",
                     responsable,
                     onResponsableChange,
                     responsableError,
@@ -481,7 +522,7 @@ fun ContentPaso1(nombre: String,
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        campoTexto("Teléfono de contacto",
+                        CampoTexto("Teléfono de contacto",
                             telefono,
                             onTelefonoChange,
                             telefonoError,
@@ -493,7 +534,7 @@ fun ContentPaso1(nombre: String,
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        campoTexto("Correo electrónico",
+                        CampoTexto("Correo electrónico",
                             correo,
                             onCorreoChange,
                             correoError,
@@ -503,7 +544,7 @@ fun ContentPaso1(nombre: String,
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                menuEscuelas("Área o Escuela que organiza la actividad", organizador, onOrganizadorChange, menuAreaError)
+                MenuEscuelas("Área o Escuela que organiza la actividad", organizador, onOrganizadorChange, menuAreaError)
 
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -546,8 +587,18 @@ fun ContentPaso2(fechaActividad:String,
                  listaSalas: List<SalaEntity>,
                  nombres: String,
                  onNombresChange: (String) -> Unit,
+                 menuRecintoError: Boolean,
+                 fechaActividadError: Boolean,
+                 horaInicioError: Boolean,
+                 horaTerminoError: Boolean,
+                 fechaMontajeError: Boolean,
+                 horaMontajeError: Boolean,
+                 publicoSeleccionadoError: Boolean,
+                 requiereFormError: Boolean,
+                 nombresInvitadosError: Boolean,
                  onAtras: () -> Unit,
-                 onSiguiente: () -> Unit) {
+                 onSiguiente: () -> Unit
+) {
     Column(
         modifier = Modifier
             .background(Color(0xFFFFFFFF))
@@ -695,7 +746,7 @@ fun ContentPaso2(fechaActividad:String,
                 .padding(24.dp)
         ) {
             Column {
-                recinto("Recinto *", listaSalas, onSalaIdChange)
+                Recinto("Recinto *", listaSalas, onSalaIdChange, menuRecintoError)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -703,9 +754,10 @@ fun ContentPaso2(fechaActividad:String,
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                seleccionarFecha("Fecha de la actividad",
+                SeleccionarFecha("Fecha de la actividad",
                     fechaActividad,
-                    onFechaChange)
+                    onFechaChange,
+                    fechaActividadError)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -716,7 +768,10 @@ fun ContentPaso2(fechaActividad:String,
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        seleccionarHora("Hora de inicio", horaInicio, onHoraInicioChange)
+                        SeleccionarHora("Hora de inicio",
+                            horaInicio,
+                            onHoraInicioChange,
+                            horaInicioError)
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -724,7 +779,10 @@ fun ContentPaso2(fechaActividad:String,
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        seleccionarHora("Hora de termino", horaTermino, onHoraTerminoChange)
+                        SeleccionarHora("Hora de termino",
+                            horaTermino,
+                            onHoraTerminoChange,
+                            horaTerminoError)
                     }
                 }
 
@@ -742,7 +800,10 @@ fun ContentPaso2(fechaActividad:String,
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        seleccionarFecha("Fecha", fechaMontaje, onFechaMontajeChange)
+                        SeleccionarFecha("Fecha",
+                            fechaMontaje,
+                            onFechaMontajeChange,
+                            fechaMontajeError)
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -750,21 +811,27 @@ fun ContentPaso2(fechaActividad:String,
                     Column(
                         modifier = Modifier.weight(1f)
                     ) {
-                        seleccionarHora("Hora", horaMontaje, onHoraMontajeChange)
+                        SeleccionarHora("Hora",
+                            horaMontaje,
+                            onHoraMontajeChange,
+                            horaMontajeError)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                publico("Público Invitado", publicoSeleccionado, onPublicoChange)
+                Publico("Público Invitado",
+                    publicoSeleccionado,
+                    onPublicoChange,
+                    publicoSeleccionadoError)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                necesitaForm(requiereForm, onRequiereFormChange)
+                NecesitaForm(requiereForm, onRequiereFormChange, requiereFormError )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                nombres(nombres, onNombresChange)
+                Nombres(nombres, onNombresChange, nombresInvitadosError)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -819,7 +886,8 @@ fun ContentPaso3(complemento: String,
                  servicios: Map<String, Set<String>>,
                  onServiciosChange: (String, Set<String>) -> Unit,
                  onAtras: () -> Unit,
-                 onEnviar: () -> Unit) {
+                 onEnviar: () -> Unit
+) {
     Column(
         modifier = Modifier
             .background(Color(0xFFFFFFFF))
@@ -955,7 +1023,7 @@ fun ContentPaso3(complemento: String,
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        menuOpciones("Área de Comunicaciones",
+        MenuOpciones("Área de Comunicaciones",
             "comunicaciones",
                 listOf("Registro de Fotos & Videos",
                     "Difusión en RRSS(previa y posterior)"),
@@ -965,7 +1033,7 @@ fun ContentPaso3(complemento: String,
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        menuOpciones("Área de Extensión",
+        MenuOpciones("Área de Extensión",
             "extension",
             listOf("Manteles",
                 "Vaso de Agua",
@@ -975,7 +1043,7 @@ fun ContentPaso3(complemento: String,
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        menuOpciones("Servicios Generales",
+        MenuOpciones("Servicios Generales",
             "generales",
             listOf("Aseo y montaje",
                 "Mesas Plegables",
@@ -985,7 +1053,7 @@ fun ContentPaso3(complemento: String,
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        menuOpciones("Servicios Digitales y CTA",
+        MenuOpciones("Servicios Digitales y CTA",
             "digitales",
             listOf("Amplificación",
                 "Microfonos",
@@ -1013,7 +1081,7 @@ fun ContentPaso3(complemento: String,
         ) {
             Column{
 
-                campoTexto("Señale información que complemente los requerimientos y montaje de la actividad",
+                CampoTexto("Señale información que complemente los requerimientos y montaje de la actividad",
                     complemento,
                     onComplementoChange,
                     false,
@@ -1021,7 +1089,7 @@ fun ContentPaso3(complemento: String,
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                campoTexto("Contratación de proveedores externos",
+                CampoTexto("Contratación de proveedores externos",
                     proveedores,
                     onProvedooresChange,
                     false,
@@ -1219,7 +1287,7 @@ fun Final(onEnviar: () -> Unit,
     }
 }
 @Composable
-fun campoTexto(titulo: String,
+fun CampoTexto(titulo: String,
                variable: String,
                onValorChange: (String) -> Unit,
                error: Boolean,
@@ -1252,7 +1320,10 @@ fun campoTexto(titulo: String,
 }
 
 @Composable
-fun campoDescripcion(titulo: String, variable: String, onValorChange: (String) -> Unit) {
+fun CampoDescripcion(titulo: String,
+                     variable: String,
+                     onValorChange: (String) -> Unit
+) {
     Text(text = titulo,
         color = MaterialTheme.colorScheme.primary,
         fontSize = 14.sp)
@@ -1276,7 +1347,7 @@ fun campoDescripcion(titulo: String, variable: String, onValorChange: (String) -
 }
 
 @Composable
-fun tipoActividad(titulo: String,
+fun TipoActividad(titulo: String,
                   opcion: String,
                   onOpcionChange: (String) -> Unit,
                   menuTipoActividadError: Boolean
@@ -1347,10 +1418,11 @@ fun tipoActividad(titulo: String,
 }
 
 @Composable
-fun tieneAutorizacion(titulo: String,
+fun TieneAutorizacion(titulo: String,
                       opcion: String,
                       onTieneAutorizacionChange: (String) -> Unit,
-                      menuTieneValidacionError: Boolean) {
+                      menuTieneValidacionError: Boolean
+) {
     val opciones = listOf(
         "",
         "Si",
@@ -1415,10 +1487,11 @@ fun tieneAutorizacion(titulo: String,
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun menuEscuelas(titulo: String,
+fun MenuEscuelas(titulo: String,
                  opcion: String,
                  onOrganizadorChange: (String) -> Unit,
-                 menuAreaError: Boolean) {
+                 menuAreaError: Boolean
+) {
     val opciones = listOf(
         "",
         "Administración y Negocios",
@@ -1497,7 +1570,11 @@ fun menuEscuelas(titulo: String,
 @SuppressLint("InvalidColorHexValue")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun recinto(titulo: String, listaSalas: List<SalaEntity>, onRecintoChange: (Long) -> Unit) {
+fun Recinto(titulo: String,
+            listaSalas: List<SalaEntity>,
+            onRecintoChange: (Long) -> Unit,
+            menuRecintoError: Boolean
+) {
     var expanded by remember { mutableStateOf(false) }
     var opcion by remember { mutableStateOf("") }
 
@@ -1517,6 +1594,12 @@ fun recinto(titulo: String, listaSalas: List<SalaEntity>, onRecintoChange: (Long
                 value = opcion,
                 onValueChange = {},
                 readOnly = true,
+                isError = menuRecintoError,
+                supportingText = {
+                    if(menuRecintoError) {
+                        Text("Seleccione una sala", color = MaterialTheme.colorScheme.error)
+                    }
+                },
                 trailingIcon = {
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                 },
@@ -1572,7 +1655,11 @@ fun recinto(titulo: String, listaSalas: List<SalaEntity>, onRecintoChange: (Long
 }
 
 @Composable
-fun seleccionarFecha(titulo: String, fecha:String, onFechaChange: (String) -> Unit) {
+fun SeleccionarFecha(titulo: String,
+                     fecha:String,
+                     onFechaChange: (String) -> Unit,
+                     fechaError: Boolean
+) {
     var mostrar by remember { mutableStateOf(false) }
 
     Column {
@@ -1589,6 +1676,12 @@ fun seleccionarFecha(titulo: String, fecha:String, onFechaChange: (String) -> Un
                 value = fecha,
                 onValueChange = { },
                 readOnly = true,
+                isError = fechaError,
+                supportingText = {
+                    if(fechaError) {
+                        Text("Seleccione una fecha", color = MaterialTheme.colorScheme.error)
+                    }
+                },
                 trailingIcon = {
                     IconButton(onClick = { mostrar = !mostrar }) {
                         Icon(
@@ -1640,7 +1733,11 @@ fun seleccionarFecha(titulo: String, fecha:String, onFechaChange: (String) -> Un
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun seleccionarHora(titulo: String, hora: String, onHoraChange: (String) -> Unit) {
+fun SeleccionarHora(titulo: String,
+                    hora: String,
+                    onHoraChange: (String) -> Unit,
+                    horaError: Boolean
+) {
     var mostrar by remember { mutableStateOf(false) }
 
     Column{
@@ -1655,6 +1752,12 @@ fun seleccionarHora(titulo: String, hora: String, onHoraChange: (String) -> Unit
                 value = hora,
                 onValueChange = { },
                 readOnly = true,
+                isError = horaError,
+                supportingText = {
+                    if(horaError) {
+                        Text("Seleccione una hora", color = MaterialTheme.colorScheme.error)
+                    }
+                },
                 trailingIcon = {
                     IconButton(onClick = { mostrar = !mostrar }) {
                         Icon(
@@ -1713,7 +1816,11 @@ fun seleccionarHora(titulo: String, hora: String, onHoraChange: (String) -> Unit
 }
 
 @Composable
-fun publico(titulo: String, publicoSeleccionado: Set<String>, onPublicoChange: (Set<String>) -> Unit) {
+fun Publico(titulo: String,
+            publicoSeleccionado: Set<String>,
+            onPublicoChange: (Set<String>) -> Unit,
+            publicoError: Boolean
+) {
     val opciones = listOf(
         "",
         "Estudiantes",
@@ -1762,12 +1869,12 @@ fun publico(titulo: String, publicoSeleccionado: Set<String>, onPublicoChange: (
                     selectedLabelColor = MaterialTheme.colorScheme.primary,
                     selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
                     containerColor = MaterialTheme.colorScheme.secondary,
-                    labelColor = Color(0xFF4B5563)
+                    labelColor = if(publicoError) MaterialTheme.colorScheme.error else Color(0xFF4B5563)
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isSelected,
-                    borderColor = Color(0xFFE5E7EB),
+                    borderColor = if(publicoError) MaterialTheme.colorScheme.error else Color(0xFFE5E7EB),
                     selectedBorderColor = MaterialTheme.colorScheme.tertiary
                 ),
                 shape = RoundedCornerShape(12.dp)
@@ -1777,7 +1884,10 @@ fun publico(titulo: String, publicoSeleccionado: Set<String>, onPublicoChange: (
 }
 
 @Composable
-fun necesitaForm(opcion: String, onOpcionChange: (String) -> Unit){
+fun NecesitaForm(opcion: String,
+                 onOpcionChange: (String) -> Unit,
+                 formError: Boolean
+) {
     val opciones = listOf(
         "",
         "Si",
@@ -1818,12 +1928,12 @@ fun necesitaForm(opcion: String, onOpcionChange: (String) -> Unit){
                     selectedLabelColor = MaterialTheme.colorScheme.primary,
                     selectedLeadingIconColor = MaterialTheme.colorScheme.primary,
                     containerColor = MaterialTheme.colorScheme.secondary,
-                    labelColor = Color(0xFF4B5563)
+                    labelColor = if(formError) MaterialTheme.colorScheme.error else Color(0xFF4B5563)
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isSelected,
-                    borderColor = Color(0xFFE5E7EB),
+                    borderColor = if(formError) MaterialTheme.colorScheme.error else Color(0xFFE5E7EB),
                     selectedBorderColor = MaterialTheme.colorScheme.tertiary
                 ),
                 shape = RoundedCornerShape(12.dp)
@@ -1833,7 +1943,10 @@ fun necesitaForm(opcion: String, onOpcionChange: (String) -> Unit){
 }
 
 @Composable
-fun nombres(nombres: String, onNombresChange: (String) -> Unit){
+fun Nombres(nombres: String,
+            onNombresChange: (String) -> Unit,
+            nombresError: Boolean = false
+) {
     Text("Especifique nombres de expositores, charlistas, y autoridades invitadas, internas y externas",
         color = MaterialTheme.colorScheme.primary,
         fontSize = 14.sp)
@@ -1843,6 +1956,12 @@ fun nombres(nombres: String, onNombresChange: (String) -> Unit){
     OutlinedTextField(
         value = nombres,
         onValueChange = onNombresChange,
+        isError = nombresError,
+        supportingText = {
+            if(nombresError) {
+                Text("Debe indicar los nombres del público externo", color = MaterialTheme.colorScheme.error)
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp),
@@ -1857,7 +1976,8 @@ fun nombres(nombres: String, onNombresChange: (String) -> Unit){
 }
 
 @Composable
-fun campoArchivo(titulo: String){
+fun CampoArchivo(titulo: String
+) {
     Column {
         Text(text = titulo,
             color = MaterialTheme.colorScheme.primary)
@@ -1892,12 +2012,12 @@ fun campoArchivo(titulo: String){
 }
 
 @Composable
-fun menuOpciones(titulo: String,
+fun MenuOpciones(titulo: String,
                  categoria: String,
                  opciones: List<String>,
                  servicios: Set<String>,
                  onServiciosChange: (String, Set<String>) -> Unit
-){
+) {
 
     Box(
         modifier = Modifier

@@ -279,7 +279,7 @@ fun cajaForm(filtros: FiltrosAvanzados,
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    seleccionarFecha("Seleccione fecha", filtros.fecha, onFechaChange)
+                    SeleccionarFecha("Seleccione fecha", filtros.fecha, onFechaChange, false)
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
@@ -287,7 +287,7 @@ fun cajaForm(filtros: FiltrosAvanzados,
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    seleccionarHora("Selecciona hora", filtros.hora, onHoraChange)
+                    SeleccionarHora("Selecciona hora", filtros.hora, onHoraChange, false)
 
                 }
             }
