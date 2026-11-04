@@ -2,6 +2,7 @@ package com.example.gestiondereservas.ui.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -52,6 +54,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.CatalogoEquipamientos
 import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.ui.viewmodel.FiltrosAvanzados
 import com.example.gestiondereservas.ui.viewmodel.SalasUiState
 import com.example.gestiondereservas.ui.viewmodel.SalasViewModel
@@ -160,54 +163,79 @@ fun salasDisponibles(salas: List<SalaConEquipamiento>,
                      onAtras: () -> Unit,
                      onReservas: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        )
-        {
-            IconButton(onClick = { onAtras() }) {
-                Icon(
-                    painter = painterResource(R.drawable.arrow_left),
-                    contentDescription = "Icono volver",
-                    modifier = Modifier.size(40.dp)
+    var salaSeleccionada by remember { mutableStateOf<SalaEntity?>(null) }
+    Box(modifier = Modifier.fillMaxSize())
+    {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            )
+            {
+                IconButton(onClick = { onAtras() }) {
+                    Icon(
+                        painter = painterResource(R.drawable.arrow_left),
+                        contentDescription = "Icono volver",
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    "Salas disponibles",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
             Text(
-                "Salas disponibles",
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
+                "${salas.size} resultados - ${formatearFecha()}",
+                color = Color(0xFF3D5A73),
+                fontSize = 12.sp,
+                modifier = Modifier.padding(horizontal = 60.dp)
             )
-        }
-
-        Text("${salas.size} resultados - ${formatearFecha()}",
-            color = Color(0xFF3D5A73),
-            fontSize = 12.sp,
-            modifier = Modifier.padding(horizontal = 60.dp))
-
-        LazyColumn(
-            modifier = Modifier.weight(1f)
-        ) {
-            items(salas) { sala ->
-                    salaCard(sala)
-                Spacer(modifier = Modifier.height(12.dp))
+            LazyColumn(
+                modifier = Modifier.weight(1f)
+            ) {
+                items(
+                    items = salas,
+                    key = { it.salaEntity.id }) { sala ->
+                    val esSeleccionada = salaSeleccionada?.id == sala.salaEntity.id
+                    salaCard(
+                        sala = sala,
+                        seleccionada = esSeleccionada,
+                        onClickSala = {
+                            salaSeleccionada = if (esSeleccionada) null else sala.salaEntity
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        if (salaSeleccionada != null) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter),
+                tonalElevation = 8.dp,
+                shadowElevation = 8.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    agenda()
 
-        agenda()
+                    Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        salaSeleccionada(onReservas)
+                    salaSeleccionada(onReservas, salaSeleccionada)
+                }
+            }
+        }
     }
 }
 @Composable
@@ -472,7 +500,10 @@ fun menuEquipamientos(titulo: String,
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        Text(text = titulo)
+        Text(text = titulo,
+            color = MaterialTheme.colorScheme.primary)
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         ExposedDropdownMenuBox(
             expanded = expanded,
@@ -541,7 +572,9 @@ fun menuEquipamientos(titulo: String,
 }
 
 @Composable
-fun salaCard(sala: SalaConEquipamiento) {
+fun salaCard(sala: SalaConEquipamiento,
+             seleccionada: Boolean,
+             onClickSala: () -> Unit) {
 
     val salaCompleta = sala.salaEntity
     val equipamientosTexto = if (sala.equipamiento.isEmpty()) {
@@ -554,9 +587,13 @@ fun salaCard(sala: SalaConEquipamiento) {
             .fillMaxWidth()
             .padding(16.dp)
             .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.primary,
+                width = if(seleccionada) 2.dp else 1.dp,
+                color = if(seleccionada) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(12.dp)
+            )
+            .clickable(
+                enabled = true,
+                onClick = onClickSala
             )
     ) {
         Column(
@@ -569,12 +606,13 @@ fun salaCard(sala: SalaConEquipamiento) {
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(24.dp))
-                    .background(Color(0xFFF0F0F0)),
+                    .background(if (seleccionada) MaterialTheme.colorScheme.tertiary.copy(0.25f) else Color(0xFFF0F0F0)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     painter = painterResource(R.drawable.door),
-                    contentDescription = "Icono sala"
+                    contentDescription = "Icono sala",
+                    tint = if (seleccionada) Color(0xFFB37A2C) else MaterialTheme.colorScheme.primary
                 )
             }
 
@@ -622,7 +660,9 @@ fun agenda() {
 }
 
 @Composable
-fun salaSeleccionada(onReservas: () -> Unit) {
+fun salaSeleccionada(onReservas: () -> Unit,
+                     salaSeleccionada: SalaEntity?
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -633,7 +673,7 @@ fun salaSeleccionada(onReservas: () -> Unit) {
                 color = Color(0xFF3D5A73),
                 fontSize = 10.sp)
 
-            Text("Codigo sala - Fecha - Hora",
+            Text("${salaSeleccionada?.codigo} - Fecha - Hora",
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 12.sp)
         }
