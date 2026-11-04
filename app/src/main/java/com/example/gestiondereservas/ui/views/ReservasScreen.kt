@@ -84,6 +84,7 @@ import java.util.Locale
 import kotlin.collections.listOf
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.launch
@@ -105,6 +106,9 @@ fun rememberReservaViewModel(): ReservaViewModel {
 
 @Composable
 fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
+                   fechaB: String? = null,
+                   horaB: String? = null,
+                   salaIdB: Long? = null,
                    idUsuario: Long,
                    onAtras: () -> Unit,
                    onEnviar: () -> Unit,
@@ -123,14 +127,14 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var tieneValidacion by remember { mutableStateOf("") }
     var organizador by remember { mutableStateOf("") }
 
-    var fechaActividad by remember { mutableStateOf("") }
-    var horaInicio by remember { mutableStateOf("") }
+    var fechaActividad by remember { mutableStateOf(fechaB ?: "") }
+    var horaInicio by remember { mutableStateOf(horaB ?: "") }
     var horaTermino by remember { mutableStateOf("") }
     var fechaMontaje by remember { mutableStateOf("") }
     var horaMontaje by remember { mutableStateOf("") }
     var publicoSelecionado by remember { mutableStateOf<Set<String>>(emptySet()) }
     var requiereForm by remember { mutableStateOf("") }
-    var salaId by remember { mutableLongStateOf(0L) }
+    var salaId by remember { mutableLongStateOf(salaIdB ?: 0L) }
     var nombres by remember { mutableStateOf("") }
 
     var servicios by remember { mutableStateOf<Map<String, Set<String>>>(emptyMap()) }
@@ -262,6 +266,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             { id ->
                 salaId = id
                 viewModel.buscarSala(id)},
+            salaId,
             listaSalas,
             nombres,
             { nombres = it },
@@ -584,6 +589,7 @@ fun ContentPaso2(fechaActividad:String,
                  requiereForm: String,
                  onRequiereFormChange: (String) -> Unit,
                  onSalaIdChange: (Long) -> Unit,
+                 salaId: Long,
                  listaSalas: List<SalaEntity>,
                  nombres: String,
                  onNombresChange: (String) -> Unit,
@@ -746,7 +752,7 @@ fun ContentPaso2(fechaActividad:String,
                 .padding(24.dp)
         ) {
             Column {
-                Recinto("Recinto *", listaSalas, onSalaIdChange, menuRecintoError)
+                Recinto("Recinto *", listaSalas, onSalaIdChange, menuRecintoError, salaId)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -1573,10 +1579,15 @@ fun MenuEscuelas(titulo: String,
 fun Recinto(titulo: String,
             listaSalas: List<SalaEntity>,
             onRecintoChange: (Long) -> Unit,
-            menuRecintoError: Boolean
+            menuRecintoError: Boolean,
+            salaId: Long
 ) {
     var expanded by remember { mutableStateOf(false) }
     var opcion by remember { mutableStateOf("") }
+
+    LaunchedEffect(salaId, listaSalas) {
+        opcion = listaSalas.find { it.id == salaId }?.nombre ?: ""
+    }
 
     Column {
         Text(text = titulo,

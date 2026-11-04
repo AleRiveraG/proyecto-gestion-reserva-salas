@@ -31,10 +31,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
@@ -298,15 +300,39 @@ fun PantallaBaseRelator(
 
                 composable("salasRelator") {
                     BusquedaSalasScreen(
-                        onReservas = {
-                            tabNavController.navigate("reservas")
+                        onReservas = { fecha, hora, salaId ->
+                            tabNavController.navigate("reservas?fecha=$fecha&hora=$hora&salaId=$salaId")
                         }
                     )
                 }
-                composable("reservas") {
+                composable("reservas?fecha={fecha}&hora={hora}&salaId={salaId}",
+                    arguments = listOf(
+                        navArgument("fecha") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        },
+                        navArgument("hora") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        },
+                        navArgument("salaId") {
+                            type = NavType.LongType
+                            defaultValue = -1L
+                        }
+                    )
+                ) { entrada ->
+                    val fecha = entrada.arguments?.getString("fecha")
+                    val hora = entrada.arguments?.getString("hora")
+                    val salaId = entrada.arguments?.getLong("salaId")
+                    
                     ReservasScreen(
+                        fechaB = fecha,
+                        horaB =  hora,
+                        salaIdB = salaId,
                         idUsuario = idUsuario,
-                        onAtras = { tabNavController.navigate("calendarioSupervisor")},
+                        onAtras = { tabNavController.popBackStack() },
                         onEnviar = { tabNavController.navigate("paginaRelator")},
                         onRegistrarAuditoria = onRegistrarAuditoria
                     )

@@ -64,7 +64,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Composable
-fun BusquedaSalasScreen(onReservas: () -> Unit,
+fun BusquedaSalasScreen(onReservas: (String?, String?, Long) -> Unit,
                         viewModel: SalasViewModel = rememberSalasViewModel()
 ){
     val uiState by viewModel.uiState.collectAsState()
@@ -83,6 +83,8 @@ fun BusquedaSalasScreen(onReservas: () -> Unit,
        )
         2 -> salasDisponibles(
             salas = uiState.salas,
+            fecha = uiState.filtros.fecha,
+            hora = uiState.filtros.hora,
             onAtras = { paso = 1 },
             onReservas = onReservas)
     }
@@ -160,8 +162,10 @@ private fun Contenido(uiState: SalasUiState,
 
 @Composable
 fun salasDisponibles(salas: List<SalaConEquipamiento>,
+                     fecha: String,
+                     hora: String,
                      onAtras: () -> Unit,
-                     onReservas: () -> Unit
+                     onReservas: (String?, String?, Long) -> Unit
 ) {
     var salaSeleccionada by remember { mutableStateOf<SalaEntity?>(null) }
     Box(modifier = Modifier.fillMaxSize())
@@ -228,11 +232,10 @@ fun salasDisponibles(salas: List<SalaConEquipamiento>,
                 Column(
                     modifier = Modifier.padding(16.dp)
                 ) {
-                    agenda()
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    salaSeleccionada(onReservas, salaSeleccionada)
+                    salaSeleccionada(onReservas,
+                        fecha,
+                        hora,
+                        salaSeleccionada)
                 }
             }
         }
@@ -645,22 +648,9 @@ fun salaCard(sala: SalaConEquipamiento,
 }
 
 @Composable
-fun agenda() {
-    Column() {
-        Text("AGENDA",
-            color = Color(0xFF3D5A73),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold)
-
-        Text(text = formatearFecha(),
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold)
-    }
-}
-
-@Composable
-fun salaSeleccionada(onReservas: () -> Unit,
+fun salaSeleccionada(onReservas: (String?, String?, Long) -> Unit,
+                     fecha: String,
+                     hora: String,
                      salaSeleccionada: SalaEntity?
 ) {
     Row(
@@ -673,12 +663,18 @@ fun salaSeleccionada(onReservas: () -> Unit,
                 color = Color(0xFF3D5A73),
                 fontSize = 10.sp)
 
-            Text("${salaSeleccionada?.codigo} - Fecha - Hora",
+            Text("${salaSeleccionada?.codigo} ${" - ${if(fecha.isNotBlank()) fecha else ""}"} ${" - ${if (hora.isNotBlank()) hora else ""}"} ",
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 12.sp)
         }
         Button(
-            onClick = { onReservas() },
+            onClick = {
+                salaSeleccionada?.let { onReservas(
+                    fecha,
+                    hora,
+                    it.id
+                ) }
+            },
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.tertiary
             )
