@@ -7,7 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border // >>> IMPORTACIÓN PARA BORDES IDÉNTICOS A OUTLINEDTEXTFIELD
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -62,12 +62,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.ui.theme.*
 import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
+import com.example.gestiondereservas.ui.viewmodel.UsuarioViewModel // >>> IMPORTACIÓN DE USUARIOVIEWMODEL
 import com.example.gestiondereservas.utils.AnimacionLogin
 
 //- - - - - - - - - - - - - - - - - - - - - - - - -
 //Encabezado
 //- - - - - - - - - - - - - - - - - - - - - - - - -
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -391,7 +391,6 @@ fun LoginBody(
                     .padding(bottom = 4.dp)
             )
 
-            // >>> CORRECCIÓN: Contenedores de perfiles idénticos a los OutlinedTextField
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -403,7 +402,6 @@ fun LoginBody(
                     Box(
                         modifier = Modifier.weight(1f)
                     ) {
-                        // Sombra amarilla (#FFB800) idéntica a los campos: offset (x = 3.dp, y = 3.dp)
                         Box(
                             modifier = Modifier
                                 .matchParentSize()
@@ -412,7 +410,6 @@ fun LoginBody(
                                 .background(Color(0xFFFFB800))
                         )
 
-                        // Contenedor frontal idéntico en límites: fondo blanco sólido y borde neutro
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -444,7 +441,6 @@ fun LoginBody(
                     }
                 }
             }
-            // >>> FIN CORRECCIÓN ROLES
 
             AnimatedVisibility(
                 visible = errorMensajeRol != null,
@@ -687,19 +683,24 @@ fun LoginScreen(
 ) {
     var pantallaDestinoInterna by remember { mutableStateOf<String?>(null) }
 
+    // >>> CORRECCIÓN: SE PROPORCIONA EL USUARIOVIEWMODEL Y VALORES REQUERIDOS
     when (pantallaDestinoInterna) {
         "relator" -> {
             RelatorScreen(
+                idUsuario = 0L, // >>> CORRECCIÓN: PARÁMETRO OBLIGATORIO idUsuario
                 onReservas = {},
                 onBuscarSala = {},
                 onCalendario = {},
-                onActividad = {}
+                onActividad = { _ -> } // >>> CORRECCIÓN: FIRMA COMPATIBLE (Long) -> Unit
             )
             return
         }
         "supervisor" -> {
             val supervisorVm: GestionReservasViewModel = viewModel()
+            val usuarioVm: UsuarioViewModel = viewModel() // >>> CORRECCIÓN: INSTANCIA DE USUARIOVIEWMODEL
             SupervisorScreen(
+                idUsuario = 0L, // >>> CORRECCIÓN: PARÁMETRO OBLIGATORIO idUsuario
+                usuarioViewModel = usuarioVm, // >>> CORRECCIÓN: PARÁMETRO OBLIGATORIO usuarioViewModel
                 onHorarios = {},
                 onGestionSalas = {},
                 onAuditoria = {},
