@@ -41,6 +41,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,8 +59,11 @@ import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.ui.viewmodel.FiltrosAvanzados
 import com.example.gestiondereservas.ui.viewmodel.SalasUiState
 import com.example.gestiondereservas.ui.viewmodel.SalasViewModel
+import com.example.gestiondereservas.utils.AnimacionCarga
 import com.example.gestiondereservas.utils.formatearFecha
 import com.example.gestiondereservas.utils.formatearFechaPerso
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -100,6 +104,9 @@ private fun Contenido(uiState: SalasUiState,
                       onEquipamientosChange: (Set<String>) -> Unit,
                       onSiguiente: () -> Unit
 ) {
+    var mostrarCarga by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -131,7 +138,15 @@ private fun Contenido(uiState: SalasUiState,
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Button(onClick = { onSiguiente() },
+        Button(onClick = {
+            scope.launch {
+                mostrarCarga = true
+
+                delay(1500)
+
+                mostrarCarga = false
+                onSiguiente()
+            } },
             modifier = Modifier
                 .height(60.dp)
                 .fillMaxWidth()
@@ -157,6 +172,9 @@ private fun Contenido(uiState: SalasUiState,
                     fontWeight = FontWeight.Bold)
             }
         }
+    }
+    if(mostrarCarga) {
+        AnimacionCarga()
     }
 }
 

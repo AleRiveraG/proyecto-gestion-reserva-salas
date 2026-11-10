@@ -106,7 +106,8 @@ fun HorariosScreen(
     // del bloque para abrir el formulario de reserva ya rellenado.
     onSolicitarBloque: (salaId: Long, fecha: String, horaInicio: String, horaTermino: String) -> Unit =
         { _, _, _, _ -> },
-    viewModel: HorariosViewModel = rememberHorariosViewModel()
+    viewModel: HorariosViewModel = rememberHorariosViewModel(),
+    onReservas: (fecha: String, horaInicio: String, salaId: Long) -> Unit = { _, _, _, -> }
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
     var desplegarSalas by remember { mutableStateOf(false) }
@@ -303,6 +304,7 @@ fun HorariosScreen(
             confirmButton = {
                 TextButton(onClick = {
                     solicitud = null
+                    onReservas(pendiente.fecha, FormatoHora.minutos(pendiente.inicioMin), pendiente.salaId)
                     onSolicitarBloque(
                         pendiente.salaId,
                         pendiente.fecha,

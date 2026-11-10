@@ -9,3 +9,7 @@ fun formatearHora(): String {
     val formato = DateTimeFormatter.ofPattern("HH:mm:SS")
     return hora.format(formato)
 }
+
+fun stringALocalTime(hora: String): LocalTime {
+    return LocalTime.parse(hora)
+}

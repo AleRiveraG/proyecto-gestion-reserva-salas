@@ -116,6 +116,7 @@ object DatosPruebaUsuariosReservas {
                     publico = s.publico,
                     requiereFormulario = false,
                     nombreExternos = "",
+                    documentoPdf = "",
                     servicios = s.servicios,
                     complementos = s.complementos,
                     proveedores = "",

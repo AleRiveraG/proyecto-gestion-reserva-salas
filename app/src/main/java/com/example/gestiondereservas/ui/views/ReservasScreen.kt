@@ -79,15 +79,22 @@ import com.example.gestiondereservas.utils.formatearFechaPerso
 import com.example.gestiondereservas.utils.formatearHora
 import com.example.gestiondereservas.utils.formatoFecha
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.Locale
 import kotlin.collections.listOf
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import android.net.Uri
+import android.provider.OpenableColumns
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.gestiondereservas.data.room.entidades.Area
+import com.example.gestiondereservas.utils.AnimacionCarga
+import com.example.gestiondereservas.utils.AnimacionReloj
+import com.example.gestiondereservas.utils.formatoFechaPantalla
 
 @Composable
 fun rememberReservaViewModel(): ReservaViewModel {
@@ -115,6 +122,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                    onRegistrarAuditoria: (AuditoriaEntity) -> Unit
 ) {
     var paso by remember{ mutableIntStateOf(1)}
+    var mostrarCarga by remember { mutableStateOf(false) }
     var validacionReactivaPaso1 by remember { mutableStateOf(false) }
     var validacionReactivaPaso2 by remember { mutableStateOf(false) }
 
@@ -149,15 +157,25 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     val menuTieneValidacionError = validacionReactivaPaso1 && !ValidacionesReserva.validarMenu(tieneValidacion)
     val menuAreaError = validacionReactivaPaso1 && !ValidacionesReserva.validarMenu(organizador)
     val menuRecintoError = validacionReactivaPaso2 && !ValidacionesReserva.validarSala(salaId)
-    val fechaActividadError = validacionReactivaPaso2 && !ValidacionesReserva.validarFechasHoras(fechaActividad)
-    val horaInicioError = validacionReactivaPaso2 && !ValidacionesReserva.validarFechasHoras(horaInicio)
-    val horaTerminoError = validacionReactivaPaso2 && !ValidacionesReserva.validarFechasHoras(horaTermino)
-    val fechaMontajeError = validacionReactivaPaso2 && !ValidacionesReserva.validarFechasHoras(fechaMontaje)
-    val horaMontajeError = validacionReactivaPaso2 && !ValidacionesReserva.validarFechasHoras(horaMontaje)
+    val fechaActividadError = validacionReactivaPaso2 && !ValidacionesReserva.validarFechas(fechaActividad)
+    val horaInicioError = validacionReactivaPaso2 && !ValidacionesReserva.validarHoras(horaInicio)
+    val horaTerminoError = validacionReactivaPaso2 && !ValidacionesReserva.validarHoras(horaTermino)
+    val fechaMontajeError = validacionReactivaPaso2 && (!ValidacionesReserva.validarFechas(fechaMontaje) || !ValidacionesReserva.validarMontaje(fechaMontaje, fechaActividad))
+    val horaMontajeError = validacionReactivaPaso2 && (!ValidacionesReserva.validarHoras(horaMontaje) || !ValidacionesReserva.validarHoraMontaje(fechaMontaje, fechaActividad, horaMontaje, horaInicio))
     val publicoSeleccionadoError = validacionReactivaPaso2 && !ValidacionesReserva.validarMenuMultiple(publicoSelecionado)
     val requiereFormError = validacionReactivaPaso2 && !ValidacionesReserva.validarMenu(requiereForm)
     val nombresInvitadosError = validacionReactivaPaso2 && publicoSelecionado.contains("Externos") && !ValidacionesReserva.validarTexto(nombres)
 
+    val scope = rememberCoroutineScope()
+    var pdfUri by remember { mutableStateOf<Uri?>(null) }
+
+    val selectorPdf = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if(uri != null) {
+            pdfUri = uri
+        }
+    }
 
     fun crearReserva(): ReservaEntity {
         return ReservaEntity(
@@ -180,6 +198,8 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             publico = publicoSelecionado.joinToString (", "),
             requiereFormulario = requiereForm == "Si",
             nombreExternos = nombres,
+            documentoPdf = pdfUri?.toString() ?: "",
+
             complementos = complemento,
             proveedores = proveedores,
             servicios = servicios.entries.joinToString("; ") { (categoria, opciones) ->
@@ -243,7 +263,8 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                     ValidacionesReserva.validarTelefono(telefono) &&
                     ValidacionesReserva.validarMenu(organizador) &&
                     ValidacionesReserva.validarMenu(tipoActividad) &&
-                    ValidacionesReserva.validarMenu(tieneValidacion)) {
+                    ValidacionesReserva.validarMenu(tieneValidacion)
+                    ) {
                     paso = 2
                 }
             }
@@ -270,6 +291,8 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             listaSalas,
             nombres,
             { nombres = it },
+            pdfUri,
+            onSeleccionarPdf = { selectorPdf.launch(arrayOf("application/pdf"))},
             menuRecintoError,
             fechaActividadError,
             horaInicioError,
@@ -285,14 +308,16 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                 validacionReactivaPaso2 = true
 
                 if(ValidacionesReserva.validarSala(salaId) &&
-                    ValidacionesReserva.validarFechasHoras(fechaActividad) &&
-                    ValidacionesReserva.validarFechasHoras(horaInicio) &&
-                    ValidacionesReserva.validarFechasHoras(horaTermino) &&
-                    ValidacionesReserva.validarFechasHoras(fechaMontaje) &&
-                    ValidacionesReserva.validarFechasHoras(horaMontaje) &&
+                    ValidacionesReserva.validarFechas(fechaActividad) &&
+                    ValidacionesReserva.validarHoras(horaInicio) &&
+                    ValidacionesReserva.validarHoras(horaTermino) &&
+                    ValidacionesReserva.validarFechas(fechaMontaje) &&
+                    ValidacionesReserva.validarHoras(horaMontaje) &&
                     ValidacionesReserva.validarMenuMultiple(publicoSelecionado) &&
                     ValidacionesReserva.validarMenu(requiereForm) &&
-                    (ValidacionesReserva.validarTexto(nombres) || !publicoSelecionado.contains("Externos"))
+                    (ValidacionesReserva.validarTexto(nombres) || !publicoSelecionado.contains("Externos")) &&
+                    ValidacionesReserva.validarMontaje(fechaMontaje, fechaActividad) &&
+                    ValidacionesReserva.validarHoraMontaje(fechaMontaje, fechaActividad, horaMontaje, horaInicio)
                     ) {
                     paso = 3
                 }
@@ -307,7 +332,15 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             { categoria, nuevosServicios -> servicios = servicios + ( categoria to nuevosServicios)},
             onAtras = { paso = 2
                       validacionReactivaPaso2 = false},
-            onEnviar = { paso = 4} )
+            onEnviar = {
+                scope.launch {
+                    mostrarCarga = true
+
+                    delay(1500)
+
+                    mostrarCarga = false
+                    paso = 4
+                } } )
         4 -> Final(onEnviar = { guardarReserva() },
             sala,
             fechaMontaje,
@@ -315,6 +348,10 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             fechaActividad,
             horaInicio,
             horaTermino)
+    }
+
+    if(mostrarCarga) {
+        AnimacionCarga()
     }
 }
 
@@ -593,6 +630,8 @@ fun ContentPaso2(fechaActividad:String,
                  listaSalas: List<SalaEntity>,
                  nombres: String,
                  onNombresChange: (String) -> Unit,
+                 pdfUri: Uri?,
+                 onSeleccionarPdf: () -> Unit,
                  menuRecintoError: Boolean,
                  fechaActividadError: Boolean,
                  horaInicioError: Boolean,
@@ -841,8 +880,8 @@ fun ContentPaso2(fechaActividad:String,
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                /*campoArchivo("Adjunte el programa, pauta, libreto y/o layout de la" +
-                        " actividad") */
+                CampoArchivo("Adjunte el programa, pauta, libreto y/o layout de la" +
+                        " actividad", pdfUri, onSeleccionarPdf)
             }
         }
 
@@ -1140,11 +1179,12 @@ fun ContentPaso3(complemento: String,
     }
 }
 
+
 @Composable
 fun Final(onEnviar: () -> Unit,
           sala: SalaEntity?,
           fechaMontaje: String,
-          horaMontaje: String,
+          horaMontaje: String ,
           fechaActividad: String,
           horaInicio: String,
           horaTermino: String
@@ -1168,11 +1208,15 @@ fun Final(onEnviar: () -> Unit,
                 .background(Color(0xFFFFF9E6)),
                 contentAlignment = Alignment.Center
             ) {
+                AnimacionReloj()
+                /*
                 Icon(
                     painter = painterResource(R.drawable.hourglass),
                     contentDescription = "Icono reloj de arena",
                     tint = MaterialTheme.colorScheme.tertiary,
                 )
+                  */
+
             }
         }
 
@@ -1608,7 +1652,7 @@ fun Recinto(titulo: String,
                 isError = menuRecintoError,
                 supportingText = {
                     if(menuRecintoError) {
-                        Text("Seleccione una sala", color = MaterialTheme.colorScheme.error)
+                        Text("Sala ingresada invalida. Seleccione nuevamente", color = MaterialTheme.colorScheme.error)
                     }
                 },
                 trailingIcon = {
@@ -1684,13 +1728,13 @@ fun SeleccionarFecha(titulo: String,
             modifier = Modifier.fillMaxWidth()
         ) {
             OutlinedTextField(
-                value = fecha,
+                value = formatoFechaPantalla(fecha) ?: "",
                 onValueChange = { },
                 readOnly = true,
                 isError = fechaError,
                 supportingText = {
                     if(fechaError) {
-                        Text("Seleccione una fecha", color = MaterialTheme.colorScheme.error)
+                        Text("Fecha seleccionada invalida. Ingrese nuevamente", color = MaterialTheme.colorScheme.error)
                     }
                 },
                 trailingIcon = {
@@ -1766,7 +1810,7 @@ fun SeleccionarHora(titulo: String,
                 isError = horaError,
                 supportingText = {
                     if(horaError) {
-                        Text("Seleccione una hora", color = MaterialTheme.colorScheme.error)
+                        Text("Hora seleccionada invalida. Ingrese nuevamente", color = MaterialTheme.colorScheme.error)
                     }
                 },
                 trailingIcon = {
@@ -1987,24 +2031,48 @@ fun Nombres(nombres: String,
 }
 
 @Composable
-fun CampoArchivo(titulo: String
+fun CampoArchivo(titulo: String,
+                 uri: Uri?,
+                 onSeleccionarPdf: () -> Unit
 ) {
+    val contexto = LocalContext.current
+    val nombreArchivo = remember(uri) {
+        if(uri == null) "" else {
+            var nombre = "documento.pdf"
+            contexto.contentResolver.query(uri,
+                null,
+                null,
+                null,
+                null)?.use { cursor ->
+                    val nombreIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (cursor.moveToFirst() && nombreIndex != -1 ) {
+                        nombre = cursor.getString(nombreIndex)
+                    }
+            }
+            nombre
+        }
+    }
+
     Column {
         Text(text = titulo,
             color = MaterialTheme.colorScheme.primary)
 
+        Spacer(modifier = Modifier.height(8.dp))
+
         Box(
             modifier = Modifier.fillMaxWidth()
+                .clickable(onClick = { onSeleccionarPdf() })
         ) {
             OutlinedTextField(
-                value = "",
+                value = nombreArchivo,
                 onValueChange = { },
                 readOnly = true,
-                label = { Text("Seleccionar archivos - máx 5 MB, hasta 20",
-                    color = MaterialTheme.colorScheme.primary,
+                enabled = false,
+                placeholder = { Text("Seleccionar archivos - máx 5 MB, hasta 20",
+                    color = MaterialTheme.colorScheme.primary.copy(0.6f),
                     fontSize = 12.sp) },
                 trailingIcon = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { onSeleccionarPdf() }) {
                         Icon(
                             painter = painterResource(R.drawable.paperclip),
                             contentDescription = "Icono adjuntar",
@@ -2012,10 +2080,15 @@ fun CampoArchivo(titulo: String
                         )
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
+                shape = RoundedCornerShape(12.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF5F5F5),
-                    unfocusedContainerColor = Color(0xFFF5F5F5)
+                    focusedTextColor = MaterialTheme.colorScheme.primary,
+                    unfocusedTextColor = MaterialTheme.colorScheme.primary,
+                    unfocusedContainerColor = Color(0xFFF5F5F5),
+                    focusedContainerColor = Color(0xFFF5F5F5)
                 )
             )
         }

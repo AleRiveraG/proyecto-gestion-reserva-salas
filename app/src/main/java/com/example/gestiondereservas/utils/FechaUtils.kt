@@ -18,9 +18,16 @@ fun formatearFecha(): String {
 }
 
 fun formatoFecha(millis: Long): String {
-    val formatter = SimpleDateFormat("dd/MM", Locale.getDefault())
+    val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     formatter.timeZone = TimeZone.getTimeZone("UTC")
     return formatter.format(Date(millis))
+}
+
+fun formatoFechaPantalla(fecha: String): String? {
+    if(fecha.isBlank()) return ""
+    val fechaLD = LocalDate.parse(fecha)
+    val formato = DateTimeFormatter.ofPattern("MM/dd")
+    return fechaLD.format(formato)
 }
 
 fun formatearFechaPerso(fecha: String): String {
@@ -38,3 +45,8 @@ fun formatearFechaPerso(fecha: String): String {
         fecha
     }
 }
+
+fun StringALocalDate(fecha: String): LocalDate {
+    return LocalDate.parse(fecha)
+}
+

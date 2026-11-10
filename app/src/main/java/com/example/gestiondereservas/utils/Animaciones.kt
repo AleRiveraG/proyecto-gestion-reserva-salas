@@ -1,9 +1,10 @@
 package com.example.gestiondereservas.utils
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.LottieAnimation
@@ -14,6 +15,7 @@ import com.example.gestiondereservas.R
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.window.Dialog
 
@@ -162,5 +165,39 @@ fun ConfirmacionHorarioGuardado(esNuevo: Boolean) {
                 )
             }
         }
+    }
+}
+
+//Animación reloj de arena solicitud realizada
+
+@Composable
+fun AnimacionReloj(
+    modifier: Modifier = Modifier,
+    tamano: Dp = 240.dp
+) {
+    AnimacionLottie(
+        resId = R.raw.clock,
+        modifier = modifier,
+        tamano = tamano,
+        iteraciones = LottieConstants.IterateForever
+    )
+}
+
+@Composable
+fun AnimacionCarga(
+    modifier: Modifier = Modifier,
+    tamano: Dp = 200.dp
+) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.secondary.copy(0.5f)),
+        contentAlignment = Alignment.Center
+    ) {
+        AnimacionLottie(
+            resId = R.raw.loading,
+            modifier = Modifier,
+            tamano = tamano,
+            iteraciones = 2
+        )
     }
 }

@@ -5,10 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
+import com.example.gestiondereservas.utils.StringALocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class ReservaViewModel(
     private val repository: ReservaRepository
@@ -47,7 +49,14 @@ class ReservaViewModel(
     fun buscarReservaPorId(id:Long) {
         viewModelScope.launch {
             val reservasUsuario = repository.obtenerReservaPorIdUsuario(id)
-            _reservas.value = reservasUsuario
+            val reservas = mutableListOf<ReservaEntity>()
+
+            reservasUsuario.forEach { reserva ->
+                if(StringALocalDate(reserva.fechaActividad) >= LocalDate.now()) {
+                    reservas.add(reserva)
+                }
+            }
+            _reservas.value = reservas
         }
     }
 

@@ -294,6 +294,9 @@ fun PantallaBaseRelator(
                             tabNavController.navigate(
                                 GestionHorariosRutas.formularioHorario(id)
                             )
+                        },
+                        onReservas = { fecha, hora, salaId ->
+                            tabNavController.navigate("reservas?fecha=$fecha&hora=$hora&salaId=$salaId")
                         }
                     )
                 }
@@ -326,7 +329,7 @@ fun PantallaBaseRelator(
                     val fecha = entrada.arguments?.getString("fecha")
                     val hora = entrada.arguments?.getString("hora")
                     val salaId = entrada.arguments?.getLong("salaId")
-                    
+
                     ReservasScreen(
                         fechaB = fecha,
                         horaB =  hora,

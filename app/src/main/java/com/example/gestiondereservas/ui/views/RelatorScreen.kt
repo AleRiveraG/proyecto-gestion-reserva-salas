@@ -57,7 +57,9 @@ import com.example.gestiondereservas.data.repository.UsuarioRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
+import com.example.gestiondereservas.ui.viewmodel.SalasViewModel
 import com.example.gestiondereservas.ui.views.accesosDirectos
 import com.example.gestiondereservas.ui.viewmodel.UsuarioViewModel
 import com.example.gestiondereservas.utils.formatearFecha
@@ -85,12 +87,18 @@ fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
 {
     val reservas by viewModel.reservas.collectAsState()
     val usuario by usuarioViewModel.usuario.collectAsState()
+    val sala by viewModel.sala.collectAsState()
+    val reserva = reservas.firstOrNull()
 
-    LaunchedEffect(idUsuario) {
+    LaunchedEffect(reserva?.salaId) {
         viewModel.buscarReservaPorId(idUsuario)
         usuarioViewModel.cargarUsuario(idUsuario)
+        reserva?.let {
+            viewModel.buscarSala(it.salaId)
+        }
     }
     Contenido(nombreUsuario = usuario?.nombre?.split(" ")[0] ?: "usuario",
+        sala,
         onReservas,
         onActividad,
         onCalendario,
@@ -102,6 +110,7 @@ fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
 @Composable
 private fun Contenido(
     nombreUsuario: String,
+    sala: SalaEntity?,
     onReservas: () -> Unit,
     onActividad: (Long) -> Unit,
     onCalendario: () -> Unit,
@@ -147,9 +156,10 @@ private fun Contenido(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                reservas.forEach { reserva ->
+                reservas.firstOrNull()?.let { reserva ->
                     infoReserva(onActividad = { onActividad(reserva.id) },
-                        reserva = reserva)
+                        reserva = reserva,
+                        sala = sala)
                 }
             }
         }
@@ -164,7 +174,9 @@ private fun Contenido(
 
 @Composable
 fun infoReserva(onActividad: (Long) -> Unit,
-                reserva: ReservaEntity) {
+                reserva: ReservaEntity,
+                sala: SalaEntity?
+) {
     var checked by remember { mutableStateOf(false) }
 
     Box(
@@ -270,7 +282,7 @@ fun infoReserva(onActividad: (Long) -> Unit,
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    Text("${reserva.salaId}",
+                    Text("${sala?.codigo}",
                         color = MaterialTheme.colorScheme.secondary,
                         fontSize = 10.sp)
                 }

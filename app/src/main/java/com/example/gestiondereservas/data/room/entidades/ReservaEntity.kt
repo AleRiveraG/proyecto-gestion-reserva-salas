@@ -34,6 +34,7 @@ data class ReservaEntity(
     val publico: String,
     val requiereFormulario: Boolean,
     val nombreExternos: String,
+    val documentoPdf: String,
 
     val servicios: String,
     val complementos: String,
