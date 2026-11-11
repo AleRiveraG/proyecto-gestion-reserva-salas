@@ -137,11 +137,11 @@ fun RegistroBody(
 
     fun validarTelefono(): Boolean {
         return when {
-            telefono.length in 9..< 11 -> {
+            telefono.length !in 8..< 10 -> {
                 errorTelefono = "El número de teléfono debe ser valido"
                 false
             }
-            "^[0-9]$".toRegex().matches(telefono) -> {
+            !telefono.matches("^[0-9]+$".toRegex())-> {
                 errorTelefono = "El número de teléfono debe contener solo números"
                 false
             }
@@ -388,7 +388,7 @@ fun RegistroBody(
             },
             modifier = Modifier.fillMaxWidth(),
             label = { Text("Teléfono de contacto") },
-            placeholder = { Text("1234 5678") },
+            placeholder = { Text("9 1234 5678") },
             singleLine = true,
             isError = errorTelefono != null,
             keyboardOptions = KeyboardOptions(
