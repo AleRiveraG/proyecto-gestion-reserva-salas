@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Notifications
@@ -35,16 +36,17 @@ fun TopBar(
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically
-            ) {
+            ) { /*
                 Image(
-                    painter = painterResource(id = R.drawable.logo),
+                    painter = painterResource(id = R.drawable.logov4),
                     contentDescription = "Logo Duoc UC",
-                    modifier = Modifier.size(100.dp),
-                    colorFilter = ColorFilter.tint(Color.White)
+                    modifier = Modifier.size(60.dp)
+                        .clip(),
+                    //colorFilter = ColorFilter.tint(Color.White)
                 )
 
                 Spacer(modifier = Modifier.width(12.dp))
-
+                */
                 Text(
                     text = "Reserva",
                     color = MaterialTheme.colorScheme.secondary
