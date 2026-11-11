@@ -1,4 +1,4 @@
-package com.example.gestiondereservas.ui.viewmodel
+package com.example.gestiondereservas.viewmodel
 
 enum class EstadoActividad {
     PENDIENTE,

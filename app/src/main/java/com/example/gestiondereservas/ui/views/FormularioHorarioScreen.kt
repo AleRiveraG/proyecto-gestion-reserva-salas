@@ -1,6 +1,5 @@
 package com.example.gestiondereservas.ui.views
 
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -64,7 +63,7 @@ import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.components.AreaChip
-import com.example.gestiondereservas.ui.viewmodel.FormularioHorarioViewModel
+import com.example.gestiondereservas.viewmodel.FormularioHorarioViewModel
 import com.example.gestiondereservas.utils.FormatoHora
 import com.example.gestiondereservas.utils.ValidacionesHorario
 import com.example.gestiondereservas.utils.formatearHora

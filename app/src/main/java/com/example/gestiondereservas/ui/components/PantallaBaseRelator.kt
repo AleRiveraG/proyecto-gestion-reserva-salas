@@ -20,7 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -29,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -49,6 +48,7 @@ import com.example.gestiondereservas.ui.views.BusquedaSalasScreen
 import com.example.gestiondereservas.ui.views.HorariosScreen
 import com.example.gestiondereservas.ui.views.NotificacionesScreen
 import com.example.gestiondereservas.ui.views.RelatorScreen
+import com.example.gestiondereservas.ui.views.ReservasRelatorScreen
 import com.example.gestiondereservas.ui.views.ReservasScreen
 import com.example.gestiondereservas.ui.views.UsoSalaScreen
 import kotlinx.coroutines.Dispatchers
@@ -65,7 +65,7 @@ fun PantallaBaseRelator(
     abrirReservas: Boolean = false,
     onCerrarSesion: () -> Unit,
     appState: AppState,
-    correoUsuario: String? = null
+    correoUsuario: String? = null,
 ) {
     val tabNavController = rememberNavController()
     val contexto = LocalContext.current
@@ -175,7 +175,7 @@ fun PantallaBaseRelator(
                                         val reservas = withContext(Dispatchers.IO) {
                                             AppDatabase.getInstance(contexto)
                                                 .reservaDao()
-                                                .obtenerReservasAprobadasPorCorreo(correo)
+                                                .obtenerReservasAprobadasPorUsuario(idUsuario)
                                         }
 
                                         if (reservas.isNotEmpty()) {
@@ -203,6 +203,9 @@ fun PantallaBaseRelator(
                                     }
                                 }
                             }
+                        },
+                        onReservasRelator = {
+                            tabNavController.navigate("reservasRelator")
                         }
                     )
 
@@ -341,12 +344,13 @@ fun PantallaBaseRelator(
                     )
                 }
 
-                composable("usoSala/{reservaId}") { entrada ->
+                composable("usoSala/{reservaId}",
+                    arguments = listOf(navArgument("reservaId") { type = NavType.LongType})) { entrada ->
                     val reservaId = entrada.arguments
-                        ?.getString("reservaId")
-                        ?.toLongOrNull()
+                        ?.getLong("reservaId")
+                        ?: 0L
 
-                    if (reservaId != null) {
+                    if (reservaId > 0) {
                         UsoSalaScreen(
                             reservaId = reservaId,
                             appState = appState,
@@ -362,17 +366,24 @@ fun PantallaBaseRelator(
                     }
                 }
 
-                composable("notificaciones/false"){
+                composable("notificaciones/{esSupervisor}") { entrada ->
+                    val rolDeRuta = entrada.arguments
+                        ?.getString("esSupervisor")
+                        ?.toBoolean() ?: false
+
                     NotificacionesScreen(
-                        onVolver =  { tabNavController.popBackStack()},
+                        onVolver = { tabNavController.popBackStack() },
                         navController = tabNavController,
-                        esSupervisor = false,
+                        esSupervisor = rolDeRuta,
                         correoUsuario = correoUsuario
                     )
                 }
 
-
-
+                composable("reservasRelator") {
+                    ReservasRelatorScreen(
+                        idUsuario = idUsuario
+                    )
+                }
             }
         }
     }

@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
-import com.example.gestiondereservas.ui.viewmodel.AuditoriaViewModel
+import com.example.gestiondereservas.viewmodel.AuditoriaViewModel
 
 @Composable
 fun AuditoriaScreen(onAtras: () -> Unit,

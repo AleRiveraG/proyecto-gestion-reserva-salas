@@ -2,8 +2,6 @@ package com.example.gestiondereservas.data.repository
 
 import com.example.gestiondereservas.data.room.AuditoriaDao
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
-import kotlinx.coroutines.flow.StateFlow
-
 class AuditoriaRepository(
     private val auditoriaDao: AuditoriaDao
 ){

@@ -21,6 +21,7 @@ object DatosPruebaUsuariosReservas {
         nombre = "Carlos Muñoz Soto",
         correo = "carlos.munoz@duocuc.cl",
         contrasena = "Trabajo123",
+        telefono = "87654321",
         rol = ROL_TRABAJADOR
     )
 
@@ -28,6 +29,7 @@ object DatosPruebaUsuariosReservas {
         nombre = "Daniela Rojas Pérez",
         correo = "daniela.rojas@duocuc.cl",
         contrasena = "Coord1234",
+        telefono = "12345678",
         rol = ROL_COORDINADOR
     )
 

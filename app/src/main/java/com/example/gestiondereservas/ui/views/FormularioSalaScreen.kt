@@ -3,7 +3,6 @@ package com.example.gestiondereservas.ui.views
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -74,8 +73,8 @@ import com.example.gestiondereservas.data.room.entidades.Area
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.components.AreaChip
-import com.example.gestiondereservas.ui.viewmodel.EquipoForm
-import com.example.gestiondereservas.ui.viewmodel.FormularioSalaViewModel
+import com.example.gestiondereservas.viewmodel.EquipoForm
+import com.example.gestiondereservas.viewmodel.FormularioSalaViewModel
 import com.example.gestiondereservas.utils.formatearHora
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

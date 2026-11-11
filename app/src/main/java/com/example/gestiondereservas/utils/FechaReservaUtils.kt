@@ -12,11 +12,10 @@ fun calcularInicioReserva(
 ): LocalDateTime {
 
     val hoy = LocalDate.now()
-
-    val fecha = if (fechaActividad.matches(Regex("""\d{2}/\d{2}/\d{4}"""))) {
+    val fechaLimpia = fechaActividad.trim()
+    val fecha = if (fechaLimpia.matches(Regex("""\d{4}-\d{2}-\d{2}"""))) {
         LocalDate.parse(
-            fechaActividad,
-            DateTimeFormatter.ofPattern("dd/MM/yyyy")
+            fechaLimpia,
         )
     } else {
         val fechaSinAnio = LocalDate.parse(

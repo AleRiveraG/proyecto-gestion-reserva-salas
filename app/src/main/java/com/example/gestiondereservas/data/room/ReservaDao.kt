@@ -38,7 +38,7 @@ interface ReservaDao {
     suspend fun obtenerReservasPorUsuario(idUsuario: Long): List<ReservaEntity>
 
     // Buscar una reserva por su ID (Uso de Sala)
-    @Query("SELECT * FROM reserva WHERE id = :id LIMIT 1")
+    @Query("SELECT * FROM reserva WHERE id = :id ORDER BY fechaActividad LIMIT 1 ")
     suspend fun obtenerReservaPorId(id: Long): ReservaEntity?
 
     // Recordatorios: cambios en reservas aprobadas
@@ -63,12 +63,12 @@ interface ReservaDao {
     // Uso de Sala: reservas aprobadas del relator
     @Query("""
         SELECT * FROM reserva
-        WHERE LOWER(TRIM(correoResponsable)) = LOWER(TRIM(:correo))
+        WHERE idUsuario = :idUsuario
           AND estado = 'APROBADA'
         ORDER BY fechaActividad ASC, horaInicio ASC
     """)
-    suspend fun obtenerReservasAprobadasPorCorreo(
-        correo: String
+    suspend fun obtenerReservasAprobadasPorUsuario(
+        idUsuario: Long
     ): List<ReservaEntity>
 
     // Uso de Sala: cancelar una reserva aprobada

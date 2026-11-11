@@ -1,8 +1,8 @@
-package com.example.gestiondereservas.ui.viewmodel
+package com.example.gestiondereservas.viewmodel
 
+import android.content.Context
 import androidx.room.withTransaction
 import com.example.gestiondereservas.data.room.AppDatabase
-import com.example.gestiondereservas.data.room.ReservaDao
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.UsoSalaDao
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +20,6 @@ import java.time.LocalDateTime
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.UsoSalaEntity
 import com.example.gestiondereservas.utils.calcularInicioReserva
-import java.time.LocalDate
 import java.time.LocalTime
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
@@ -28,7 +27,7 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.example.gestiondereservas.workers.FinalizacionActividadWorker
 import java.util.concurrent.TimeUnit
-import java.time.format.DateTimeFormatter
+
 class UsoSalaViewModel : ViewModel() {
 
     var estadoActividad by mutableStateOf(EstadoActividad.PENDIENTE)
@@ -68,7 +67,7 @@ class UsoSalaViewModel : ViewModel() {
 
     suspend fun registrarInicio(
         db: AppDatabase,
-        context: android.content.Context
+        context: Context
     ) {
         val id = reservaId ?: return
         val ahora = LocalDateTime.now()
@@ -199,9 +198,14 @@ class UsoSalaViewModel : ViewModel() {
 
         trabajoCronometro?.cancel()
 
-        estadoActividad = EstadoActividad.PENDIENTE
-
         configurarReserva(inicio, fin)
+
+        val ahora = LocalDateTime.now()
+        estadoActividad = when {
+            ahora.isAfter(fin) -> EstadoActividad.FINALIZADA
+            ahora.isAfter(inicio) && ahora.isBefore(fin) -> EstadoActividad.EN_CURSO
+            else -> EstadoActividad.PENDIENTE
+        }
     }
 
     fun configurarReserva(
@@ -214,7 +218,7 @@ class UsoSalaViewModel : ViewModel() {
 
         inicioReserva = inicio
         finReserva = fin
-        segundosRestantes = Duration.between(inicio, fin).seconds
+        segundosRestantes = Duration.between(inicio, fin).seconds.coerceAtLeast(0L)
     }
 
 
@@ -268,6 +272,12 @@ class UsoSalaViewModel : ViewModel() {
 
     fun restaurarEstado(uso: UsoSalaEntity?, dao: UsoSalaDao) {
         trabajoCronometro?.cancel()
+        val ahora = LocalDateTime.now()
+
+        if (ahora.isAfter(finReserva)) {
+            estadoActividad = EstadoActividad.FINALIZADA
+            return
+        }
 
         estadoActividad = when (uso?.estado) {
             "EN_CURSO" -> EstadoActividad.EN_CURSO

@@ -73,7 +73,7 @@ import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
-import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
+import com.example.gestiondereservas.viewmodel.ReservaViewModel
 import com.example.gestiondereservas.utils.ValidacionesReserva
 import com.example.gestiondereservas.utils.formatearFechaPerso
 import com.example.gestiondereservas.utils.formatearHora
@@ -90,11 +90,11 @@ import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.gestiondereservas.data.room.entidades.Area
+import androidx.compose.foundation.selection.toggleable
 import com.example.gestiondereservas.utils.AnimacionCarga
 import com.example.gestiondereservas.utils.AnimacionReloj
 import com.example.gestiondereservas.utils.formatoFechaPantalla
+import com.example.gestiondereservas.viewmodel.UsuarioViewModel
 
 @Composable
 fun rememberReservaViewModel(): ReservaViewModel {
@@ -113,6 +113,7 @@ fun rememberReservaViewModel(): ReservaViewModel {
 
 @Composable
 fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
+                   usuarioViewModel: UsuarioViewModel = rememberUsuarioViewModel(),
                    fechaB: String? = null,
                    horaB: String? = null,
                    salaIdB: Long? = null,
@@ -177,6 +178,19 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
         }
     }
 
+    val listaSalas by viewModel.listaSalas.collectAsState()
+    val sala by viewModel.sala.collectAsState()
+    val usuario by usuarioViewModel.usuario.collectAsState()
+
+    LaunchedEffect(salaIdB, idUsuario) {
+        if(salaIdB != null && salaIdB > 0L) {
+            salaId = salaIdB
+            viewModel.buscarSala(salaIdB)
+        }
+
+        usuarioViewModel.cargarUsuario(idUsuario)
+    }
+
     fun crearReserva(): ReservaEntity {
         return ReservaEntity(
             idUsuario = idUsuario,
@@ -184,9 +198,9 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             descripcion = descripcion,
             tipoActividad = tipoActividad,
             tieneValidacion = tieneValidacion == "Si",
-            nombreResponsable = responsable,
-            telefonoResponsable = telefono,
-            correoResponsable = correo,
+            nombreResponsable = usuario!!.nombre,
+            telefonoResponsable = usuario!!.telefono,
+            correoResponsable = usuario!!.correo,
             organizador = organizador,
 
             salaId = salaId,
@@ -226,19 +240,11 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
         onEnviar()
     }
 
-    val listaSalas by viewModel.listaSalas.collectAsState()
-    val sala by viewModel.sala.collectAsState()
 
     when (paso) {
         1 -> ContentPaso1(
             nombre,
             { nombre = it },
-            responsable,
-            { responsable = it },
-            telefono,
-            { telefono = it},
-            correo,
-            { correo = it },
             descripcion,
             { descripcion = it},
             tipoActividad,
@@ -247,20 +253,13 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             { tieneValidacion = it },
             organizador, { organizador = it },
             nombreError,
-            responsableError,
-            telefonoError,
-            correoError,
             menuTipoActividadError,
             menuTieneValidacionError,
             menuAreaError,
             onAtras = { onAtras() },
             onSiguiente = {
                 validacionReactivaPaso1 = true
-
                 if(ValidacionesReserva.validarTexto(nombre) &&
-                    ValidacionesReserva.validarTexto(responsable) &&
-                    ValidacionesReserva.correoValido(correo) &&
-                    ValidacionesReserva.validarTelefono(telefono) &&
                     ValidacionesReserva.validarMenu(organizador) &&
                     ValidacionesReserva.validarMenu(tipoActividad) &&
                     ValidacionesReserva.validarMenu(tieneValidacion)
@@ -358,12 +357,6 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
 @Composable
 fun ContentPaso1(nombre: String,
                  onNombreChange: (String) -> Unit,
-                 responsable: String,
-                 onResponsableChange: (String) -> Unit,
-                 telefono: String,
-                 onTelefonoChange: (String) -> Unit,
-                 correo: String,
-                 onCorreoChange: (String) -> Unit,
                  descripcion: String,
                  onDescripcionChange: (String) -> Unit,
                  actividad: String,
@@ -373,9 +366,6 @@ fun ContentPaso1(nombre: String,
                  organizador: String,
                  onOrganizadorChange: (String) -> Unit,
                  nombreError: Boolean,
-                 responsableError: Boolean,
-                 telefonoError: Boolean,
-                 correoError: Boolean,
                  menuAreaError: Boolean,
                  menuTipoActividadError: Boolean,
                  menuTieneValidacionError: Boolean,
@@ -544,45 +534,6 @@ fun ContentPaso1(nombre: String,
                 Spacer(modifier = Modifier.height(16.dp))
 
                 TieneAutorizacion("¿Tu actividad tiene la validación de la dirección de la sede o de la subdirección de tu área?", tieneAutorizacion, onTieneAutorizacionChange, menuTieneValidacionError)
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                CampoTexto("Responsable de la actividad *",
-                    responsable,
-                    onResponsableChange,
-                    responsableError,
-                    "Nombre del responsable invalido. Ingrese nuevamente")
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        CampoTexto("Teléfono de contacto",
-                            telefono,
-                            onTelefonoChange,
-                            telefonoError,
-                            "Teléfono invalido. Ingrese nuevamente")
-                    }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        CampoTexto("Correo electrónico",
-                            correo,
-                            onCorreoChange,
-                            correoError,
-                            "Correo invalido. Ingrese nuevamente")
-                    }
-                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -1209,14 +1160,6 @@ fun Final(onEnviar: () -> Unit,
                 contentAlignment = Alignment.Center
             ) {
                 AnimacionReloj()
-                /*
-                Icon(
-                    painter = painterResource(R.drawable.hourglass),
-                    contentDescription = "Icono reloj de arena",
-                    tint = MaterialTheme.colorScheme.tertiary,
-                )
-                  */
-
             }
         }
 
@@ -1309,14 +1252,6 @@ fun Final(onEnviar: () -> Unit,
                     Text("Fecha: ${formatearFechaPerso(fechaActividad)}, $horaInicio a $horaTermino",
                         color = MaterialTheme.colorScheme.primary)
                 }
-/*
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text("Servicios solicitados",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold)
-*/
             }
         }
 
@@ -2122,9 +2057,10 @@ fun MenuOpciones(titulo: String,
         ) {
             Text(text = titulo,
                 color = MaterialTheme.colorScheme.primary,
-                fontSize = 14.sp)
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold)
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
             opciones.forEach { opcion ->
                 val estaSeleccionado = opcion in servicios
@@ -2136,18 +2072,22 @@ fun MenuOpciones(titulo: String,
                                 0xFFF5F5F5
                             )
                         )
-                ) {
-                    Checkbox(
-                        checked = estaSeleccionado,
-                        onCheckedChange = { isChecked ->
+                        .toggleable(
+                            value = estaSeleccionado,
+                            onValueChange = { isChecked ->
                             val nuevosServicios = if (isChecked) {
                                 servicios + opcion
                             } else {
                                 servicios - opcion
                             }
-
                             onServiciosChange(categoria, nuevosServicios)
-                        },
+                            }
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Checkbox(
+                        checked = estaSeleccionado,
+                        onCheckedChange = null,
                         colors = CheckboxDefaults.colors(
                             uncheckedColor = MaterialTheme.colorScheme.tertiary,
                             checkedColor = Color(0xFFFFF9E6),
@@ -2159,7 +2099,8 @@ fun MenuOpciones(titulo: String,
 
                     Text(
                         text = opcion,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 14.sp
                     )
                 }
             }

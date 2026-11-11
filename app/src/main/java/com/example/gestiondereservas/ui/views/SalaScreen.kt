@@ -53,8 +53,7 @@ import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.ui.components.AreaChip
-import com.example.gestiondereservas.ui.viewmodel.SalasViewModel
-import com.example.gestiondereservas.data.room.entidades.Area
+import com.example.gestiondereservas.viewmodel.SalasViewModel
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import java.time.LocalDate

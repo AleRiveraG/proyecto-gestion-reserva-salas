@@ -1,10 +1,9 @@
-package com.example.gestiondereservas.ui.viewmodel
+package com.example.gestiondereservas.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.repository.UsuarioRepository
 import com.example.gestiondereservas.data.room.entidades.UsuarioEntity
-import com.example.gestiondereservas.ui.views.RolRegistroUsuario
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -23,6 +22,7 @@ class RegistroViewModel(
         nombre: String,
         correo: String,
         contrasena: String,
+        telefono: String,
         rol: String,
         onRegistroExitoso: () -> Unit
     ) {
@@ -34,6 +34,7 @@ class RegistroViewModel(
                 correo = correo.trim().lowercase(),
                 nombre = nombre,
                 contrasena = contrasena,
+                telefono = telefono,
                 rol = rol
             )
 

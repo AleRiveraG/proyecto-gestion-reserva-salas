@@ -51,21 +51,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.CatalogoEquipamientos
 import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
-import com.example.gestiondereservas.ui.viewmodel.FiltrosAvanzados
-import com.example.gestiondereservas.ui.viewmodel.SalasUiState
-import com.example.gestiondereservas.ui.viewmodel.SalasViewModel
+import com.example.gestiondereservas.viewmodel.FiltrosAvanzados
+import com.example.gestiondereservas.viewmodel.SalasUiState
+import com.example.gestiondereservas.viewmodel.SalasViewModel
 import com.example.gestiondereservas.utils.AnimacionCarga
 import com.example.gestiondereservas.utils.formatearFecha
-import com.example.gestiondereservas.utils.formatearFechaPerso
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 @Composable
 fun BusquedaSalasScreen(onReservas: (String?, String?, Long) -> Unit,

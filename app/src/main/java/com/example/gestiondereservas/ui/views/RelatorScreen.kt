@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,8 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -34,7 +31,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,19 +45,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import androidx.room.util.TableInfo
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.data.AppState
-import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.repository.UsuarioRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
-import com.example.gestiondereservas.ui.viewmodel.ReservaViewModel
-import com.example.gestiondereservas.ui.viewmodel.SalasViewModel
-import com.example.gestiondereservas.ui.views.accesosDirectos
-import com.example.gestiondereservas.ui.viewmodel.UsuarioViewModel
+import com.example.gestiondereservas.viewmodel.ReservaViewModel
+import com.example.gestiondereservas.viewmodel.UsuarioViewModel
 import com.example.gestiondereservas.utils.formatearFecha
 @Composable
 fun rememberUsuarioViewModel(): UsuarioViewModel {
@@ -83,6 +74,7 @@ fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                   onReservas: () -> Unit,
                   onBuscarSala: () -> Unit,
                   onCalendario: () -> Unit,
+                  onReservasRelator: () -> Unit,
                   onActividad: (Long) -> Unit)
 {
     val reservas by viewModel.reservas.collectAsState()
@@ -103,6 +95,7 @@ fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
         onActividad,
         onCalendario,
         onBuscarSala,
+        onReservasRelator,
         reservas)
 }
 
@@ -115,6 +108,7 @@ private fun Contenido(
     onActividad: (Long) -> Unit,
     onCalendario: () -> Unit,
     onBuscarSala: () -> Unit,
+    onReservasRelator: () -> Unit,
     reservas: List<ReservaEntity>
 ) {
     Column(
@@ -167,7 +161,7 @@ private fun Contenido(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        accesosDirectos(onBuscarSala, onCalendario, onReservas)
+        accesosDirectos(onBuscarSala, onCalendario, onReservas, onReservasRelator)
     }
 }
 
@@ -320,7 +314,8 @@ fun infoReserva(onActividad: (Long) -> Unit,
 @Composable
 private fun accesosDirectos(onBuscarSala: () -> Unit,
                             onCalendario: () -> Unit,
-                            onReservas: () -> Unit
+                            onReservas: () -> Unit,
+                            onReservasRelator: () -> Unit
 ) {
     Text("Accesos directos",
         color = MaterialTheme.colorScheme.primary,
@@ -397,6 +392,28 @@ private fun accesosDirectos(onBuscarSala: () -> Unit,
             Spacer(modifier = Modifier.height(4.dp))
 
             Text("Reservar",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 12.sp)
+        }
+
+        Column(verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            IconButton(onClick = { onReservasRelator() },
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFFF5F5F5)
+                    )) {
+                Icon(
+                    painter = painterResource(R.drawable.list_square),
+                    contentDescription = "Icono reserva",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text("Mis reservas",
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 12.sp)
         }

@@ -41,6 +41,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.compose.ui.text)
     // Android
     implementation(libs.androidx.core.ktx)

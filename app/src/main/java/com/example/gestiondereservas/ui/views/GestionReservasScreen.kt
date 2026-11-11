@@ -57,11 +57,10 @@ import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
-import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
+import com.example.gestiondereservas.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.utils.formatearFechaPerso
 import com.example.gestiondereservas.utils.formatearHora
 import java.time.LocalDate
-import kotlin.collections.emptyList
 
 @Composable
 fun rememberGestionReservasViewModel(): GestionReservasViewModel {

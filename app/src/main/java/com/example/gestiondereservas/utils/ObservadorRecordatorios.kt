@@ -5,10 +5,6 @@ import android.content.Context
 import com.example.gestiondereservas.data.room.AppDatabase
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-import androidx.work.WorkManager
-import androidx.work.WorkInfo
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 object ObservadorRecordatorios {
 
     suspend fun observar(context: Context) {

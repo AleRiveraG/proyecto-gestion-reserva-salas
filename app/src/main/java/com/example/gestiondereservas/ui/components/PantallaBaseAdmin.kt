@@ -22,12 +22,10 @@ import androidx.navigation.navArgument
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
-import com.example.gestiondereservas.ui.viewmodel.AuditoriaViewModel
+import com.example.gestiondereservas.viewmodel.AuditoriaViewModel
 import com.example.gestiondereservas.ui.views.AuditoriaScreen
 import com.example.gestiondereservas.ui.views.FormularioHorarioScreen
-import com.example.gestiondereservas.ui.views.AuditoriaScreen
 import com.example.gestiondereservas.ui.views.EvaluacionesSalaScreen
-import com.example.gestiondereservas.ui.views.FormularioHorarioScreen
 import com.example.gestiondereservas.ui.views.FormularioSalaScreen
 import com.example.gestiondereservas.ui.views.GestionReservasScreen
 import com.example.gestiondereservas.ui.views.HorariosScreen
@@ -38,8 +36,6 @@ import com.example.gestiondereservas.ui.views.SupervisorScreen
 import com.example.gestiondereservas.ui.views.rememberGestionReservasViewModel
 import kotlinx.coroutines.flow.Flow
 import com.example.gestiondereservas.ui.views.rememberUsuarioViewModel
-import com.example.gestiondereservas.ui.views.rememberGestionReservasViewModel
-import com.example.gestiondereservas.ui.views.ReporteScreen
 
 object GestionSalasRutas {
     const val SALAS = "gestion_salas"

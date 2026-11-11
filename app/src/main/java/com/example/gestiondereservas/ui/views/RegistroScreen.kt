@@ -3,11 +3,7 @@ package com.example.gestiondereservas.ui.views
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,10 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -26,26 +20,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -54,12 +43,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -68,7 +53,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.gestiondereservas.R
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
 import com.example.gestiondereservas.utils.AnimacionRegistro
 
@@ -90,12 +74,13 @@ fun RegistroBody(
     modifier: Modifier = Modifier,
     estaCargando: Boolean = false,
     mensajeErrorGeneral: String? = null,
-    alRegistrarExitoso: (nombre: String, correo: String, password: String, rol: RolRegistroUsuario) -> Unit
+    alRegistrarExitoso: (nombre: String, correo: String, password: String, telefono: String, rol: RolRegistroUsuario) -> Unit
 ) {
     //Estados locales del formulario de registro
     var nombreCompleto by remember { mutableStateOf("") }
     var correo by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var telefono by remember { mutableStateOf("") }
     var confirmarPassword by remember { mutableStateOf("") }
     var esPasswordVisible by remember { mutableStateOf(false) }
     var esConfirmarPasswordVisible by remember { mutableStateOf(false) }
@@ -106,6 +91,7 @@ fun RegistroBody(
     var errorCorreo by remember { mutableStateOf<String?>(null) }
     var errorPassword by remember { mutableStateOf<String?>(null) }
     var errorConfirmarPassword by remember { mutableStateOf<String?>(null) }
+    var errorTelefono by remember { mutableStateOf<String?>(null) }
 
     val administradorFoco = LocalFocusManager.current
     val estadoDesplazamiento = rememberScrollState()
@@ -144,6 +130,23 @@ fun RegistroBody(
             }
             else -> {
                 errorCorreo = null
+                true
+            }
+        }
+    }
+
+    fun validarTelefono(): Boolean {
+        return when {
+            telefono.length in 9..< 10 -> {
+                errorTelefono = "El número de teléfono debe ser valido"
+                false
+            }
+            "^[0-9]$".toRegex().matches(telefono) -> {
+                errorTelefono = "El número de teléfono debe contener solo números"
+                false
+            }
+            else -> {
+                errorTelefono = null
                 true
             }
         }
@@ -195,16 +198,16 @@ fun RegistroBody(
             }
         }
     }
-
     fun manejarEnvio() {
         val esNombreValido = validarNombre()
         val esCorreoValido = validarCorreo()
         val esPasswordValido = validarPassword() //Aplica las reglas reforzadas
         val esConfirmacionValida = validarConfirmarPassword()
+        val esTelefonoValido = validarTelefono()
 
-        if (esNombreValido && esCorreoValido && esPasswordValido && esConfirmacionValida) {
+        if (esNombreValido && esCorreoValido && esPasswordValido && esConfirmacionValida && esTelefonoValido) {
             administradorFoco.clearFocus()
-            alRegistrarExitoso(nombreCompleto.trim(), correo.trim(), password, rolSeleccionado)
+            alRegistrarExitoso(nombreCompleto.trim(), correo.trim(), password, telefono,rolSeleccionado)
         }
     }
 
@@ -365,6 +368,61 @@ fun RegistroBody(
         ) {
             Text(
                 text = errorCorreo.orEmpty(),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, top = 4.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        //Campo: Telefono
+
+        OutlinedTextField(
+            value = telefono,
+            onValueChange = {
+                telefono = it
+                if (errorTelefono != null) validarTelefono()
+            },
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Teléfono de contacto") },
+            placeholder = { Text("1234 5678") },
+            singleLine = true,
+            isError = errorTelefono != null,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                autoCorrectEnabled = false,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = { administradorFoco.moveFocus(FocusDirection.Down) }
+            ),
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Phone,
+                    contentDescription = "Ícono de teléfono de contacto"
+                )
+            },
+            trailingIcon = {
+                if (errorTelefono != null) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "Error en telefono",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        )
+
+        AnimatedVisibility(
+            visible = errorTelefono != null,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            Text(
+                text = errorTelefono.orEmpty(),
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier
@@ -551,7 +609,7 @@ fun RegistroBody(
 fun RegistroScreen(
     estaCargando: Boolean = false,
     mensajeErrorGeneral: String? = null,
-    alRegistrarExitoso: (nombre: String, correo: String, password: String, rol: RolRegistroUsuario) -> Unit
+    alRegistrarExitoso: (nombre: String, correo: String, password: String, telefono: String, rol: RolRegistroUsuario) -> Unit
 ) {
     Scaffold(
     ) { paddingValues ->
@@ -572,7 +630,7 @@ fun RegistroScreen(
 fun RegistroBodyPreview() {
     GestionDeReservasTheme {
         RegistroScreen(
-            alRegistrarExitoso = { nombre, correo, password, rol ->
+            alRegistrarExitoso = { nombre, correo, password, telefono, rol ->
                 //Acción de prueba local
             }
         )

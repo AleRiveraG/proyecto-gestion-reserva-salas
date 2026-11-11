@@ -1,5 +1,10 @@
 package com.example.gestiondereservas.ui.components
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -11,16 +16,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import com.example.gestiondereservas.R
 
+data class NavigationItem(
+    val nombre: String,
+    val icono: Int,
+    val onClick: () -> Unit
+)
 @Composable
 fun NavBar(
-    inicial: Int,
+    inicial: Int = 0,
     onInicio: () -> Unit,
     onCalendario: () -> Unit,
     onSalas: () -> Unit
-    ) {
+) {
     var seleccion by remember { mutableIntStateOf(inicial) }
 
     val colores = NavigationBarItemDefaults.colors(
@@ -31,30 +43,52 @@ fun NavBar(
         unselectedTextColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
     )
 
-    NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
-        NavigationBarItem(
-            selected = seleccion == 0,
-            onClick = { seleccion = 0
-                      onInicio()},
-            icon = { Icon(painterResource(R.drawable.home), "Icono inicio") },
-            label = { Text("Inicio") },
-            colors = colores
-        )
-        NavigationBarItem(
-            selected = seleccion == 1,
-            onClick = { seleccion = 1
-                      onCalendario()},
-            icon = { Icon(painterResource(R.drawable.calendar), "Icono calendario") },
-            label = { Text("Calendario") },
-            colors = colores
-        )
-        NavigationBarItem(
-            selected = seleccion == 2,
-            onClick = { seleccion = 2
-                      onSalas()},
-            icon = { Icon(painterResource(R.drawable.door), "Icono puerta") },
-            label = { Text("Salas") },
-            colors = colores
-        )
+    val items = listOf(
+        NavigationItem("Inicio", R.drawable.home, onInicio),
+        NavigationItem("Calendario", R.drawable.calendar, onCalendario),
+        NavigationItem("Salas", R.drawable.door, onSalas),
+    )
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.primary
+    ) {
+        
+        items.forEachIndexed { index, item ->
+            val seleccionado = seleccion == index
+
+            val interaccion = remember { MutableInteractionSource() }
+            val presionado by interaccion.collectIsPressedAsState()
+
+            val escala = when {
+                presionado -> 0.9f
+                seleccionado -> 1.1f
+                else -> 1.0f
+            }
+
+            val scale by animateFloatAsState(
+                targetValue = escala,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
+
+            NavigationBarItem(
+                selected = seleccionado,
+                onClick = {
+                    seleccion = index
+                    item.onClick()
+                },
+                interactionSource = interaccion,
+                icon = {
+                    Icon(
+                        painter = painterResource(item.icono),
+                        contentDescription = item.nombre,
+                        modifier = Modifier.scale(scale)
+                    )
+                },
+                label = { Text(item.nombre) },
+                colors = colores
+            )
+        }
     }
 }

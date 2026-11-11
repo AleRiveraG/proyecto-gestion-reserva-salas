@@ -2,7 +2,6 @@ package com.example.gestiondereservas.utils
 
 import java.time.LocalDate
 import java.time.LocalTime
-import kotlin.text.compareTo
 
 object ValidacionesReserva {
 

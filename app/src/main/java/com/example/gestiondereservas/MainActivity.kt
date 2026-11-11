@@ -18,20 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.navigation.AppNavigation
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
-import com.example.gestiondereservas.ui.views.GestionReservasScreen
-import com.example.gestiondereservas.ui.views.RelatorScreen
-import com.example.gestiondereservas.ui.views.UsoSalaScreen
-import com.example.gestiondereservas.ui.views.ReservasScreen
-import com.example.gestiondereservas.ui.views.SupervisorScreen
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.lifecycleScope
 import com.example.gestiondereservas.data.AppState
-
-//este import es por para probar la vista de las distintas areas
-import com.example.gestiondereservas.data.room.entidades.Area
-import com.example.gestiondereservas.ui.views.SalasScreen
-import com.example.gestiondereservas.ui.views.SupervisorScreen
 import com.example.gestiondereservas.utils.ObservadorNotificaciones
 import com.example.gestiondereservas.utils.ObservadorRecordatorios
 import kotlinx.coroutines.launch
@@ -116,6 +103,7 @@ fun MyApp(abrirNotificaciones: Boolean = false) {
         AppNavigation(
             navController = navController,
             appState = appState,
+            abrirNotificaciones = abrirNotificaciones
         )
     }
 }

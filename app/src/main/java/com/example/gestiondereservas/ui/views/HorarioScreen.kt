@@ -57,7 +57,7 @@ import com.example.gestiondereservas.data.repository.HorarioRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
 import com.example.gestiondereservas.data.room.entidades.HorarioEntity
-import com.example.gestiondereservas.ui.viewmodel.HorariosViewModel
+import com.example.gestiondereservas.viewmodel.HorariosViewModel
 import com.example.gestiondereservas.utils.FechasSemana
 import com.example.gestiondereservas.utils.FormatoHora
 import com.example.gestiondereservas.utils.ValidacionesHorario

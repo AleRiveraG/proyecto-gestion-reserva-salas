@@ -31,8 +31,6 @@ import androidx.navigation.NavController
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
-import com.example.gestiondereservas.ui.components.NavBar
-import com.example.gestiondereservas.ui.components.TopBar
 import com.example.gestiondereservas.ui.theme.Black
 import com.example.gestiondereservas.ui.theme.NotificationBackground
 import com.example.gestiondereservas.ui.theme.NotificationBlue
