@@ -137,7 +137,7 @@ fun RegistroBody(
 
     fun validarTelefono(): Boolean {
         return when {
-            telefono.length in 9..< 10 -> {
+            telefono.length in 9..< 11 -> {
                 errorTelefono = "El número de teléfono debe ser valido"
                 false
             }

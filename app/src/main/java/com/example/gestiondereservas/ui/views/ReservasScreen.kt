@@ -151,9 +151,6 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var proveedores by remember { mutableStateOf("")}
 
     val nombreError = validacionReactivaPaso1 && !ValidacionesReserva.validarTexto(nombre)
-    val responsableError = validacionReactivaPaso1 && !ValidacionesReserva.validarTexto(responsable)
-    val telefonoError = validacionReactivaPaso1 && !ValidacionesReserva.validarTelefono(telefono)
-    val correoError = validacionReactivaPaso1 && !ValidacionesReserva.correoValido(correo)
     val menuTipoActividadError = validacionReactivaPaso1 && !ValidacionesReserva.validarMenu(tipoActividad)
     val menuTieneValidacionError = validacionReactivaPaso1 && !ValidacionesReserva.validarMenu(tieneValidacion)
     val menuAreaError = validacionReactivaPaso1 && !ValidacionesReserva.validarMenu(organizador)
