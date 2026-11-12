@@ -139,42 +139,6 @@ fun NotificacionesScreen(
 
     val pendientes = notificaciones.count { !it.leida }
 
-    // Botones de prueba para desarrollo
-    val tituloPrueba = "Recordatorio de actividad"
-    val mensajePrueba = "Tu actividad comienza pronto"
-
-    val solicitarPermiso = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { permitido ->
-        if (permitido) {
-            NotificacionHelper.mostrarNotificacion(
-                context,
-                tituloPrueba,
-                mensajePrueba
-            )
-        }
-    }
-
-    fun probarNotificacion() {
-        val necesitaPermiso =
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.POST_NOTIFICATIONS
-                    ) != PackageManager.PERMISSION_GRANTED
-
-        if (necesitaPermiso) {
-            solicitarPermiso.launch(
-                Manifest.permission.POST_NOTIFICATIONS
-            )
-        } else {
-            NotificacionHelper.mostrarNotificacion(
-                context,
-                tituloPrueba,
-                mensajePrueba
-            )
-        }
-    }
 
 
         Column(
@@ -245,52 +209,7 @@ fun NotificacionesScreen(
 
             Spacer(Modifier.height(14.dp))
 
-            // Botones de prueba
-            OutlinedButton(
-                onClick = {
-                    probarNotificacion()
-                },
-                border = BorderStroke(1.dp, Black),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = Black
-                )
-            ) {
-                Icon(
-                    Icons.Default.Notifications,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
 
-                Spacer(Modifier.width(8.dp))
-
-                Text("Probar notificación")
-            }
-
-            OutlinedButton(
-                onClick = {
-                    ProgramadorRecordatorios.programarPrueba(
-                        context,
-                        tituloPrueba,
-                        mensajePrueba
-                    )
-                },
-                border = BorderStroke(1.dp, Black),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = Black
-                )
-            ) {
-                Icon(
-                    Icons.Default.Alarm,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-
-                Spacer(Modifier.width(8.dp))
-
-                Text("Programar recordatorio (2 min)")
-            }
-
-            Spacer(Modifier.height(12.dp))
 
             if (notificaciones.isEmpty()) {
                 Text(
