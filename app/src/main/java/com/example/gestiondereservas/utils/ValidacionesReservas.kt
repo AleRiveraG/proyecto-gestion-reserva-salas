@@ -63,5 +63,9 @@ object ValidacionesReserva {
 
         return if(fechaAct == fechaMon) horaMon < horaAct else true
     }
+
+    fun validarMenuForm(opcion: Boolean?): Boolean {
+        return opcion != null
+    }
 }
 

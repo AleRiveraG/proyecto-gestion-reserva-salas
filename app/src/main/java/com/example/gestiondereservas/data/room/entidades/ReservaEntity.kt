@@ -17,7 +17,7 @@ data class ReservaEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val idUsuario: Long,
     val nombreActividad: String,
-    val descripcion: String,
+    val descripcion: String?,
     val tipoActividad: String,
     val tieneValidacion: Boolean,
     val nombreResponsable: String,
@@ -37,8 +37,8 @@ data class ReservaEntity(
     val documentoPdf: String,
 
     val servicios: String,
-    val complementos: String,
-    val proveedores: String,
+    val complementos: String?,
+    val proveedores: String?,
 
 
     val estado: EstadoReserva = EstadoReserva.PENDIENTE

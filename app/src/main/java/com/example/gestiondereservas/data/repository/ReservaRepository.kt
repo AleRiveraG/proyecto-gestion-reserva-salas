@@ -1,36 +1,47 @@
 package com.example.gestiondereservas.data.repository
 
+import com.example.gestiondereservas.data.remote.ReservaApiService
+import com.example.gestiondereservas.data.remote.dto.DocumentoResponse
+import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.room.ReservaDao
 import com.example.gestiondereservas.data.room.SalaDao
+import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 
 class ReservaRepository(
-    private val reservaDao: ReservaDao,
-    private val salaDao: SalaDao
+    private val salaDao: SalaDao,
+    private val api: ReservaApiService
 ) {
-    suspend fun registrarReserva(reserva: ReservaEntity) {
-        reservaDao.registrar(reserva)
+    suspend fun registrarReserva(reserva: RequestBody, archivo: MultipartBody.Part?): ReservaResponse {
+        val reservaRespuesta = api.registrarReserva(reserva, archivo)
+        return reservaRespuesta
     }
 
-    suspend fun modificarEstado(id: Long, estadoNuevo: String) {
-        reservaDao.modificarEstado(id, estadoNuevo)
+    suspend fun modificarEstado(id: Long, estadoNuevo: EstadoReserva, estadoActual: EstadoReserva) {
+        api.modificarEstadoReserva(id, estadoNuevo, estadoActual)
     }
 
-    suspend fun obtenerReservasPendientes(): List<ReservaEntity> {
-        return reservaDao.obtenerReservasPendientes()
+    suspend fun obtenerReservasPendientes(): List<ReservaResponse> {
+        val reservas = api.obtenerReservasPorEstado(EstadoReserva.PENDIENTE)
+        return reservas
     }
 
-    suspend fun obtenerAprobadas(): Int {
-        return reservaDao.obtenerAprobadas()
+    suspend fun obtenerAprobadas(): Long {
+        val cantidad = api.obtenerCantidadPorEstado(EstadoReserva.APROBADA)
+        return cantidad
     }
 
-    suspend fun obtenerRechazadas(): Int {
-        return reservaDao.obtenerRechazadas()
+    suspend fun obtenerRechazadas(): Long {
+        val cantidad = api.obtenerCantidadPorEstado(EstadoReserva.RECHAZADA)
+        return cantidad
     }
 
-    suspend fun obtenerPendiente(): Int {
-        return reservaDao.obtenerPendientes()
+    suspend fun obtenerPendiente(): Long {
+        val cantidad = api.obtenerCantidadPorEstado(EstadoReserva.PENDIENTE)
+        return cantidad
     }
 
     suspend fun obtenerSalas(): List<SalaEntity> {
@@ -41,7 +52,13 @@ class ReservaRepository(
         return salaDao.obtenerSalaPorId(id)
     }
 
-    suspend fun obtenerReservaPorIdUsuario(id: Long): List<ReservaEntity> {
-        return reservaDao.obtenerReservasPorUsuario(id)
+    suspend fun obtenerReservaPorIdUsuario(id: Long): List<ReservaResponse> {
+        val reservas = api.obtenerReservasPorUsuario(id)
+        return reservas
+    }
+
+    suspend fun obtenerDocumento(idReserva: Long): String {
+        val documento = api.obtenerDocumento(idReserva)
+        return documento
     }
 }

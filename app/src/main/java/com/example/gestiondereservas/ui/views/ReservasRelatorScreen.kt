@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.viewmodel.ReservaViewModel
 
@@ -75,7 +76,7 @@ fun ReservasRelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel
 }
 
 @Composable
-fun ReservaCard(reserva: ReservaEntity) {
+    fun ReservaCard(reserva: ReservaResponse) {
     Row() {
         val (icono, colorFondo) = when (reserva.organizador) {
             "Administración y Negocios" -> Pair(R.drawable.bar_chart, Color(0xFFC98BDB))

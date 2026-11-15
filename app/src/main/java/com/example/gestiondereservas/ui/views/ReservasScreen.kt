@@ -1,6 +1,7 @@
 package com.example.gestiondereservas.ui.views
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -70,7 +71,6 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.viewmodel.ReservaViewModel
@@ -91,10 +91,21 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
+import com.example.gestiondereservas.data.remote.RetrofitClient
+import com.example.gestiondereservas.data.remote.dto.ReservaDTO
 import com.example.gestiondereservas.utils.AnimacionCarga
 import com.example.gestiondereservas.utils.AnimacionReloj
+import com.example.gestiondereservas.utils.StringALocalDate
 import com.example.gestiondereservas.utils.formatoFechaPantalla
+import com.example.gestiondereservas.utils.stringALocalTime
 import com.example.gestiondereservas.viewmodel.UsuarioViewModel
+import com.google.gson.Gson
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun rememberReservaViewModel(): ReservaViewModel {
@@ -102,15 +113,28 @@ fun rememberReservaViewModel(): ReservaViewModel {
     return viewModel(
         factory = viewModelFactory {
             initializer {
-                val dao = AppDatabase.getInstance(contexto).reservaDao()
                 val daoSalas = AppDatabase.getInstance(contexto).salaDao()
-                val repository = ReservaRepository(dao, daoSalas)
+                val repository = ReservaRepository(daoSalas, RetrofitClient.api)
                 ReservaViewModel(repository)
             }
         }
     )
 }
 
+fun uriToFile(context: Context, uri: Uri): File? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+        val file = File(context.cacheDir, "temp_reserva_archivo.pdf")
+        val outputStream = FileOutputStream(file)
+        inputStream.copyTo(outputStream)
+        inputStream.close()
+        outputStream.close()
+        file
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}
 @Composable
 fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                    usuarioViewModel: UsuarioViewModel = rememberUsuarioViewModel(),
@@ -126,6 +150,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var mostrarCarga by remember { mutableStateOf(false) }
     var validacionReactivaPaso1 by remember { mutableStateOf(false) }
     var validacionReactivaPaso2 by remember { mutableStateOf(false) }
+    val contexto = LocalContext.current
 
     var nombre by remember({mutableStateOf("")})
     var descripcion by remember { mutableStateOf("") }
@@ -139,7 +164,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var fechaMontaje by remember { mutableStateOf("") }
     var horaMontaje by remember { mutableStateOf("") }
     var publicoSelecionado by remember { mutableStateOf<Set<String>>(emptySet()) }
-    var requiereForm by remember { mutableStateOf("") }
+    var requiereForm by remember { mutableStateOf<Boolean?>(null) }
     var salaId by remember { mutableLongStateOf(salaIdB ?: 0L) }
     var nombres by remember { mutableStateOf("") }
 
@@ -158,7 +183,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     val fechaMontajeError = validacionReactivaPaso2 && (!ValidacionesReserva.validarFechas(fechaMontaje) || !ValidacionesReserva.validarMontaje(fechaMontaje, fechaActividad))
     val horaMontajeError = validacionReactivaPaso2 && (!ValidacionesReserva.validarHoras(horaMontaje) || !ValidacionesReserva.validarHoraMontaje(fechaMontaje, fechaActividad, horaMontaje, horaInicio))
     val publicoSeleccionadoError = validacionReactivaPaso2 && !ValidacionesReserva.validarMenuMultiple(publicoSelecionado)
-    val requiereFormError = validacionReactivaPaso2 && !ValidacionesReserva.validarMenu(requiereForm)
+    val requiereFormError = validacionReactivaPaso2 && !ValidacionesReserva.validarMenuForm(requiereForm)
     val nombresInvitadosError = validacionReactivaPaso2 && publicoSelecionado.contains("Externos") && !ValidacionesReserva.validarTexto(nombres)
 
     val scope = rememberCoroutineScope()
@@ -185,13 +210,13 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
         usuarioViewModel.cargarUsuario(idUsuario)
     }
 
-    fun crearReserva(): ReservaEntity {
-        return ReservaEntity(
+    fun crearReserva(): ReservaDTO {
+        return ReservaDTO(
             idUsuario = idUsuario,
             nombreActividad = nombre,
             descripcion = descripcion,
             tipoActividad = tipoActividad,
-            tieneValidacion = if(tieneValidacion == "Si") true else false,
+            tieneAutorizacion = if(tieneValidacion == "Si") true else false,
             nombreResponsable = usuario!!.nombre,
             telefonoResponsable = usuario!!.telefono,
             correoResponsable = usuario!!.correo,
@@ -203,15 +228,16 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             horaTermino = horaTermino,
             fechaMontaje = fechaMontaje,
             horaMontaje = horaMontaje,
-            publico = publicoSelecionado.joinToString (", "),
-            requiereFormulario = if(requiereForm == "Si") true else false,
-            nombreExternos = nombres,
-            documentoPdf = pdfUri?.toString() ?: "",
+            publico = publicoSelecionado.toMutableSet(),
+            requiereFormulario = requiereForm ?: false,
+            nombresExternos = mutableSetOf(nombres),
 
+            servicios =servicios.mapValues { (_, valores) ->
+                valores.toMutableSet() as MutableSet<String?>?
+            }.toMutableMap(),
             complementos = complemento,
             proveedores = proveedores,
-            servicios = servicios.entries.joinToString("; ") { (categoria, opciones) ->
-                "$categoria: ${opciones.joinToString(", ")}" },
+
         )
     }
 
@@ -226,7 +252,18 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     }
     fun guardarReserva() {
         val reserva = crearReserva()
-        viewModel.registrarReserva(reserva)
+        val gson = Gson()
+        val jsonString = gson.toJson(reserva)
+        val reservaRequestBody = jsonString.toRequestBody("application/json".toMediaTypeOrNull())
+
+        val archivo = pdfUri?.let { uri ->
+                uriToFile(contexto, uri)?.let { file ->
+                    val requestFile = file.asRequestBody("application/pdf".toMediaTypeOrNull())
+                    MultipartBody.Part.createFormData("archivo", file.name, requestFile)
+                }
+        }
+
+        viewModel.registrarReserva(reservaRequestBody, archivo)
 
         val auditoria = crearAuditoria()
         onRegistrarAuditoria( auditoria )
@@ -308,7 +345,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                     ValidacionesReserva.validarFechas(fechaMontaje) &&
                     ValidacionesReserva.validarHoras(horaMontaje) &&
                     ValidacionesReserva.validarMenuMultiple(publicoSelecionado) &&
-                    ValidacionesReserva.validarMenu(requiereForm) &&
+                    ValidacionesReserva.validarMenuForm(requiereForm) &&
                     (ValidacionesReserva.validarTexto(nombres) || !publicoSelecionado.contains("Externos")) &&
                     ValidacionesReserva.validarMontaje(fechaMontaje, fechaActividad) &&
                     ValidacionesReserva.validarHoraMontaje(fechaMontaje, fechaActividad, horaMontaje, horaInicio)
@@ -569,8 +606,8 @@ fun ContentPaso2(fechaActividad:String,
                  onHoraMontajeChange: (String) -> Unit,
                  publicoSeleccionado: Set<String>,
                  onPublicoChange: (Set<String>) -> Unit,
-                 requiereForm: String,
-                 onRequiereFormChange: (String) -> Unit,
+                 requiereForm: Boolean?,
+                 onRequiereFormChange: (Boolean) -> Unit,
                  onSalaIdChange: (Long) -> Unit,
                  salaId: Long,
                  listaSalas: List<SalaEntity>,
@@ -1869,14 +1906,13 @@ fun Publico(titulo: String,
 }
 
 @Composable
-fun NecesitaForm(opcion: String,
-                 onOpcionChange: (String) -> Unit,
+fun NecesitaForm(opcion: Boolean?,
+                 onOpcionChange: (Boolean) -> Unit,
                  formError: Boolean
 ) {
     val opciones = listOf(
-        "",
-        "Si",
-        "No"
+        true to "Si",
+        false to "No"
     )
 
     Column{
@@ -1894,12 +1930,12 @@ fun NecesitaForm(opcion: String,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        opciones.drop(1).forEach { seleccion ->
-            var isSelected = seleccion == opcion
+        opciones.forEach { (valor, texto) ->
+            var isSelected = opcion == valor
             FilterChip(
                 selected = isSelected,
-                onClick = { onOpcionChange(seleccion) },
-                label = { Text(seleccion)},
+                onClick = { onOpcionChange(valor) },
+                label = { Text(texto)},
                 leadingIcon = if(isSelected) {
                     {
                         Icon(

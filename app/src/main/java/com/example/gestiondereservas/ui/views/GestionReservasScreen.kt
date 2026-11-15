@@ -1,5 +1,7 @@
 package com.example.gestiondereservas.ui.views
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -50,6 +52,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.remote.RetrofitClient
+import com.example.gestiondereservas.data.remote.dto.DocumentoResponse
+import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
@@ -57,9 +62,12 @@ import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
+import com.example.gestiondereservas.utils.LocalDateAString
 import com.example.gestiondereservas.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.utils.formatearFechaPerso
 import com.example.gestiondereservas.utils.formatearHora
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 @Composable
@@ -68,10 +76,9 @@ fun rememberGestionReservasViewModel(): GestionReservasViewModel {
     return viewModel(
         factory = viewModelFactory {
             initializer {
-                val dao = AppDatabase.getInstance(contexto).reservaDao()
                 val daoSalas = AppDatabase.getInstance(contexto).salaDao()
-                val repository = ReservaRepository(dao, daoSalas)
-                GestionReservasViewModel(repository,contexto)
+                val repository = ReservaRepository(daoSalas, RetrofitClient.api)
+                GestionReservasViewModel(repository)
             }
         }
     )
@@ -102,26 +109,31 @@ fun GestionReservasScreen(
         pendientes,
         onBuscarSala = { id -> viewModel.buscarSala(id)},
         onAprobar = { id ->
-            viewModel.modificarEstado(id, EstadoReserva.APROBADA.name)
+            viewModel.modificarEstado(id, EstadoReserva.APROBADA, EstadoReserva.PENDIENTE)
                     val auditoria = crearAuditoria("Se aprobo una solicitud", "")
                     onRegistrarAuditoria(auditoria)
                     } ,
         onRechazar = { id ->
-            viewModel.modificarEstado(id, EstadoReserva.RECHAZADA.name)
+            viewModel.modificarEstado(id, EstadoReserva.RECHAZADA, EstadoReserva.PENDIENTE)
             val auditoria = crearAuditoria("Se rechazo una solicitud", "")
             onRegistrarAuditoria(auditoria)
+        },
+        onObtenerDocumento = { id ->
+            viewModel.obtenerDocumento(id)
         }
         )
 }
 
 @Composable
-private fun Contenido(reservas: List<ReservaEntity>,
-                      aprobadas: Int,
-                      rechazadas: Int,
-                      pendientes: Int,
-                      onBuscarSala: suspend (Long) -> SalaEntity?,
-                      onAprobar: (Long) -> Unit,
-                      onRechazar: (Long) -> Unit,
+fun Contenido(reservas: List<ReservaResponse>,
+              aprobadas: Long,
+              rechazadas: Long,
+              pendientes: Long,
+              onBuscarSala: suspend (Long) -> SalaEntity?,
+              onAprobar: (Long) -> Unit,
+              onRechazar: (Long) -> Unit,
+              onObtenerDocumento: suspend (Long) -> String
+
 ) {
     Column(
         modifier = Modifier
@@ -154,7 +166,8 @@ private fun Contenido(reservas: List<ReservaEntity>,
                 reserva,
                 onAprobar,
                 onRechazar,
-                onBuscarSala)
+                onBuscarSala,
+                onObtenerDocumento)
 
             Spacer(modifier = Modifier.height(12.dp))
         }
@@ -162,8 +175,10 @@ private fun Contenido(reservas: List<ReservaEntity>,
 }
 
 @Composable
-fun contador(pendientes: Int, aprobadas: Int, rechazadas: Int) {
-
+fun contador(pendientes: Long,
+             aprobadas: Long,
+             rechazadas: Long
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -223,8 +238,11 @@ fun contador(pendientes: Int, aprobadas: Int, rechazadas: Int) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun reserva(reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long) -> Unit,
-            onBuscarSala: suspend (Long) -> SalaEntity?) {
+fun reserva(reserva: ReservaResponse,
+            onAprobar: (Long) -> Unit,
+            onRechazar: (Long) -> Unit,
+            onBuscarSala: suspend (Long) -> SalaEntity?,
+            onObtenerDocumento: suspend (Long) -> String) {
     var mostrarModal by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     var sala by remember { mutableStateOf<SalaEntity?>(null) }
@@ -270,7 +288,7 @@ fun reserva(reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                etiquetaTieneAutorizacion(if (reserva.tieneValidacion) "Si" else "No")
+                etiquetaTieneAutorizacion(if (reserva.tieneAutorizacion) "Si" else "No")
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -379,7 +397,7 @@ fun reserva(reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long
                         Text("Montaje",
                             color = Color(0xFF63788C),
                             fontSize = 14.sp)
-                        Text(text = reserva.horaMontaje,
+                        Text(text = "${reserva.horaMontaje}",
                             color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold)
@@ -407,7 +425,7 @@ fun reserva(reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long
                         Text("Público",
                             color = Color(0xFF63788C),
                             fontSize = 14.sp)
-                        Text(text = reserva.publico,
+                        Text(text = reserva.publico.joinToString(", ").lowercase().replaceFirstChar { it.uppercase() },
                             color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold)
@@ -448,7 +466,8 @@ fun reserva(reserva: ReservaEntity, onAprobar: (Long) -> Unit, onRechazar: (Long
                 onAprobar = onAprobar,
                 onRechazar = onRechazar,
                 soloLectura = false,
-                sala = sala
+                sala = sala,
+                onObtenerDocumento
             )
         }
     }
@@ -466,7 +485,7 @@ fun etiquetaTipoActividad(tipo: String){
             )
             .background(Color(0xFFFFF9E6))
     ){
-        Text(text = tipo,
+        Text(text = tipo.lowercase().replaceFirstChar { it.uppercase() },
             color = MaterialTheme.colorScheme.primary,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
@@ -560,13 +579,13 @@ fun etiquetaEstado(estado: String) {
 @Composable
 fun detalleSolicitud(
     onCerrar: () -> Unit,
-    reserva: ReservaEntity,
+    reserva: ReservaResponse,
     onAprobar: (Long) -> Unit,
     onRechazar: (Long) -> Unit,
     soloLectura: Boolean = false,
-    sala: SalaEntity? = null
+    sala: SalaEntity? = null,
+    onObtenerDocumento: suspend (Long) -> String
 ) {
-    val scope = rememberCoroutineScope()
 
     Column(modifier = Modifier.padding(16.dp)) {
         Row(
@@ -605,7 +624,7 @@ fun detalleSolicitud(
                 fontSize = 16.sp,
                 modifier = Modifier.padding(end = 8.dp)
             )
-            Text(text = formatearFechaPerso(reserva.fechaActividad),
+            Text(text = formatearFechaPerso(LocalDateAString(reserva.fechaActividad)),
                 color = Color(0xFF3B3B3B),
                 fontSize = 16.sp
                 )
@@ -615,84 +634,84 @@ fun detalleSolicitud(
 
         servicios(reserva)
 
-        if (!soloLectura && reserva.estado == EstadoReserva.PENDIENTE) {
-
         Spacer(modifier = Modifier.height(12.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
-                modifier = Modifier
-                    .weight(1f),
-                onClick = {
-                    onRechazar(reserva.id)
-                    onCerrar() },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFD00236)
-                )
+        archivoAdjunto(reserva, onObtenerDocumento)
+
+        if (!soloLectura && reserva.estado == EstadoReserva.PENDIENTE) {
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.x),
-                    contentDescription = "Icono Cerrar",
-                    tint = MaterialTheme.colorScheme.secondary
-                )
+                Button(
+                    modifier = Modifier
+                        .weight(1f),
+                    onClick = {
+                        onRechazar(reserva.idReserva)
+                        onCerrar() },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFD00236)
+                    )
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.x),
+                        contentDescription = "Icono Cerrar",
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        "Denegar",
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Text(
-                    "Denegar",
-                    color = MaterialTheme.colorScheme.secondary
-                )
+                Button(
+                    modifier = Modifier
+                        .weight(1f),
+                    onClick = {
+                        onAprobar(reserva.idReserva)
+                        onCerrar()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF3DB83B)
+                    )
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.check),
+                        contentDescription = "Icono Aprobar",
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        "Aprobar",
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Button(
-                modifier = Modifier
-                    .weight(1f),
-                onClick = {
-                    onAprobar(reserva.id)
-                    onCerrar()
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF3DB83B)
-                )
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.check),
-                    contentDescription = "Icono Aprobar",
-                    tint = MaterialTheme.colorScheme.secondary
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text(
-                    "Aprobar",
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
-        }
-
         }
     }
 }
 
 @Composable
-fun servicios(reserva: ReservaEntity) {
-    val servicios = reserva.servicios
+fun servicios(reserva: ReservaResponse) {
+    val servicios = reserva.servicios ?: return
 
-    if (servicios.isBlank()) return
+    if (servicios.isEmpty()) return
 
-    servicios.split("; ").forEach { area ->
-        if (area.isBlank()) return@forEach
+    servicios.forEach { (categoria, opciones) ->
+        val categoriaValida= categoria ?: return@forEach
+        val opcionValida= opciones ?: return@forEach
 
-        val partes = area.split(": ")
-        if (partes.size < 2) return@forEach
-
-        val categoria = partes[0]
-        val opciones = partes[1].split(",")
+        if (opcionValida.isEmpty()) return@forEach
 
         OutlinedCard (
             modifier = Modifier
@@ -705,23 +724,69 @@ fun servicios(reserva: ReservaEntity) {
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = categoria.replaceFirstChar { it.uppercase() },
+                    text = categoriaValida.lowercase().replaceFirstChar { it.uppercase() },
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )
 
                 Text(
-                    text = opciones.joinToString(", "),
+                    text = opcionValida.joinToString(", ").lowercase().replaceFirstChar { it.uppercase() },
                     color = Color(0xFF3B3B3B),
                     fontSize = 12.sp,
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
     }
 
 
 
 
 
+}
+
+@Composable
+fun archivoAdjunto(reserva: ReservaResponse,
+                   onObtenerDocumento: suspend (Long) -> String
+) {
+    val contexto = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(BorderStroke(1.dp, Color(0xFFE5E5E5)))
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text("Archivo adjunto",
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = {
+                    scope.launch {
+                        val uri = onObtenerDocumento(reserva.idReserva)
+
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
+
+                        contexto.startActivity(intent)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary
+                )
+            ) {
+                Text("Ver documento",
+                    color = MaterialTheme.colorScheme.secondary)
+            }
+        }
+    }
 }
