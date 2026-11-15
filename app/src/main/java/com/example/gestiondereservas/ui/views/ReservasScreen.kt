@@ -128,9 +128,6 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var validacionReactivaPaso2 by remember { mutableStateOf(false) }
 
     var nombre by remember({mutableStateOf("")})
-    var responsable by remember({mutableStateOf("")})
-    var telefono by remember({mutableStateOf("")})
-    var correo by remember({mutableStateOf("")})
     var descripcion by remember { mutableStateOf("") }
     var tipoActividad by remember { mutableStateOf("") }
     var tieneValidacion by remember { mutableStateOf("") }
@@ -194,7 +191,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             nombreActividad = nombre,
             descripcion = descripcion,
             tipoActividad = tipoActividad,
-            tieneValidacion = tieneValidacion == "Si",
+            tieneValidacion = if(tieneValidacion == "Si") true else false,
             nombreResponsable = usuario!!.nombre,
             telefonoResponsable = usuario!!.telefono,
             correoResponsable = usuario!!.correo,
@@ -207,7 +204,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             fechaMontaje = fechaMontaje,
             horaMontaje = horaMontaje,
             publico = publicoSelecionado.joinToString (", "),
-            requiereFormulario = requiereForm == "Si",
+            requiereFormulario = if(requiereForm == "Si") true else false,
             nombreExternos = nombres,
             documentoPdf = pdfUri?.toString() ?: "",
 
@@ -248,11 +245,12 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             { tipoActividad = it},
             tieneValidacion,
             { tieneValidacion = it },
-            organizador, { organizador = it },
+            organizador,
+            { organizador = it },
             nombreError,
+            menuAreaError,
             menuTipoActividadError,
             menuTieneValidacionError,
-            menuAreaError,
             onAtras = { onAtras() },
             onSiguiente = {
                 validacionReactivaPaso1 = true

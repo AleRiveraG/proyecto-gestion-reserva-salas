@@ -26,9 +26,10 @@ object FechasSemana {
     fun ddMM(dia: Calendar): String =
         String.format(
             Locale.US,
-            "%02d/%02d",
-            dia.get(Calendar.DAY_OF_MONTH),
-            dia.get(Calendar.MONTH) + 1
+            "%04d-%02d-%02d",
+            dia.get(Calendar.YEAR),
+            dia.get(Calendar.MONTH) + 1,
+            dia.get(Calendar.DAY_OF_MONTH)
         )
 
     //devuelve solo el numero del dia
