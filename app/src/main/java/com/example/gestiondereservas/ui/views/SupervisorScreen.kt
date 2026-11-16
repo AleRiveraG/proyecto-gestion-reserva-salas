@@ -223,7 +223,7 @@ fun reservasPendientes(reserva: ReservaResponse,
                    modifier = Modifier.weight(1f)
                        .fillMaxHeight()
                ) {
-                   etiquetaOrganizador(reserva.organizador)
+                   EtiquetaOrganizador(reserva.organizador)
 
                    Spacer(modifier = Modifier.height(4.dp))
 

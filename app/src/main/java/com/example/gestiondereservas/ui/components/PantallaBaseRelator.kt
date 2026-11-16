@@ -37,6 +37,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
@@ -61,7 +62,7 @@ import kotlinx.coroutines.withContext
 fun PantallaBaseRelator(
     navController: NavHostController,
     idUsuario: Long,
-    onRegistrarAuditoria: (AuditoriaEntity) -> Unit = {},
+    onRegistrarAuditoria: (AuditoriaDto) -> Unit = {},
     abrirReservas: Boolean = false,
     onCerrarSesion: () -> Unit,
     appState: AppState,

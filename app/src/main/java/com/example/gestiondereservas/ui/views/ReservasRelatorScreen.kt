@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.viewmodel.ReservaViewModel
 
 @Composable
@@ -77,7 +76,7 @@ fun ReservasRelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel
 
 @Composable
     fun ReservaCard(reserva: ReservaResponse) {
-    Row() {
+    Row {
         val (icono, colorFondo) = when (reserva.organizador) {
             "Administración y Negocios" -> Pair(R.drawable.bar_chart, Color(0xFFC98BDB))
             "Comunicación" -> Pair(R.drawable.message_square, Color(0xFFDF4661))
@@ -126,7 +125,7 @@ fun ReservasRelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel
                     modifier = Modifier.weight(1f)
                         .fillMaxHeight()
                 ) {
-                    etiquetaOrganizador(reserva.organizador)
+                    EtiquetaOrganizador(reserva.organizador)
 
                     Spacer(modifier = Modifier.height(4.dp))
 
@@ -149,7 +148,7 @@ fun ReservasRelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel
                         verticalAlignment = Alignment.CenterVertically
                     ){
                         Icon(
-                            painter = painterResource(com.example.gestiondereservas.R.drawable.calendar_alt),
+                            painter = painterResource(R.drawable.calendar_alt),
                             contentDescription = "Icono calendario",
                             modifier = Modifier.size(15.dp)
                         )

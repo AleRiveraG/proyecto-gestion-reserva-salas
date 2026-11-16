@@ -19,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
@@ -68,7 +69,7 @@ fun PantallaBaseAdmin(
     navController: NavHostController,
     idUsuario: Long,
     auditoriaViewModel: AuditoriaViewModel,
-    onRegistrarAuditoria: (AuditoriaEntity) -> Unit,
+    onRegistrarAuditoria: (AuditoriaDto) -> Unit,
     onCerrarSesion: () -> Unit,
     abrirReservas: Boolean = false
 ) {

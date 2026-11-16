@@ -55,6 +55,7 @@ object RetrofitClient {
 
     //private const val BASE_URL = "http://localhost:8080/"
     private const val BASE_URL = "http://192.168.100.3:8080/"
+    private const val BASE_URL_AUDITORIA = "http://192.168.100.3:8081/"
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -79,5 +80,15 @@ object RetrofitClient {
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
             .create(ReservaApiService::class.java)
+    }
+
+    val apiAuditoria: AuditoriaApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL_AUDITORIA)
+            .client(okHttp)
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+            .create(AuditoriaApiService::class.java)
     }
 }

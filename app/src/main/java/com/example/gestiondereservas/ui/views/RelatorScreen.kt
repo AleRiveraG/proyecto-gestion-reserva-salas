@@ -197,11 +197,11 @@ fun infoReserva(onActividad: (Long) -> Unit,
                 )
 
                 if(reserva.estado == EstadoReserva.PENDIENTE) {
-                    etiquetaEstado("PENDIENTE")
+                    EtiquetaEstado("PENDIENTE")
                 } else if (reserva.estado == EstadoReserva.APROBADA) {
-                    etiquetaEstado("APROBADA")
+                    EtiquetaEstado("APROBADA")
                 } else {
-                    etiquetaEstado("RECHAZADA")
+                    EtiquetaEstado("RECHAZADA")
                 }
             }
 

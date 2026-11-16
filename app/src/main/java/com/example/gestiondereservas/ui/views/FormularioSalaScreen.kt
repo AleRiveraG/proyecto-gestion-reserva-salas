@@ -67,6 +67,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.Area
@@ -81,6 +82,7 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import com.example.gestiondereservas.utils.ConfirmacionSalaGuardada
 import kotlinx.coroutines.delay
+import java.time.LocalTime
 
 @Composable
 fun rememberFormularioSalaViewModel(
@@ -109,7 +111,7 @@ fun FormularioSalaScreen(
     viewModel: FormularioSalaViewModel = rememberFormularioSalaViewModel(
         salaId
     ),
-    onRegistrarAuditoria: (AuditoriaEntity) -> Unit
+    onRegistrarAuditoria: (AuditoriaDto) -> Unit
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val contexto = LocalContext.current
@@ -133,12 +135,12 @@ fun FormularioSalaScreen(
         }
     }
 
-    fun crearAuditoria(): AuditoriaEntity{
-        return AuditoriaEntity(
+    fun crearAuditoria(): AuditoriaDto{
+        return AuditoriaDto(
             accion = "Se actualizo una sala",
             detalle = "${d.codigo} - ${d.nombre} " ,
-            fecha = LocalDate.now().toString(),
-            hora = formatearHora(),
+            fecha = LocalDate.now(),
+            hora = LocalTime.now(),
             tipo = TipoAuditoria.SALAS.name
         )
     }

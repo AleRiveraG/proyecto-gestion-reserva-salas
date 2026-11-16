@@ -70,21 +70,16 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
-import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.viewmodel.ReservaViewModel
 import com.example.gestiondereservas.utils.ValidacionesReserva
 import com.example.gestiondereservas.utils.formatearFechaPerso
-import com.example.gestiondereservas.utils.formatearHora
 import com.example.gestiondereservas.utils.formatoFecha
 import java.time.LocalDate
 import java.util.Locale
 import kotlin.collections.listOf
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -92,13 +87,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
 import com.example.gestiondereservas.data.remote.RetrofitClient
+import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.remote.dto.ReservaDTO
 import com.example.gestiondereservas.utils.AnimacionCarga
 import com.example.gestiondereservas.utils.AnimacionError
 import com.example.gestiondereservas.utils.AnimacionReloj
-import com.example.gestiondereservas.utils.StringALocalDate
 import com.example.gestiondereservas.utils.formatoFechaPantalla
-import com.example.gestiondereservas.utils.stringALocalTime
 import com.example.gestiondereservas.viewmodel.ReservaState
 import com.example.gestiondereservas.viewmodel.UsuarioViewModel
 import com.google.gson.Gson
@@ -107,7 +101,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
-import java.io.FileOutputStream
+import java.time.LocalTime
 
 @Composable
 fun rememberReservaViewModel(): ReservaViewModel {
@@ -150,7 +144,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                    idUsuario: Long,
                    onAtras: () -> Unit,
                    onEnviar: () -> Unit,
-                   onRegistrarAuditoria: (AuditoriaEntity) -> Unit
+                   onRegistrarAuditoria: (AuditoriaDto) -> Unit
 ) {
     var paso by remember{ mutableIntStateOf(1)}
     var mostrarCarga by remember { mutableStateOf(false) }
@@ -248,12 +242,12 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
         )
     }
 
-    fun crearAuditoria(): AuditoriaEntity{
-        return AuditoriaEntity(
+    fun crearAuditoria(): AuditoriaDto{
+        return AuditoriaDto(
             accion = "Se creo una solicitud de reserva",
             detalle = nombre,
-            fecha = LocalDate.now().toString(),
-            hora = formatearHora(),
+            fecha = LocalDate.now(),
+            hora = LocalTime.now(),
             tipo = TipoAuditoria.RESERVA.name
         )
     }
@@ -1490,7 +1484,7 @@ fun TieneAutorizacion(titulo: String,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         opciones.drop(1).forEach { seleccion ->
-            var isSelected = seleccion == opcion
+            val isSelected = seleccion == opcion
             FilterChip(
                 selected = isSelected,
                 onClick = { onTieneAutorizacionChange(seleccion) },
@@ -1688,7 +1682,7 @@ fun Recinto(titulo: String,
 
                                 Spacer(modifier = Modifier.width(8.dp))
 
-                                Column() {
+                                Column {
                                     Text("${sala.codigo} - ${sala.nombre}",
                                         color = MaterialTheme.colorScheme.primary,
                                         fontSize = 16.sp)
@@ -1959,7 +1953,7 @@ fun NecesitaForm(opcion: Boolean?,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         opciones.forEach { (valor, texto) ->
-            var isSelected = opcion == valor
+            val isSelected = opcion == valor
             FilterChip(
                 selected = isSelected,
                 onClick = { onOpcionChange(valor) },

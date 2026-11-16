@@ -1,7 +1,6 @@
 package com.example.gestiondereservas.ui.views
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -53,22 +52,22 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.remote.RetrofitClient
-import com.example.gestiondereservas.data.remote.dto.DocumentoResponse
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.utils.LocalDateAString
 import com.example.gestiondereservas.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.utils.formatearFechaPerso
 import com.example.gestiondereservas.utils.formatearHora
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import androidx.core.net.toUri
+import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
+import java.time.LocalTime
 
 @Composable
 fun rememberGestionReservasViewModel(): GestionReservasViewModel {
@@ -86,19 +85,19 @@ fun rememberGestionReservasViewModel(): GestionReservasViewModel {
 @Composable
 fun GestionReservasScreen(
     viewModel: GestionReservasViewModel = rememberGestionReservasViewModel(),
-    onRegistrarAuditoria: (AuditoriaEntity) -> Unit
+    onRegistrarAuditoria: (AuditoriaDto) -> Unit
 ) {
     val reservas by viewModel.reservasPendientes.collectAsState()
     val aprobadas by viewModel.aprobadas.collectAsState()
     val pendientes by viewModel.pendientes.collectAsState()
     val rechazadas by viewModel.rechazadas.collectAsState()
 
-    fun crearAuditoria(accion: String, detalle: String): AuditoriaEntity{
-        return AuditoriaEntity(
+    fun crearAuditoria(accion: String, detalle: String): AuditoriaDto{
+        return AuditoriaDto(
             accion = accion,
             detalle = detalle,
-            fecha = LocalDate.now().toString(),
-            hora = formatearHora(),
+            fecha = LocalDate.now(),
+            hora = LocalTime.now(),
             tipo = TipoAuditoria.RESERVA.name
         )
     }
@@ -157,12 +156,12 @@ fun Contenido(reservas: List<ReservaResponse>,
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        contador(pendientes, aprobadas, rechazadas)
+        Contador(pendientes, aprobadas, rechazadas)
 
         Spacer(modifier = Modifier.height(12.dp))
 
         reservas.forEach { reserva ->
-            reserva(
+            Reserva(
                 reserva,
                 onAprobar,
                 onRechazar,
@@ -175,7 +174,7 @@ fun Contenido(reservas: List<ReservaResponse>,
 }
 
 @Composable
-fun contador(pendientes: Long,
+fun Contador(pendientes: Long,
              aprobadas: Long,
              rechazadas: Long
 ) {
@@ -238,7 +237,7 @@ fun contador(pendientes: Long,
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun reserva(reserva: ReservaResponse,
+fun Reserva(reserva: ReservaResponse,
             onAprobar: (Long) -> Unit,
             onRechazar: (Long) -> Unit,
             onBuscarSala: suspend (Long) -> SalaEntity?,
@@ -268,8 +267,8 @@ fun reserva(reserva: ReservaResponse,
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ){
-                etiquetaOrganizador(reserva.organizador)
-                etiquetaEstado(reserva.estado.name)
+                EtiquetaOrganizador(reserva.organizador)
+                EtiquetaEstado(reserva.estado.name)
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -284,11 +283,11 @@ fun reserva(reserva: ReservaResponse,
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                etiquetaTipoActividad(reserva.tipoActividad)
+                EtiquetaTipoActividad(reserva.tipoActividad)
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                etiquetaTieneAutorizacion(if (reserva.tieneAutorizacion) "Si" else "No")
+                EtiquetaTieneAutorizacion(if (reserva.tieneAutorizacion) "Si" else "No")
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -460,7 +459,7 @@ fun reserva(reserva: ReservaResponse,
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.secondary
         ) {
-            detalleSolicitud(
+            DetalleSolicitud(
                 onCerrar = { mostrarModal = false },
                 reserva = reserva,
                 onAprobar = onAprobar,
@@ -474,7 +473,7 @@ fun reserva(reserva: ReservaResponse,
 }
 
 @Composable
-fun etiquetaTipoActividad(tipo: String){
+fun EtiquetaTipoActividad(tipo: String){
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(32.dp))
@@ -494,7 +493,7 @@ fun etiquetaTipoActividad(tipo: String){
 }
 
 @Composable
-fun etiquetaTieneAutorizacion(tieneAuth: String) {
+fun EtiquetaTieneAutorizacion(tieneAuth: String) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(32.dp))
@@ -509,7 +508,7 @@ fun etiquetaTieneAutorizacion(tieneAuth: String) {
 }
 
 @Composable
-fun etiquetaOrganizador(organizador: String){
+fun EtiquetaOrganizador(organizador: String){
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
@@ -554,7 +553,7 @@ fun etiquetaOrganizador(organizador: String){
 }
 
 @Composable
-fun etiquetaEstado(estado: String) {
+fun EtiquetaEstado(estado: String) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
@@ -577,7 +576,7 @@ fun etiquetaEstado(estado: String) {
 }
 
 @Composable
-fun detalleSolicitud(
+fun DetalleSolicitud(
     onCerrar: () -> Unit,
     reserva: ReservaResponse,
     onAprobar: (Long) -> Unit,
@@ -632,11 +631,11 @@ fun detalleSolicitud(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        servicios(reserva)
+        Servicios(reserva)
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        archivoAdjunto(reserva, onObtenerDocumento)
+        ArchivoAdjunto(reserva, onObtenerDocumento)
 
         if (!soloLectura && reserva.estado == EstadoReserva.PENDIENTE) {
 
@@ -702,7 +701,7 @@ fun detalleSolicitud(
 }
 
 @Composable
-fun servicios(reserva: ReservaResponse) {
+fun Servicios(reserva: ReservaResponse) {
     val servicios = reserva.servicios ?: return
 
     if (servicios.isEmpty()) return
@@ -748,7 +747,7 @@ fun servicios(reserva: ReservaResponse) {
 }
 
 @Composable
-fun archivoAdjunto(reserva: ReservaResponse,
+fun ArchivoAdjunto(reserva: ReservaResponse,
                    onObtenerDocumento: suspend (Long) -> String
 ) {
     val contexto = LocalContext.current
@@ -774,7 +773,7 @@ fun archivoAdjunto(reserva: ReservaResponse,
                     scope.launch {
                         val uri = onObtenerDocumento(reserva.idReserva)
 
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
+                        val intent = Intent(Intent.ACTION_VIEW, uri.toUri())
 
                         contexto.startActivity(intent)
                     }
