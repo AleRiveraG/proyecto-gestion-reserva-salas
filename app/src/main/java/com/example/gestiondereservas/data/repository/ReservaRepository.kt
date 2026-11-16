@@ -15,7 +15,7 @@ class ReservaRepository(
     private val salaDao: SalaDao,
     private val api: ReservaApiService
 ) {
-    suspend fun registrarReserva(reserva: RequestBody, archivo: MultipartBody.Part?): ReservaResponse {
+    suspend fun registrarReserva(reserva: RequestBody, archivo: MultipartBody.Part): ReservaResponse {
         val reservaRespuesta = api.registrarReserva(reserva, archivo)
         return reservaRespuesta
     }

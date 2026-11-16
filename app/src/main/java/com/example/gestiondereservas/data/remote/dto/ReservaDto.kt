@@ -1,10 +1,6 @@
 package com.example.gestiondereservas.data.remote.dto
 
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
-import com.example.gestiondereservas.utils.LocalDateAString
-import com.example.gestiondereservas.utils.LocalTimeAString
-import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import java.time.LocalDate
 import java.time.LocalTime
@@ -74,37 +70,3 @@ data class ReservaDTO (
     @SerializedName("proveedores") val proveedores: String? = null
 )
 
-// Mapeos
-/*
-fun ReservaDTO.toModel(): ReservaEntity {
-    val gson = Gson()
-    return ReservaEntity(
-        id = 0L,
-        idUsuario = idUsuario,
-        nombreActividad = nombreActividad,
-        descripcion = descripcion,
-        tipoActividad = tipoActividad,
-        tieneValidacion = tieneAutorizacion,
-        nombreResponsable = nombreResponsable,
-        telefonoResponsable = telefonoResponsable,
-        correoResponsable = correoResponsable,
-        organizador = organizador,
-
-        salaId = salaId,
-        fechaActividad = LocalDateAString(fechaActividad),
-        horaInicio = LocalTimeAString(horaInicio),
-        horaTermino = LocalTimeAString(horaTermino),
-        fechaMontaje = LocalDateAString(fechaMontaje),
-        horaMontaje = LocalTimeAString(horaMontaje),
-        publico = publico,
-        requiereFormulario = requiereFormulario,
-        nombreExternos = nombresExternos,
-        documentoPdf = ,
-
-        servicios = servicios,
-        complementos = complementos,
-        proveedores = proveedores
-    )
-}
-
- */

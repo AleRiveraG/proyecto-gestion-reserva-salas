@@ -94,10 +94,12 @@ import androidx.compose.foundation.selection.toggleable
 import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.dto.ReservaDTO
 import com.example.gestiondereservas.utils.AnimacionCarga
+import com.example.gestiondereservas.utils.AnimacionError
 import com.example.gestiondereservas.utils.AnimacionReloj
 import com.example.gestiondereservas.utils.StringALocalDate
 import com.example.gestiondereservas.utils.formatoFechaPantalla
 import com.example.gestiondereservas.utils.stringALocalTime
+import com.example.gestiondereservas.viewmodel.ReservaState
 import com.example.gestiondereservas.viewmodel.UsuarioViewModel
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -123,13 +125,17 @@ fun rememberReservaViewModel(): ReservaViewModel {
 
 fun uriToFile(context: Context, uri: Uri): File? {
     return try {
-        val inputStream = context.contentResolver.openInputStream(uri) ?: return null
         val file = File(context.cacheDir, "temp_reserva_archivo.pdf")
-        val outputStream = FileOutputStream(file)
-        inputStream.copyTo(outputStream)
-        inputStream.close()
-        outputStream.close()
-        file
+
+        val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+        inputStream.use { input ->
+            file.outputStream().use { output ->
+                input.copyTo(output)
+            }
+        }
+
+        return file
+
     } catch (e: Exception) {
         e.printStackTrace()
         null
@@ -167,6 +173,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var requiereForm by remember { mutableStateOf<Boolean?>(null) }
     var salaId by remember { mutableLongStateOf(salaIdB ?: 0L) }
     var nombres by remember { mutableStateOf("") }
+    var pdfUri by remember { mutableStateOf<Uri?>(null) }
 
     var servicios by remember { mutableStateOf<Map<String, Set<String>>>(emptyMap()) }
     var complemento by remember { mutableStateOf("") }
@@ -185,9 +192,8 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     val publicoSeleccionadoError = validacionReactivaPaso2 && !ValidacionesReserva.validarMenuMultiple(publicoSelecionado)
     val requiereFormError = validacionReactivaPaso2 && !ValidacionesReserva.validarMenuForm(requiereForm)
     val nombresInvitadosError = validacionReactivaPaso2 && publicoSelecionado.contains("Externos") && !ValidacionesReserva.validarTexto(nombres)
+    val documentoError = validacionReactivaPaso2 && !ValidacionesReserva.validarDocumento(pdfUri)
 
-    val scope = rememberCoroutineScope()
-    var pdfUri by remember { mutableStateOf<Uri?>(null) }
 
     val selectorPdf = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -200,6 +206,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     val listaSalas by viewModel.listaSalas.collectAsState()
     val sala by viewModel.sala.collectAsState()
     val usuario by usuarioViewModel.usuario.collectAsState()
+    val reservaState by viewModel.reservaState.collectAsState()
 
     LaunchedEffect(salaIdB, idUsuario) {
         if(salaIdB != null && salaIdB > 0L) {
@@ -251,26 +258,44 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
         )
     }
     fun guardarReserva() {
+        val uri = pdfUri
+        if(uri == null) {
+            return
+        }
+
+        val file = uriToFile(contexto, uri)
+
+        if(file == null) {
+            return
+        }
+
+        if(!file.exists() || file.length() == 0L) {
+            return
+        }
+
+        val requestFile = file.asRequestBody("application/pdf".toMediaTypeOrNull())
+
+        val archivo = MultipartBody.Part.createFormData("archivo", file.name, requestFile)
+
         val reserva = crearReserva()
         val gson = Gson()
         val jsonString = gson.toJson(reserva)
         val reservaRequestBody = jsonString.toRequestBody("application/json".toMediaTypeOrNull())
 
-        val archivo = pdfUri?.let { uri ->
-                uriToFile(contexto, uri)?.let { file ->
-                    val requestFile = file.asRequestBody("application/pdf".toMediaTypeOrNull())
-                    MultipartBody.Part.createFormData("archivo", file.name, requestFile)
-                }
-        }
-
         viewModel.registrarReserva(reservaRequestBody, archivo)
-
-        val auditoria = crearAuditoria()
-        onRegistrarAuditoria( auditoria )
-
-        onEnviar()
     }
 
+    LaunchedEffect(reservaState) {
+        when (val estado = reservaState) {
+            is ReservaState.exito -> {
+                val auditoria = crearAuditoria()
+                onRegistrarAuditoria(auditoria)
+
+                paso = 4
+            }
+            else -> Unit
+        }
+    }
 
     when (paso) {
         1 -> ContentPaso1(
@@ -333,6 +358,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             publicoSeleccionadoError,
             requiereFormError,
             nombresInvitadosError,
+            documentoError,
             onAtras = { paso = 1
                       validacionReactivaPaso1 = false},
             onSiguiente = {
@@ -348,7 +374,8 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                     ValidacionesReserva.validarMenuForm(requiereForm) &&
                     (ValidacionesReserva.validarTexto(nombres) || !publicoSelecionado.contains("Externos")) &&
                     ValidacionesReserva.validarMontaje(fechaMontaje, fechaActividad) &&
-                    ValidacionesReserva.validarHoraMontaje(fechaMontaje, fechaActividad, horaMontaje, horaInicio)
+                    ValidacionesReserva.validarHoraMontaje(fechaMontaje, fechaActividad, horaMontaje, horaInicio) &&
+                    ValidacionesReserva.validarDocumento(pdfUri)
                     ) {
                     paso = 3
                 }
@@ -364,15 +391,9 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             onAtras = { paso = 2
                       validacionReactivaPaso2 = false},
             onEnviar = {
-                scope.launch {
-                    mostrarCarga = true
-
-                    delay(1500)
-
-                    mostrarCarga = false
-                    paso = 4
-                } } )
-        4 -> Final(onEnviar = { guardarReserva() },
+                    guardarReserva()
+            } )
+        4 -> Final(onEnviar = { onEnviar() },
             sala,
             fechaMontaje,
             horaMontaje,
@@ -381,8 +402,14 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             horaTermino)
     }
 
-    if(mostrarCarga) {
+    if(mostrarCarga || reservaState is ReservaState.cargando) {
         AnimacionCarga()
+    }
+
+    if(reservaState is ReservaState.error) {
+        AnimacionError(
+            onCerrar = { viewModel.reiniciarEstado() }
+        )
     }
 }
 
@@ -624,6 +651,7 @@ fun ContentPaso2(fechaActividad:String,
                  publicoSeleccionadoError: Boolean,
                  requiereFormError: Boolean,
                  nombresInvitadosError: Boolean,
+                 documentoError: Boolean,
                  onAtras: () -> Unit,
                  onSiguiente: () -> Unit
 ) {
@@ -864,7 +892,7 @@ fun ContentPaso2(fechaActividad:String,
                 Spacer(modifier = Modifier.height(12.dp))
 
                 CampoArchivo("Adjunte el programa, pauta, libreto y/o layout de la" +
-                        " actividad", pdfUri, onSeleccionarPdf)
+                        " actividad", pdfUri, onSeleccionarPdf, documentoError)
             }
         }
 
@@ -1999,7 +2027,8 @@ fun Nombres(nombres: String,
 @Composable
 fun CampoArchivo(titulo: String,
                  uri: Uri?,
-                 onSeleccionarPdf: () -> Unit
+                 onSeleccionarPdf: () -> Unit,
+                 documentoError: Boolean
 ) {
     val contexto = LocalContext.current
     val nombreArchivo = remember(uri) {
@@ -2032,6 +2061,13 @@ fun CampoArchivo(titulo: String,
             OutlinedTextField(
                 value = nombreArchivo,
                 onValueChange = { },
+                isError = documentoError,
+                supportingText = {
+                    if(documentoError) {
+                        Text("Seleccione un archivo valido",
+                            color = MaterialTheme.colorScheme.error)
+                    }
+                },
                 readOnly = true,
                 enabled = false,
                 placeholder = { Text("Seleccionar archivos - máx 5 MB, hasta 20",

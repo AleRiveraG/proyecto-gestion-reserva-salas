@@ -1,6 +1,5 @@
 package com.example.gestiondereservas.data.remote
 
-import com.example.gestiondereservas.data.remote.dto.DocumentoResponse
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import okhttp3.MultipartBody
@@ -43,7 +42,7 @@ interface ReservaApiService {
     @POST("api/reservas")
     suspend fun registrarReserva(
         @Part("reserva") reserva: RequestBody,
-        @Part archivo: MultipartBody.Part?
+        @Part archivo: MultipartBody.Part
     ): ReservaResponse
 
     @PATCH("api/reservas/{idReserva}/{estado}/{estadoActual}")

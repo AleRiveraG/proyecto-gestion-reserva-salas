@@ -1,5 +1,7 @@
 package com.example.gestiondereservas.utils
 
+import android.net.Uri
+import java.io.File
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -66,6 +68,10 @@ object ValidacionesReserva {
 
     fun validarMenuForm(opcion: Boolean?): Boolean {
         return opcion != null
+    }
+
+    fun validarDocumento(documento: Uri?): Boolean {
+        return documento != null
     }
 }
 

@@ -20,12 +20,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 
 /**
@@ -193,11 +196,79 @@ fun AnimacionCarga(
             .background(MaterialTheme.colorScheme.secondary.copy(0.5f)),
         contentAlignment = Alignment.Center
     ) {
-        AnimacionLottie(
-            resId = R.raw.loading,
-            modifier = Modifier,
-            tamano = tamano,
-            iteraciones = 2
-        )
+        Column(
+            modifier.fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            AnimacionLottie(
+                resId = R.raw.loading,
+                modifier = modifier,
+                tamano = tamano,
+                iteraciones = 2
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text("Cargando...",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun AnimacionError(
+    modifier: Modifier = Modifier,
+    tamano: Dp = 200.dp,
+    onCerrar: () -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .background(MaterialTheme.colorScheme.secondary.copy(0.5f)),
+            contentAlignment = Alignment.Center
+        ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(0.85f),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.secondary,
+            shadowElevation = 12.dp
+        ) {
+            Column (
+                modifier = Modifier.fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ){
+                AnimacionLottie(
+                    resId = R.raw.error,
+                    modifier = modifier,
+                    tamano = tamano,
+                    iteraciones = 1
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Error al registrar la reserva. Intente nuevamente.",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Button(
+                    onClick = onCerrar,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiary
+                    )
+                ) {
+                    Text("Entendido",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold)
+                }
+            }
+        }
     }
 }
