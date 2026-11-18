@@ -1,6 +1,4 @@
-
 package com.example.gestiondereservas.ui.views
-
 
 import android.widget.Toast
 import androidx.compose.ui.graphics.graphicsLayer
@@ -37,6 +35,10 @@ import androidx.compose.ui.Alignment
 import com.example.gestiondereservas.data.room.entidades.EvaluacionSalaEntity
 import com.example.gestiondereservas.utils.AnimacionCalendarioPendiente
 import com.example.gestiondereservas.utils.AnimacionConfetti
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import kotlinx.coroutines.delay
 
 @Composable
 fun UsoSalaScreen(
@@ -83,6 +85,7 @@ fun UsoSalaScreen(
     var guardandoEvaluacion by remember { mutableStateOf(false) }
 
     var errorEvaluacion by remember { mutableStateOf<String?>(null) }
+
 
     val evaluacionDao = remember(context) {
         AppDatabase.getInstance(context).evaluacionSalaDao()
@@ -133,18 +136,28 @@ fun UsoSalaScreen(
         "${minutosDuracion} min"
     }
 
-
-    // Durante la actividad: tiempo real hasta finalizar la reserva
-    val tiempoRestante = if (
-        estadoActividad == EstadoActividad.PENDIENTE
-    ) {
-        duracionTotal
-    } else {
-        viewModel.segundosRestantes
+    var reloj by remember { mutableStateOf(LocalDateTime.now()) }
+    LaunchedEffect(estadoActividad) {
+        while (estadoActividad == EstadoActividad.PENDIENTE) {
+            reloj = LocalDateTime.now()
+            delay(1000)
+        }
     }
-    val horas = tiempoRestante / 3600
-    val minutos = (tiempoRestante % 3600) / 60
-    val segundos = tiempoRestante % 60
+
+    val segundosParaEmpezar = java.time.Duration.between(
+        reloj,
+        viewModel.inicioReserva
+    ).seconds.coerceAtLeast(0)
+
+    val tiempoVisible = when (estadoActividad) {
+        EstadoActividad.PENDIENTE -> segundosParaEmpezar
+        EstadoActividad.EN_CURSO -> viewModel.segundosRestantes
+        EstadoActividad.FINALIZADA -> 0L
+    }
+
+    val horas = tiempoVisible / 3600
+    val minutos = (tiempoVisible % 3600) / 60
+    val segundos = tiempoVisible % 60
 
     val tiempoFormateado = if (horas > 0) {
         "%02d:%02d:%02d".format(horas, minutos, segundos)
@@ -152,10 +165,26 @@ fun UsoSalaScreen(
         "%02d:%02d".format(minutos, segundos)
     }
 
-    // Porcentaje de tiempo transcurrido de la reserva
-    val progreso = (
-            tiempoRestante.toFloat() / duracionTotal
-            ).coerceIn(0f, 1f)
+    val progresoObjetivo = when (estadoActividad) {
+        EstadoActividad.EN_CURSO ->
+            (viewModel.segundosRestantes.toFloat() / duracionTotal).coerceIn(0f, 1f)
+        else -> 0f
+    }
+
+    val progresoAnimado by animateFloatAsState(
+        targetValue = progresoObjetivo,
+        animationSpec = tween(durationMillis = 600),
+        label = "progresoUso"
+    )
+
+    val colorAnillo by animateColorAsState(
+        targetValue = when (estadoActividad) {
+            EstadoActividad.EN_CURSO -> Color(0xFF2E7D32)
+            EstadoActividad.FINALIZADA -> Color(0xFF9E9E9E)
+            EstadoActividad.PENDIENTE -> Yellow
+        },
+        label = "colorAnillo"
+    )
 
 
     val actividadEnCurso =
@@ -307,31 +336,50 @@ fun UsoSalaScreen(
             when (estadoActividad) {
                 EstadoActividad.EN_CURSO -> {
                     CircularProgressIndicator(
-                        progress = { progreso },
+                        progress = { progresoAnimado },
                         modifier = Modifier
                             .size(230.dp)
                             .graphicsLayer { scaleX = -1f },
-                        color = Color(0xFF2E7D32),
+                        color = colorAnillo,
                         trackColor = Color(0xFFE8E8E8),
                         strokeWidth = 8.dp
                     )
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Tiempo restante",
+                            text = when (estadoActividad) {
+                                EstadoActividad.PENDIENTE ->
+                                    if (segundosParaEmpezar == 0L) "Ya puedes iniciar" else "Comienza en"
+                                EstadoActividad.EN_CURSO -> "Tiempo restante"
+                                EstadoActividad.FINALIZADA -> "Actividad completada"
+                            },
                             style = MaterialTheme.typography.bodySmall,
-                            color = Black
+                            color = Black,
+                            textAlign = TextAlign.Center
                         )
+
                         Spacer(modifier = Modifier.height(12.dp))
+
                         Text(
                             text = tiempoFormateado,
                             style = MaterialTheme.typography.displayMedium,
                             fontWeight = FontWeight.Bold,
                             color = Black
                         )
+
                         Spacer(modifier = Modifier.height(12.dp))
+
                         Text(
-                            text = "En desarrollo · finaliza a las $horaTermino",
+                            text = when (estadoActividad) {
+                                EstadoActividad.PENDIENTE ->
+                                    if (segundosParaEmpezar == 0L) {
+                                        "La actividad todavía no ha sido iniciada"
+                                    } else {
+                                        "La actividad todavía no comienza"
+                                    }
+                                EstadoActividad.EN_CURSO -> "En desarrollo · finaliza a las $horaTermino"
+                                EstadoActividad.FINALIZADA -> "Terminó dentro del horario reservado"
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = Black,
                             textAlign = TextAlign.Center
