@@ -92,6 +92,31 @@ fun UsoSalaScreen(
         DateTimeFormatter.ofPattern("HH:mm")
     )
 
+    val horaInicio = viewModel.inicioReserva.format(
+        DateTimeFormatter.ofPattern("HH:mm")
+    )
+
+    val fechaActividad = viewModel.inicioReserva.format(
+        DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    )
+
+    val textoEstado = when (estadoActividad) {
+        EstadoActividad.PENDIENTE -> "Pendiente"
+        EstadoActividad.EN_CURSO -> "En curso"
+        EstadoActividad.FINALIZADA -> "Finalizada"
+    }
+
+    val colorEstado = when (estadoActividad) {
+        EstadoActividad.PENDIENTE -> Yellow
+        EstadoActividad.EN_CURSO -> Color(0xFF2E7D32)
+        EstadoActividad.FINALIZADA -> Color(0xFF616161)
+    }
+
+    val colorTextoEstado = when (estadoActividad) {
+        EstadoActividad.PENDIENTE -> Black
+        else -> White
+    }
+
   // Duración total de la reserva registrada calculando el tiempo entre el incio y fin de reserva
     val duracionTotal = java.time.Duration.between(
         viewModel.inicioReserva,
@@ -211,42 +236,58 @@ fun UsoSalaScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Surface(
-            color = Color(0xFFF5F5F5),
-            shape = RoundedCornerShape(50.dp)
-        ) {
-            Text(
-                text = viewModel.salaId?.let { "Sala $it" } ?: "Sala no disponible",
-                modifier = Modifier.padding(
-                    horizontal = 16.dp,
-                    vertical = 8.dp
-                ),
-                style = MaterialTheme.typography.labelMedium,
-                color = Black
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
         Text(
-            text = when (estadoActividad) {
-                EstadoActividad.PENDIENTE -> "PRÓXIMA ACTIVIDAD"
-                EstadoActividad.EN_CURSO -> "ACTIVIDAD EN CURSO"
-                EstadoActividad.FINALIZADA -> "ACTIVIDAD FINALIZADA"
-            },
-            style = MaterialTheme.typography.labelMedium,
+            text = "Uso de Sala",
+            modifier = Modifier.fillMaxWidth(),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
             color = Black
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = viewModel.nombreActividad,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            color = Black,
-            textAlign = TextAlign.Center
-        )
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F7F7)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = viewModel.nombreActividad,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Black
+                    )
+
+                    Surface(
+                        color = colorEstado,
+                        shape = RoundedCornerShape(50.dp)
+                    ) {
+                        Text(
+                            text = textoEstado,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            color = colorTextoEstado,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Sala ${viewModel.salaId ?: "-"}",
+                    color = Black
+                )
+
+                Text(
+                    text = "$fechaActividad   $horaInicio - $horaTermino",
+                    color = Black
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(36.dp))
 
