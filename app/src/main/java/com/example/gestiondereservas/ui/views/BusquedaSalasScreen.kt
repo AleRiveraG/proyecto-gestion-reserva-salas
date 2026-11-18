@@ -655,7 +655,7 @@ fun salaCard(sala: SalaConEquipamiento,
                 color = Color(0xFF3D5A73),
                 fontSize = 12.sp
             )
-            etiquetaOrganizador(salaCompleta.area.nombre)
+            EtiquetaOrganizador(salaCompleta.area.nombre)
         }
     }
 

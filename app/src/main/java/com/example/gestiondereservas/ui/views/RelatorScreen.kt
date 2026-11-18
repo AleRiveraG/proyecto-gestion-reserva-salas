@@ -46,6 +46,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.repository.UsuarioRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
@@ -109,7 +110,7 @@ private fun Contenido(
     onCalendario: () -> Unit,
     onBuscarSala: () -> Unit,
     onReservasRelator: () -> Unit,
-    reservas: List<ReservaEntity>
+    reservas: List<ReservaResponse>
 ) {
     Column(
         modifier = Modifier
@@ -151,7 +152,7 @@ private fun Contenido(
                 modifier = Modifier.fillMaxSize()
             ) {
                 reservas.firstOrNull()?.let { reserva ->
-                    infoReserva(onActividad = { onActividad(reserva.id) },
+                    infoReserva(onActividad = { onActividad(reserva.idReserva) },
                         reserva = reserva,
                         sala = sala)
                 }
@@ -168,7 +169,7 @@ private fun Contenido(
 
 @Composable
 fun infoReserva(onActividad: (Long) -> Unit,
-                reserva: ReservaEntity,
+                reserva: ReservaResponse,
                 sala: SalaEntity?
 ) {
     var checked by remember { mutableStateOf(false) }
@@ -178,7 +179,7 @@ fun infoReserva(onActividad: (Long) -> Unit,
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.primary)
-            .clickable(onClick = { onActividad(reserva.id) })
+            .clickable(onClick = { onActividad(reserva.idReserva) })
     ){
         Column(
             modifier = Modifier.padding(16.dp)
@@ -196,11 +197,11 @@ fun infoReserva(onActividad: (Long) -> Unit,
                 )
 
                 if(reserva.estado == EstadoReserva.PENDIENTE) {
-                    etiquetaEstado("PENDIENTE")
+                    EtiquetaEstado("PENDIENTE")
                 } else if (reserva.estado == EstadoReserva.APROBADA) {
-                    etiquetaEstado("APROBADA")
+                    EtiquetaEstado("APROBADA")
                 } else {
-                    etiquetaEstado("RECHAZADA")
+                    EtiquetaEstado("RECHAZADA")
                 }
             }
 
@@ -242,7 +243,7 @@ fun infoReserva(onActividad: (Long) -> Unit,
 
                     Spacer(modifier = Modifier.width(4.dp))
 
-                    Text(reserva.fechaActividad,
+                    Text("${reserva.fechaActividad}",
                         color = MaterialTheme.colorScheme.secondary,
                         fontSize = 10.sp)
                 }

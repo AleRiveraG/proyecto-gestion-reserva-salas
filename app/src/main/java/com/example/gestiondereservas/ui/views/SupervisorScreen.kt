@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.viewmodel.GestionReservasViewModel
@@ -79,7 +80,7 @@ private fun Contenido(nombreUsuario: String,
                       onAuditoria: () -> Unit,
                       onReportes: () -> Unit,
                       onReservas: () -> Unit,
-                      listaReservas: List<ReservaEntity>,
+                      listaReservas: List<ReservaResponse>,
                       viewModel: GestionReservasViewModel
 ) {
     Column(
@@ -153,8 +154,10 @@ private fun Contenido(nombreUsuario: String,
         } else
             listaReservas.forEach { reserva ->
                 reservasPendientes(reserva,
-                    onAprobar = { id -> viewModel.modificarEstado(id, EstadoReserva.APROBADA.name) } ,
-                    onRechazar = { id -> viewModel.modificarEstado(id, EstadoReserva.RECHAZADA.name)})
+                    onAprobar = { id -> viewModel.modificarEstado(id, EstadoReserva.APROBADA,
+                        EstadoReserva.PENDIENTE) } ,
+                    onRechazar = { id -> viewModel.modificarEstado(id, EstadoReserva.RECHAZADA,
+                        EstadoReserva.PENDIENTE)})
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -168,7 +171,7 @@ private fun Contenido(nombreUsuario: String,
 }
 
 @Composable
-fun reservasPendientes(reserva: ReservaEntity,
+fun reservasPendientes(reserva: ReservaResponse,
                        onAprobar: (Long) -> Unit,
                        onRechazar: (Long) -> Unit) {
    Row() {
@@ -220,7 +223,7 @@ fun reservasPendientes(reserva: ReservaEntity,
                    modifier = Modifier.weight(1f)
                        .fillMaxHeight()
                ) {
-                   etiquetaOrganizador(reserva.organizador)
+                   EtiquetaOrganizador(reserva.organizador)
 
                    Spacer(modifier = Modifier.height(4.dp))
 
@@ -263,7 +266,7 @@ fun reservasPendientes(reserva: ReservaEntity,
                        modifier = Modifier
                            .clip(RoundedCornerShape(12.dp))
                            .background(Color(0xFFEBF5EA)),
-                       onClick = { onAprobar(reserva.id) }
+                       onClick = { onAprobar(reserva.idReserva) }
                    ) {
                        Icon(
                            painter = painterResource(R.drawable.check),
@@ -278,7 +281,7 @@ fun reservasPendientes(reserva: ReservaEntity,
                        modifier = Modifier
                            .clip(RoundedCornerShape(12.dp))
                            .background(Color(0xFFFAEAEC)),
-                       onClick = { onRechazar(reserva.id) }
+                       onClick = { onRechazar(reserva.idReserva) }
                    ) {
                        Icon(
                            painter = painterResource(R.drawable.x),

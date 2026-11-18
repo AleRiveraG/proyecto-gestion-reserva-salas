@@ -27,7 +27,7 @@ import com.example.gestiondereservas.utils.Converters
         NotificacionEntity::class, UsoSalaEntity::class,
         HorarioEntity::class, AuditoriaEntity::class,
         EvaluacionSalaEntity::class, UsuarioEntity::class],
-    version = 11,
+    version = 12,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

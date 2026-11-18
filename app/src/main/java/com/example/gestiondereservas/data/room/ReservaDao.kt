@@ -74,7 +74,7 @@ interface ReservaDao {
     // Uso de Sala: cancelar una reserva aprobada
     @Query("""
         UPDATE reserva
-        SET estado = 'CANCELADA'
+        SET estado = ''
         WHERE id = :reservaId
           AND estado = 'APROBADA'
     """)

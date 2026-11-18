@@ -49,6 +49,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
@@ -58,6 +59,7 @@ import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 @Composable
 fun rememberSalasViewModel(): SalasViewModel {
@@ -78,7 +80,7 @@ fun rememberSalasViewModel(): SalasViewModel {
 fun SalasScreen(
     onNuevaSala: () -> Unit = {},
     onEditarSala: (Long) -> Unit = {},
-    onRegistrarAuditoria: (AuditoriaEntity) -> Unit,
+    onRegistrarAuditoria: (AuditoriaDto) -> Unit,
     viewModel: SalasViewModel = rememberSalasViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
@@ -91,12 +93,12 @@ fun SalasScreen(
         }
     }
 
-    fun crearAuditoria(): AuditoriaEntity{
-        return AuditoriaEntity(
+    fun crearAuditoria(): AuditoriaDto{
+        return AuditoriaDto(
             accion = "Se actualizaron los datos de la sala",
             detalle = "${salaEntityPorCambiar?.codigo} - ${salaEntityPorCambiar?.nombre} ",
-            fecha = LocalDate.now().toString(),
-            hora = LocalDateTime.now().toString(),
+            fecha = LocalDate.now(),
+            hora = LocalTime.now(),
             tipo = TipoAuditoria.SALAS.name
         )
     }

@@ -31,6 +31,8 @@ import com.example.gestiondereservas.viewmodel.RegistroViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavType
+import com.example.gestiondereservas.data.remote.AuditoriaApiService
+import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.ui.views.NotificacionesScreen
 import com.example.gestiondereservas.ui.views.RolUsuario
 
@@ -40,8 +42,7 @@ fun rememberAuditoriaViewModel(): AuditoriaViewModel {
     return viewModel(
         factory = viewModelFactory {
             initializer {
-                val dao = AppDatabase.getInstance(contexto).auditoriaDao()
-                val repository = AuditoriaRepository(dao)
+                val repository = AuditoriaRepository(RetrofitClient.apiAuditoria)
                 AuditoriaViewModel(repository)
             }
         }

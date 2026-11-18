@@ -10,23 +10,25 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import android.content.Context
+import com.example.gestiondereservas.data.remote.dto.DocumentoResponse
+import com.example.gestiondereservas.data.remote.dto.ReservaResponse
+import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 
 class GestionReservasViewModel(
     private val repository: ReservaRepository,
-    private val context: Context
 ) : ViewModel() {
 
-    private val reservasPendiente = MutableStateFlow<List<ReservaEntity>>(emptyList())
-    val reservasPendientes: StateFlow<List<ReservaEntity>> = reservasPendiente.asStateFlow()
+    private val reservasPendiente = MutableStateFlow<List<ReservaResponse>>(emptyList())
+    val reservasPendientes: StateFlow<List<ReservaResponse>> = reservasPendiente.asStateFlow()
 
-    private val totalAprobadas = MutableStateFlow(0)
-    val aprobadas: StateFlow<Int> = totalAprobadas.asStateFlow()
+    private val totalAprobadas = MutableStateFlow(0L)
+    val aprobadas: StateFlow<Long> = totalAprobadas.asStateFlow()
 
-    private val totalRechazadas = MutableStateFlow(0)
-    val rechazadas: StateFlow<Int> = totalRechazadas.asStateFlow()
+    private val totalRechazadas = MutableStateFlow(0L)
+    val rechazadas: StateFlow<Long> = totalRechazadas.asStateFlow()
 
-    private val totalPendientes = MutableStateFlow(0)
-    val pendientes: StateFlow<Int> = totalPendientes.asStateFlow()
+    private val totalPendientes = MutableStateFlow(0L)
+    val pendientes: StateFlow<Long> = totalPendientes.asStateFlow()
 
     init {
         cargarDatos()
@@ -42,9 +44,9 @@ class GestionReservasViewModel(
         }
     }
 
-    fun modificarEstado(id: Long, estado: String) {
+    fun modificarEstado(id: Long, estado: EstadoReserva, estadoActual: EstadoReserva) {
         viewModelScope.launch {
-            repository.modificarEstado(id, estado)
+            repository.modificarEstado(id, estado, estadoActual)
             cargarDatos()
         }
     }
@@ -53,6 +55,9 @@ class GestionReservasViewModel(
         return repository.obtenerSalaPorId(id)
     }
 
+    suspend fun obtenerDocumento(idReserva: Long): String {
+        return repository.obtenerDocumento(idReserva)
+    }
 
 
 }

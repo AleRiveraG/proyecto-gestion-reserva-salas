@@ -32,7 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
+import com.example.gestiondereservas.data.remote.dto.AuditoriaResponse
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.viewmodel.AuditoriaViewModel
 
@@ -42,15 +42,15 @@ fun AuditoriaScreen(onAtras: () -> Unit,
 ){
     val listaAuditorias by viewModel.totalAuditorias.collectAsState()
 
-    contenido(onAtras,
+    Contenido(onAtras,
         listaAuditorias)
 
 
 }
 
 @Composable
-private fun contenido(onAtras: () -> Unit,
-                      listaAuditorias: List<AuditoriaEntity>) {
+private fun Contenido(onAtras: () -> Unit,
+                      listaAuditorias: List<AuditoriaResponse>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -89,7 +89,7 @@ private fun contenido(onAtras: () -> Unit,
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                auditoriaCard(auditoria)
+                AuditoriaCard(auditoria)
             }
         }
 
@@ -97,7 +97,7 @@ private fun contenido(onAtras: () -> Unit,
 }
 
 @Composable
-fun auditoriaCard(auditoria: AuditoriaEntity){
+fun AuditoriaCard(auditoria: AuditoriaResponse){
     val (icono, colorFondo) = when (auditoria.tipo) {
         TipoAuditoria.RESERVA.name -> Pair(R.drawable.task, Color(0xFFFFF0D4))
         TipoAuditoria.SALAS.name -> Pair(R.drawable.door, Color(0xFFE9F0FA))
@@ -137,7 +137,7 @@ fun auditoriaCard(auditoria: AuditoriaEntity){
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            Column() {
+            Column {
                 Text(
                     auditoria.accion,
                     color = MaterialTheme.colorScheme.primary,

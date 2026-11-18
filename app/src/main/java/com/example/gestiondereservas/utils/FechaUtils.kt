@@ -50,3 +50,9 @@ fun StringALocalDate(fecha: String): LocalDate {
     return LocalDate.parse(fecha)
 }
 
+fun LocalDateAString(fecha: LocalDate): String {
+    val formato = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val fechaString = fecha.format(formato)
+    return fechaString
+}
+

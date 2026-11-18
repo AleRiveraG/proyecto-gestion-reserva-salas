@@ -57,6 +57,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.repository.HorarioRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
@@ -70,6 +71,7 @@ import com.example.gestiondereservas.utils.formatearHora
 import java.time.LocalDate
 import com.example.gestiondereservas.utils.ConfirmacionHorarioGuardado
 import kotlinx.coroutines.delay
+import java.time.LocalTime
 
 @Composable
 fun rememberFormularioHorarioViewModel(
@@ -114,7 +116,7 @@ fun FormularioHorarioScreen(
         diaInicial,
         inicioInicialMin
     ),
-    onRegistrarAuditoria: (AuditoriaEntity) -> Unit
+    onRegistrarAuditoria: (AuditoriaDto) -> Unit
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val contexto = LocalContext.current
@@ -128,12 +130,12 @@ fun FormularioHorarioScreen(
         if (estado.hayCambios) confirmarDescarte = true else onVolver()
     }
 
-    fun crearAuditoria(accion: String): AuditoriaEntity{
-        return AuditoriaEntity(
+    fun crearAuditoria(accion: String): AuditoriaDto{
+        return AuditoriaDto(
             accion = accion,
             detalle = "${d.dia} - ${d.salaId} " ,
-            fecha = LocalDate.now().toString(),
-            hora = formatearHora(),
+            fecha = LocalDate.now(),
+            hora = LocalTime.now(),
             tipo = TipoAuditoria.HORARIOS.name
         )
     }
