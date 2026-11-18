@@ -1,4 +1,3 @@
-
 package com.example.gestiondereservas.ui.views
 
 import android.Manifest
@@ -46,6 +45,10 @@ import com.example.gestiondereservas.utils.NotificacionHelper
 import com.example.gestiondereservas.utils.ProgramadorRecordatorios
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeOut
+import com.example.gestiondereservas.utils.AnimacionNotificacionesVacias
 
 private data class NotificacionUI(
     val id: Long,
@@ -209,17 +212,23 @@ fun NotificacionesScreen(
 
             Spacer(Modifier.height(14.dp))
 
-
-
             if (notificaciones.isEmpty()) {
-                Text(
-                    text = "No tienes notificaciones por ahora",
-                    color = NotificationSecondaryText,
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 24.dp),
-                    textAlign = TextAlign.Center
-                )
+                        .padding(vertical = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    AnimacionNotificacionesVacias()
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "No tienes notificaciones por el momento",
+                        color = NotificationSecondaryText,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
 
             if (!esSupervisor && correoNormalizado == null) {
@@ -571,16 +580,15 @@ private fun TarjetaNotificacion(
             NotificationRed
     }
 
+    val colorFondo by animateColorAsState(
+        targetValue = if (notificacion.leida) White else NotificationBackground,
+        label = "fondoNotificacion"
+    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                if (notificacion.leida) {
-                    White
-                } else {
-                    NotificationBackground
-                }
-            )
+            .background(colorFondo)
             .clickable(onClick = onClick)
             .padding(
                 vertical = 17.dp,
@@ -627,16 +635,16 @@ private fun TarjetaNotificacion(
             )
         }
 
-        if (!notificacion.leida) {
-            Spacer(Modifier.width(8.dp))
+        AnimatedVisibility(
+            visible = !notificacion.leida,
+            exit = fadeOut()
+        ) {
+            Spacer(modifier = Modifier.width(8.dp))
 
             Box(
                 modifier = Modifier
                     .size(7.dp)
-                    .background(
-                        Yellow,
-                        CircleShape
-                    )
+                    .background(Yellow, CircleShape)
             )
         }
     }

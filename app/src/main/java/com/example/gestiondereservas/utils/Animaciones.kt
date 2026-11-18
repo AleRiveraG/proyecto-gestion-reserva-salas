@@ -272,3 +272,15 @@ fun AnimacionError(
         }
     }
 }
+
+@Composable
+fun AnimacionNotificacionesVacias(
+    modifier: Modifier = Modifier,
+    tamano: Dp = 160.dp
+) {
+    AnimacionLottie(
+        resId = R.raw.empty_notifications,
+        modifier = modifier,
+        tamano = tamano
+    )
+}
