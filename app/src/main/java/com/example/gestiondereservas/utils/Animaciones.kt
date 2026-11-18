@@ -11,6 +11,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.example.gestiondereservas.R
 
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+
 
 /**
  * Función base reutilizable para renderizar cualquier animación JSON desde res/raw.
@@ -271,4 +273,29 @@ fun AnimacionError(
             }
         }
     }
+
+}
+
+@Composable
+fun AnimacionCalendarioPendiente(
+    modifier: Modifier = Modifier,
+    tamano: Dp = 200.dp
+) {
+    AnimacionLottie(
+        resId = R.raw.calendar_booking,
+        modifier = modifier,
+        tamano = tamano
+    )
+}
+
+@Composable
+fun AnimacionConfetti(
+    modifier: Modifier = Modifier,
+    tamano: Dp = 180.dp
+) {
+    AnimacionLottie(
+        resId = R.raw.success_confetti,
+        modifier = modifier,
+        tamano = tamano
+    )
 }

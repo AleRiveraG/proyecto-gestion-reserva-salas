@@ -11,7 +11,6 @@ import java.time.format.DateTimeFormatter
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -34,8 +33,10 @@ import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.ReporteEntity
 import java.time.LocalDateTime
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import com.example.gestiondereservas.data.room.entidades.EvaluacionSalaEntity
-
+import com.example.gestiondereservas.utils.AnimacionCalendarioPendiente
+import com.example.gestiondereservas.utils.AnimacionConfetti
 
 @Composable
 fun UsoSalaScreen(
@@ -44,7 +45,6 @@ fun UsoSalaScreen(
     onReservaCancelada : () -> Unit ,
     viewModel: UsoSalaViewModel = viewModel()
 ) {
-
     val estadoActividad = viewModel.estadoActividad
 
     var mostrarReporte by remember { mutableStateOf(false) }
@@ -117,7 +117,7 @@ fun UsoSalaScreen(
         else -> White
     }
 
-  // Duración total de la reserva registrada calculando el tiempo entre el incio y fin de reserva
+    // Duración total de la reserva registrada calculando el tiempo entre el incio y fin de reserva
     val duracionTotal = java.time.Duration.between(
         viewModel.inicioReserva,
         viewModel.finReserva
@@ -134,7 +134,7 @@ fun UsoSalaScreen(
     }
 
 
-   // Durante la actividad: tiempo real hasta finalizar la reserva
+    // Durante la actividad: tiempo real hasta finalizar la reserva
     val tiempoRestante = if (
         estadoActividad == EstadoActividad.PENDIENTE
     ) {
@@ -154,7 +154,7 @@ fun UsoSalaScreen(
 
     // Porcentaje de tiempo transcurrido de la reserva
     val progreso = (
-                tiempoRestante.toFloat()/duracionTotal
+            tiempoRestante.toFloat() / duracionTotal
             ).coerceIn(0f, 1f)
 
 
@@ -175,20 +175,28 @@ fun UsoSalaScreen(
         AppDatabase.getInstance(context).reservaDao()
     }
 
+    var estadoYaCargado by remember(reservaId) { mutableStateOf(false) }
+    var mostrarExito by remember(reservaId) { mutableStateOf(false) }
+
+    LaunchedEffect(cargando, estadoActividad) {
+        if (cargando) return@LaunchedEffect
+
+        if (!estadoYaCargado) {
+            estadoYaCargado = true
+            return@LaunchedEffect
+        }
+
+        if (estadoActividad == EstadoActividad.FINALIZADA) {
+            mostrarExito = true
+        }
+    }
+
     LaunchedEffect(reservaId) {
         cargando = true
         reservaAprobada = false
 
         try {
             val reserva = appState.consultarReservaPorId(reservaId)
-
-            val usoGuardado = withContext(Dispatchers.IO) {
-                usoSalaDao.obtenerPorReserva(reservaId)
-            }
-
-            val evaluacionGuardadaRoom = withContext(Dispatchers.IO) {
-                evaluacionDao.obtenerPorReserva(reservaId)
-            }
 
             if (reserva != null && reserva.estado == EstadoReserva.APROBADA) {
                 viewModel.cargarReserva(reserva)
@@ -293,64 +301,94 @@ fun UsoSalaScreen(
 
         // Círculo de progreso
         Box(
-            modifier = Modifier.size(230.dp),
+            modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
+            when (estadoActividad) {
+                EstadoActividad.EN_CURSO -> {
+                    CircularProgressIndicator(
+                        progress = { progreso },
+                        modifier = Modifier
+                            .size(230.dp)
+                            .graphicsLayer { scaleX = -1f },
+                        color = Color(0xFF2E7D32),
+                        trackColor = Color(0xFFE8E8E8),
+                        strokeWidth = 8.dp
+                    )
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Tiempo restante",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Black
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = tiempoFormateado,
+                            style = MaterialTheme.typography.displayMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Black
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "En desarrollo · finaliza a las $horaTermino",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Black,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
+                EstadoActividad.PENDIENTE -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        AnimacionCalendarioPendiente(tamano = 120.dp)
+                        Text(
+                            text = "La actividad todavía no comienza",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Black,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = tiempoFormateado,
+                            style = MaterialTheme.typography.displaySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Black
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Duración estimada: $duracionFormateada",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Black,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+
+                EstadoActividad.FINALIZADA -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            AnimacionConfetti(tamano = 180.dp)
+                        }
+                        Text(
+                            text = "¡Actividad completada!",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Black,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Terminó dentro del horario reservado",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Black,
+                            textAlign = TextAlign.Center
+                        )
+                    }
 
 
-            CircularProgressIndicator(
-                progress = { progreso },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        scaleX = -1f
-                    },
-                color = if (actividadEnCurso) Color(0xFF4CAF17) else Yellow,
-                trackColor = if (actividadEnCurso) {
-                    Color(0xFFE8E8E8)
-                } else {
-                    Color(0xFFB57C00)
-                },
-                strokeWidth = 8.dp
-            )
-
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = if (actividadEnCurso)
-                        "Tiempo restante"
-                    else
-                        "Duración de la reserva",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Black,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = tiempoFormateado,
-                    style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Black
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = if (actividadEnCurso) {
-                        "Finaliza a las $horaTermino"
-                    } else {
-                        "Duración estimada: $duracionFormateada"
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Black,
-                    textAlign = TextAlign.Center
-                )
+                }
             }
-
 
             if (mostrarReporte) {
                 AlertDialog(
@@ -485,16 +523,34 @@ fun UsoSalaScreen(
                 )
             }
 
-
         }
 
-        Spacer(modifier = Modifier.weight(1f))
+        val mensajeError = viewModel.errorActividad
 
-        viewModel.errorActividad?.let { mensaje ->
-            Text(
-                text = mensaje,
-                color = MaterialTheme.colorScheme.error
-            )
+        if (mensajeError != null) {
+            if (mensajeError == "Todavía no comienza el horario de la reserva") {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFFFF4CC)
+                    )
+                ) {
+                    Text(
+                        text = "Aún no puedes iniciar la actividad. " +
+                                "El horario todavía no comienza.",
+                        modifier = Modifier.padding(10.dp),
+                        color = Black,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                Text(
+                    text = mensajeError,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -514,7 +570,8 @@ fun UsoSalaScreen(
                         text = "Evaluar sala",
                         color = Black,
                         fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleLarge )
+                        style = MaterialTheme.typography.titleLarge
+                    )
                 },
                 text = {
                     Column {
@@ -551,7 +608,7 @@ fun UsoSalaScreen(
                                 focusedBorderColor = Yellow,
                                 focusedLabelColor = Black,
                                 cursorColor = Black
-                             )
+                            )
                         )
 
                         errorEvaluacion?.let {
@@ -772,11 +829,11 @@ fun UsoSalaScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedButton(
-                    onClick = {mostrarReporte = true},
+                    onClick = { mostrarReporte = true },
                     enabled = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(10.dp),
-                    border = BorderStroke(1.dp,Black),
+                    border = BorderStroke(1.dp, Black),
                     colors = ButtonDefaults.outlinedButtonColors(disabledContentColor = Black)
                 ) {
                     Text("Reportar inconveniente")
@@ -784,11 +841,6 @@ fun UsoSalaScreen(
             }
 
             EstadoActividad.FINALIZADA -> {
-                Text(
-                    text = "Actividad finalizada correctamente",
-                    color = Black,
-                    textAlign = TextAlign.Center
-                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -811,7 +863,7 @@ fun UsoSalaScreen(
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
+
