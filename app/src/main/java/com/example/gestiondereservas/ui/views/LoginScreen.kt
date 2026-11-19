@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -48,10 +50,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -61,139 +65,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.ui.theme.*
-import com.example.gestiondereservas.ui.viewmodel.GestionReservasViewModel
-import com.example.gestiondereservas.ui.viewmodel.UsuarioViewModel // >>> IMPORTACIÓN DE USUARIOVIEWMODEL
+import com.example.gestiondereservas.viewmodel.GestionReservasViewModel
+import com.example.gestiondereservas.viewmodel.UsuarioViewModel
 import com.example.gestiondereservas.utils.AnimacionLogin
-
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-//Encabezado
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LoginTopBar() {
-    TopAppBar(
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            titleContentColor = MaterialTheme.colorScheme.secondary
-        ),
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo),
-                    contentDescription = "Logo Duoc Uc",
-                    modifier = Modifier.size(100.dp),
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text("Reserva", color = MaterialTheme.colorScheme.secondary)
-                Text("Salas", color = MaterialTheme.colorScheme.tertiary)
-            }
-        },
-        actions = {
-            Row() {
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF3B3B3B))
-                        .clickable {},
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.bell),
-                        contentDescription = "Icono notificaciones",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF3B3B3B))
-                        .clickable {},
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.user_circle),
-                        contentDescription = "Icono usuario",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-            }
-        }
-    )
-}
-
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-//Pie de página
-//- - - - - - - - - - - - - - - - - - - - - - - - -
-
-@Composable
-fun LoginNavBar() {
-    var seleccion by remember { mutableIntStateOf(0) }
-
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.primary
-    ) {
-        NavigationBarItem(
-            selected = seleccion == 0,
-            onClick = { seleccion = 0 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.home),
-                    contentDescription = "Icono inicio"
-                )
-            },
-            label = { Text("Inicio") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-        NavigationBarItem(
-            selected = seleccion == 1,
-            onClick = { seleccion = 1 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.calendar),
-                    contentDescription = "Icono calendario"
-                )
-            },
-            label = { Text("Calendario") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-        NavigationBarItem(
-            selected = seleccion == 2,
-            onClick = { seleccion = 2 },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.door),
-                    contentDescription = "Icono puerta"
-                )
-            },
-            label = { Text("Salas") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = MaterialTheme.colorScheme.secondary,
-                selectedTextColor = MaterialTheme.colorScheme.tertiary,
-                indicatorColor = MaterialTheme.colorScheme.tertiary
-            )
-        )
-    }
-}
-
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -310,7 +184,7 @@ fun LoginBody(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 12.dp),
+            .padding(horizontal = 25.dp, vertical = 25.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
@@ -320,8 +194,36 @@ fun LoginBody(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth().widthIn(max = 440.dp)
         ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(bottom = 12.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.logotipoappreservas),
+                    contentDescription = "Logo Espacio360",
+                    modifier = Modifier
+                        .size(54.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+                Spacer(modifier = Modifier.width(3.dp))
+                Text(
+                    text = "Espacio",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+                Text(
+                    text = "360",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFFB800)
+                )
+            }
+
             AnimacionLogin(
-                tamano = 65.dp
+                tamano = 65.dp,
+                modifier = Modifier.padding(top = 50.dp)
             )
 
             //Sombreado por palabra independiente ("Iniciar" y "sesión")
@@ -677,30 +579,31 @@ fun LoginScreen(
     usuariosRegistrados: Map<String, RolUsuario> = usuariosRegistradosMemoria,
     passwordsRegistrados: Map<String, String> = passwordsUsuariosMemoria,
     alNavegarARegistro: () -> Unit = {},
-    alNavegarARelator: () -> Unit = {},
-    alNavegarASupervisor: () -> Unit = {},
+    alNavegarARelator: (idUsuario: Long) -> Unit = {},
+    alNavegarASupervisor: (idUsuario: Long) -> Unit = {},
     alIniciarSesionExitoso: (correo: String, password: String, rol: RolUsuario) -> Unit = {_, _, _ -> }
 ) {
     var pantallaDestinoInterna by remember { mutableStateOf<String?>(null) }
 
-    // >>> CORRECCIÓN: SE PROPORCIONA EL USUARIOVIEWMODEL Y VALORES REQUERIDOS
+
     when (pantallaDestinoInterna) {
         "relator" -> {
             RelatorScreen(
-                idUsuario = 0L, // >>> CORRECCIÓN: PARÁMETRO OBLIGATORIO idUsuario
+                idUsuario = 0L,
                 onReservas = {},
                 onBuscarSala = {},
                 onCalendario = {},
-                onActividad = { _ -> } // >>> CORRECCIÓN: FIRMA COMPATIBLE (Long) -> Unit
+                onReservasRelator = {},
+                onActividad = { _ -> }
             )
             return
         }
         "supervisor" -> {
             val supervisorVm: GestionReservasViewModel = viewModel()
-            val usuarioVm: UsuarioViewModel = viewModel() // >>> CORRECCIÓN: INSTANCIA DE USUARIOVIEWMODEL
+            val usuarioVm: UsuarioViewModel = viewModel()
             SupervisorScreen(
-                idUsuario = 0L, // >>> CORRECCIÓN: PARÁMETRO OBLIGATORIO idUsuario
-                usuarioViewModel = usuarioVm, // >>> CORRECCIÓN: PARÁMETRO OBLIGATORIO usuarioViewModel
+                idUsuario = 0L,
+                usuarioViewModel = usuarioVm,
                 onHorarios = {},
                 onGestionSalas = {},
                 onAuditoria = {},
@@ -712,10 +615,7 @@ fun LoginScreen(
         }
     }
 
-    Scaffold(
-        topBar = { LoginTopBar() },
-        bottomBar = { LoginNavBar() }
-    ) { paddingValues ->
+    Scaffold { paddingValues ->
         LoginBody(
             modifier = Modifier
                 .fillMaxSize()
@@ -740,14 +640,14 @@ fun LoginScreen(
                 when (rol) {
                     RolUsuario.RELATOR -> {
                         try {
-                            alNavegarARelator()
+                            alNavegarARelator(0L)
                         } catch (e: Exception) {
                         }
                         pantallaDestinoInterna = "relator"
                     }
                     RolUsuario.COORDINADOR -> {
                         try {
-                            alNavegarASupervisor()
+                            alNavegarASupervisor(0L)
                         } catch (e: Exception) {
                         }
                         pantallaDestinoInterna = "supervisor"
