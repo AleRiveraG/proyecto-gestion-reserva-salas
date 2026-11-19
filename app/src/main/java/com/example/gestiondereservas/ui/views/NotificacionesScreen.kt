@@ -1,11 +1,5 @@
 package com.example.gestiondereservas.ui.views
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -49,6 +43,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeOut
 import com.example.gestiondereservas.utils.AnimacionNotificacionesVacias
+import androidx.compose.animation.fadeIn
 
 private data class NotificacionUI(
     val id: Long,
@@ -184,35 +179,43 @@ fun NotificacionesScreen(
             Spacer(Modifier.height(12.dp))
 
             // Marcar todas como leídas
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                Text(
-                    text = "Marcar todas como leídas",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = NotificationDarkYellow,
-                    modifier = Modifier.clickable {
-                        scope.launch {
-                            if (esSupervisor) {
-                                notificacionDao
-                                    .marcarTodasLeidasSupervisor()
-                            } else {
-                                val correo =
-                                    correoNormalizado ?: return@launch
+            if (pendientes > 0) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Text(
+                        text = "Marcar todas como leídas",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = NotificationDarkYellow,
+                        modifier = Modifier.clickable {
+                            scope.launch {
+                                if (esSupervisor) {
+                                    notificacionDao
+                                        .marcarTodasLeidasSupervisor()
+                                } else {
+                                    val correo =
+                                        correoNormalizado ?: return@launch
 
-                                notificacionDao
-                                    .marcarTodasLeidasRelator(correo)
+                                    notificacionDao
+                                        .marcarTodasLeidasRelator(correo)
+                                }
                             }
                         }
-                    }
-                )
+                    )
+                }
+
+                Spacer(Modifier.height(14.dp))
             }
 
-            Spacer(Modifier.height(14.dp))
-
-            if (notificaciones.isEmpty()) {
+            if (!esSupervisor && correoNormalizado == null) {
+                Text(
+                    text = "Inicia sesión para ver tus notificaciones",
+                    color = NotificationSecondaryText,
+                    modifier = Modifier.padding(16.dp)
+                )
+            } else if (notificaciones.isEmpty()) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -229,14 +232,6 @@ fun NotificacionesScreen(
                         textAlign = TextAlign.Center
                     )
                 }
-            }
-
-            if (!esSupervisor && correoNormalizado == null) {
-                Text(
-                    text = "Inicia sesión para ver tus notificaciones",
-                    color = NotificationSecondaryText,
-                    modifier = Modifier.padding(16.dp)
-                )
             }
 
             // Listado de notificaciones
@@ -637,15 +632,18 @@ private fun TarjetaNotificacion(
 
         AnimatedVisibility(
             visible = !notificacion.leida,
+            enter = fadeIn(),
             exit = fadeOut()
         ) {
-            Spacer(modifier = Modifier.width(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Spacer(modifier = Modifier.width(8.dp))
 
-            Box(
-                modifier = Modifier
-                    .size(7.dp)
-                    .background(Yellow, CircleShape)
-            )
+                Box(
+                    modifier = Modifier
+                        .size(7.dp)
+                        .background(Yellow, CircleShape)
+                )
+            }
         }
     }
 }
