@@ -54,6 +54,7 @@ class LocalTimeAdapter : TypeAdapter<LocalTime>() {
 object RetrofitClient {
 
     //private const val BASE_URL = "http://localhost:8080/"
+
     private const val BASE_URL = "http://192.168.100.3:8080/"
     private const val BASE_URL_AUDITORIA = "http://192.168.100.3:8081/"
 

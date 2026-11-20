@@ -206,7 +206,7 @@ fun HorariosScreen(
                     modifier = Modifier.weight(1.2f)
                 ) {
                     Text(
-                        text = "Definir horario de atención",
+                        text = "Bloquear horario", //cambio nuevo porque como ahora apareceran libres le hare la inversa
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
@@ -245,13 +245,13 @@ fun HorariosScreen(
                 },
                 onOcupacion = { ocupacion, dia -> detalle = ocupacion to dia },
                 puedeEditar = puedeEditar,
-                onSolicitar = { bloque, indiceDia ->
+                onSolicitar = { inicioMin, finMin, indiceDia -> //cambio en onsoliticar
                     val diaElegido = dias[indiceDia]
                     val fecha = FechasSemana.ddMM(diaElegido)
                     val bloqueOcupado = estado.ocupaciones.any {
                         it.fecha == fecha &&
-                                it.inicioMin < bloque.finMin &&
-                                it.finMin > bloque.inicioMin
+                                it.inicioMin < finMin &&
+                                it.finMin > inicioMin
                     }
                     when {
                         FechasSemana.esPasado(diaElegido) ->
@@ -264,15 +264,16 @@ fun HorariosScreen(
                             nombreSala = sala.nombre,
                             fecha = fecha,
                             dia = DiaSemana.entries[indiceDia],
-                            inicioMin = bloque.inicioMin,
-                            finMin = bloque.finMin
+                            inicioMin = inicioMin, //inicio y fin cambiados
+                            finMin = finMin
                         )
                     }
                 }
             )
             Text(
                 text = if (puedeEditar) {
-                    "Toca una celda libre para editar su bloque, una bloqueada para definir uno nuevo o una ocupada para ver el detalle."
+                    //cambio en el texto porque ahora partiran como libres
+                    "Toca una celda libre para bloquearla, una bloqueada para editar su bloqueo o una ocupada para ver el detalle."
                 } else {
                     "Toca una celda en blanco para solicitar ese bloque, o una ocupada para ver el detalle."
                 },
@@ -450,7 +451,7 @@ private fun GrillaSemanal(
     onNuevo: (DiaSemana, Int) -> Unit,
     onOcupacion: (Ocupacion, DiaSemana) -> Unit,
     puedeEditar: Boolean,
-    onSolicitar: (HorarioEntity, Int) -> Unit
+    onSolicitar: (Int, Int, Int) -> Unit //cambio nuevo
 ) {
     //una fila por hora, desde la hora mínima hasta la máxima que permite el formulario
     val horas = (ValidacionesHorario.HORA_MIN / 60) until (ValidacionesHorario.HORA_MAX / 60)
@@ -504,7 +505,7 @@ private fun GrillaSemanal(
                         val fin = inicio + 60
                         //cualquier bloque de atención que toque esta hora activo o no
                         val bloque = horarios.firstOrNull {
-                            it.dia == dia && it.inicioMin < fin && it.finMin > inicio
+                            !it.activo && it.dia == dia && it.inicioMin < fin && it.finMin > inicio
                         }
                         //franjas ocupadas de ese día que tocan esta hora
                         val ocupadas = ocupaciones
@@ -524,7 +525,7 @@ private fun GrillaSemanal(
                                     principal != null -> onOcupacion(principal, dia)
                                     puedeEditar && bloque != null -> onEditar(bloque.id)
                                     puedeEditar -> onNuevo(dia, inicio)
-                                    bloque != null && bloque.activo -> onSolicitar(bloque, indice)
+                                    bloque == null -> onSolicitar(inicio, fin, indice) //cambio
                                     else -> Unit
                                 }
                             }
@@ -548,7 +549,7 @@ private fun CeldaHorario(
     val hayCruce = ocupadas.any { a ->
         ocupadas.any { b -> a !== b && a.inicioMin < b.finMin && b.inicioMin < a.finMin }
     }
-    val libre = bloque?.activo == true
+    val libre = bloque == null //cambio nuevo
     val forma = RoundedCornerShape(8.dp)
 
     val fondo = when (principal?.tipo) {
@@ -589,9 +590,9 @@ private fun CeldaHorario(
                     modifier = Modifier.padding(horizontal = 4.dp)
                 )
             }
-        } else if (bloque != null && !bloque.activo) {
+        } else if (bloque != null) {
             Text(
-                text = "Inactivo",
+                text = "Bloqueado", //cambio nuevo
                 style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF666666)
             )
