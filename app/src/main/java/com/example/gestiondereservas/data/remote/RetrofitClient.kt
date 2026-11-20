@@ -52,10 +52,13 @@ class LocalTimeAdapter : TypeAdapter<LocalTime>() {
     }
 }
 object RetrofitClient {
+    
+    private const val BASE_URL_RESERVA = "http://98.95.72.24:8082"
+    private const val BASE_URL_AUDITORIA = "http://98.95.72.24:8082/"
+    private const val BASE_URL_LOGIN = "http://98.95.72.24:8085/"
+    private const val BASE_URL_SALAS = "http://98.95.72.24:8084/"
+    private const val BASE_URL_HORARIOS = "http://98.95.72.24:8083/"
 
-    //private const val BASE_URL = "http://localhost:8080/"
-    private const val BASE_URL = "http://192.168.100.3:8080/"
-    private const val BASE_URL_AUDITORIA = "http://192.168.100.3:8081/"
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -74,7 +77,7 @@ object RetrofitClient {
 
     val api: ReservaApiService by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BASE_URL_RESERVA)
             .client(okHttp)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create(gson))
