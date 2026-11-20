@@ -52,7 +52,7 @@ class LocalTimeAdapter : TypeAdapter<LocalTime>() {
     }
 }
 object RetrofitClient {
-    
+
     private const val BASE_URL_RESERVA = "http://98.95.72.24:8082"
     private const val BASE_URL_AUDITORIA = "http://98.95.72.24:8082/"
     private const val BASE_URL_LOGIN = "http://98.95.72.24:8085/"

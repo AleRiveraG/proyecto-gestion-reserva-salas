@@ -28,8 +28,9 @@ interface HorarioDao {
 
     //los bloques se cruzan cuando uno empieza antes de que el otro termine
     @Query(
+        //modificacion en la query
         "SELECT COUNT(*) FROM horarios " +
-                "WHERE salaId = :salaId AND dia = :dia AND id != :excluirId " +
+                "WHERE salaId = :salaId AND dia = :dia AND id != :excluirId AND activo = 0 " +
                 "AND inicioMin < :finMin AND finMin > :inicioMin"
     )
     suspend fun contarCruces(

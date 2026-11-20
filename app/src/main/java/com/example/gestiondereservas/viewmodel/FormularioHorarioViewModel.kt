@@ -18,7 +18,7 @@ data class DatosHorario(
     val dia: DiaSemana = DiaSemana.LUNES,
     val inicioMin: Int = 8 * 60 + 30,
     val finMin: Int = 10 * 60,
-    val activo: Boolean = true
+    val activo: Boolean = false //le cambie a false para cuando un horario sea nuevo nace como inactivo todo lo demas como libre
 )
 
 data class FormularioHorarioState(
@@ -210,7 +210,7 @@ class FormularioHorarioViewModel(
                     _estado.update {
                         it.copy(
                             guardando = false,
-                            errorHorario = "Se cruza con otro bloque de la sala o queda a menos de ${ValidacionesHorario.INTERVALO_MIN} minutos de él"
+                            errorHorario = "Se cruza con otro bloqueo de la sala o queda a menos de ${ValidacionesHorario.INTERVALO_MIN} minutos de él"
                         )
                     }
                     return@launch

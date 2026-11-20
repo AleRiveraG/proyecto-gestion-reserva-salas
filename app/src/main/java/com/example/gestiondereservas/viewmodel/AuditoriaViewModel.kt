@@ -21,6 +21,7 @@ class AuditoriaViewModel(
         cargarDatos()
     }
 
+
     fun registrarReserva(auditoria: AuditoriaDto) {
         viewModelScope.launch {
             auditoriaRepository.registrarAuditoria(auditoria)
@@ -33,6 +34,8 @@ class AuditoriaViewModel(
             auditorias.value = auditoriaRepository.obtenerTodas()
         }
     }
+
+
 
     private val auditoriaPorTipo = MutableStateFlow<List<AuditoriaResponse>>(emptyList())
     val totalAuditoriasPorTipo: StateFlow<List<AuditoriaResponse>> = auditoriaPorTipo.asStateFlow()

@@ -3,6 +3,7 @@ package com.example.gestiondereservas.ui.views
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -84,6 +85,12 @@ import com.example.gestiondereservas.utils.ConfirmacionSalaGuardada
 import kotlinx.coroutines.delay
 import java.time.LocalTime
 
+import kotlinx.coroutines.delay
+import androidx.compose.ui.window.Dialog
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 @Composable
 fun rememberFormularioSalaViewModel(
     salaId: Long
@@ -151,9 +158,10 @@ fun FormularioSalaScreen(
 
     BackHandler { intentarVolver() }
 
+
+
     LaunchedEffect(estado.guardada) {
         if (estado.guardada) {
-            onRegistrarAuditoria(crearAuditoria())
             delay(2400)
             onVolver()
         }
@@ -553,6 +561,53 @@ private fun EquipoOpcion(
                 Switch(
                     checked = equipo.ocupado,
                     onCheckedChange = onOcupadoChange
+                )
+            }
+        }
+    }
+
+}
+
+@Composable
+private fun ConfirmacionSalaGuardada(esNueva: Boolean) {
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.success_check)
+    )
+    val progreso by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = 1
+    )
+
+    Dialog(onDismissRequest = {}) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progreso },
+                    modifier = Modifier.size(156.dp)
+                )
+
+                Text(
+                    text = if (esNueva) "Sala creada" else "Sala actualizada",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                Text(
+                    text = "Los cambios se guardaron correctamente.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

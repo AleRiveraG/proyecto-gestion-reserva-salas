@@ -69,10 +69,18 @@ import com.example.gestiondereservas.utils.FormatoHora
 import com.example.gestiondereservas.utils.ValidacionesHorario
 import com.example.gestiondereservas.utils.formatearHora
 import java.time.LocalDate
-import com.example.gestiondereservas.utils.ConfirmacionHorarioGuardado
+//el import de abajo era de la confirmación de bloque libre pero como cambiamos la logica ya no se ocupa
+//import com.example.gestiondereservas.utils.ConfirmacionHorarioGuardado
 import kotlinx.coroutines.delay
 import java.time.LocalTime
 
+
+import androidx.compose.ui.window.Dialog
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
+import kotlinx.coroutines.delay
 @Composable
 fun rememberFormularioHorarioViewModel(
     horarioId: Long,
@@ -142,9 +150,16 @@ fun FormularioHorarioScreen(
 
     BackHandler { intentarVolver() }
 
-    LaunchedEffect(estado.guardado) {
+    /*LaunchedEffect(estado.guardado) {
         if (estado.guardado) {
             onRegistrarAuditoria(crearAuditoria("Se creo un horario"))
+            delay(2400)
+            onVolver()
+        }
+    }*/
+
+    LaunchedEffect(estado.guardado) {
+        if (estado.guardado) {
             delay(2400)
             onVolver()
         }
@@ -154,9 +169,13 @@ fun FormularioHorarioScreen(
         ConfirmacionHorarioGuardado(esNuevo = estado.esNuevo)
     }
 
+    if (estado.guardado) {
+        ConfirmacionHorarioGuardado(esNuevo = estado.esNuevo)
+    }
+
     LaunchedEffect(estado.eliminado) {
         if (estado.eliminado) {
-            Toast.makeText(contexto, "Horario eliminado", Toast.LENGTH_SHORT).show()
+            Toast.makeText(contexto, "Bloqueo eliminado", Toast.LENGTH_SHORT).show()
             val auditoria = crearAuditoria("Se elimino un horario")
             onRegistrarAuditoria(auditoria)
             onVolver()
@@ -196,13 +215,13 @@ fun FormularioHorarioScreen(
     ) {
         Spacer(Modifier.height(16.dp))
         Text(
-            text = if (estado.esNuevo) "Nuevo horario" else "Modificar horario",
+            text = if (estado.esNuevo) "Bloquear horario" else "Modificar bloqueo",//cambio ya que ahora parten todos libres
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = if (estado.esNuevo) "Define un nuevo bloque horario para una sala"
-            else "Actualiza el día o la hora del bloque",
+            text = if (estado.esNuevo) "Elige la sala y el tramo en que no se podrá reservar"
+            else "Actualiza el día o la hora del bloqueo",//cambio en estas dos lineas para que tenga más coherencia con lo nuevo
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF666666)
         )
@@ -335,7 +354,7 @@ fun FormularioHorarioScreen(
         )
         estado.errorHorario?.let { MensajeError(it) }
         Text(
-            text = "Los bloques de una misma sala no pueden cruzarse y deben dejar al menos ${ValidacionesHorario.INTERVALO_MIN} minutos entre uno y otro.",
+            text = "Los bloqueos de una misma sala no pueden cruzarse y deben dejar al menos ${ValidacionesHorario.INTERVALO_MIN} minutos entre uno y otro.",
             style = MaterialTheme.typography.bodySmall,
             color = Color(0xFF666666),
             modifier = Modifier.padding(top = 8.dp)
@@ -345,19 +364,19 @@ fun FormularioHorarioScreen(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Bloque activo",
+                        text = "Bloque vigente",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "Si lo desactivas, la sala queda bloqueada en ese horario.",
+                        text = "Si lo apagas, la sala queda bloqueada en ese horario.",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFF666666)
                     )
                 }
                 Switch(
-                    checked = d.activo,
-                    onCheckedChange = viewModel::onActivoChange
+                    checked = !d.activo,
+                    onCheckedChange = {vigente -> viewModel.onActivoChange(!vigente)}
                 )
             }
         }
@@ -383,7 +402,7 @@ fun FormularioHorarioScreen(
                 .height(52.dp)
         ) {
             Text(
-                text = if (estado.esNuevo) "Crear horario" else "Modificar",
+                text = if (estado.esNuevo) "Bloquear horario" else "Guardar cambios",
                 fontWeight = FontWeight.Bold
             )
         }
@@ -401,7 +420,7 @@ fun FormularioHorarioScreen(
                 enabled = !estado.guardando,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Eliminar horario", color = MaterialTheme.colorScheme.error)
+                Text("Quitar bloqueo", color = MaterialTheme.colorScheme.error)
             }
         }
         Spacer(Modifier.height(24.dp))
@@ -431,8 +450,8 @@ fun FormularioHorarioScreen(
     if (confirmarEliminar) {
         AlertDialog(
             onDismissRequest = { confirmarEliminar = false },
-            title = { Text("¿Eliminar este horario?") },
-            text = { Text("El bloque dejará de estar disponible para reservas.") },
+            title = { Text("¿Quitar este bloqueo?") },
+            text = { Text("La sala volverá a quedar libre en ese horario.") },
             confirmButton = {
                 TextButton(onClick = {
                     confirmarEliminar = false
@@ -447,6 +466,54 @@ fun FormularioHorarioScreen(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun ConfirmacionHorarioGuardado(esNuevo: Boolean) {
+    // Animación "Calendar Check" de LottieFiles, bajo Lottie Simple License.
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.padlock)
+    )
+
+    val progreso by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = 1
+    )
+
+    Dialog(onDismissRequest = {}) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surface
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progreso },
+                    modifier = Modifier.size(156.dp)
+                )
+
+                Text(
+                    text = if (esNuevo) "Horario bloqueado" else "Bloqueo actualizado",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                Text(
+                    text = "El bloqueo se guardó correctamente.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 
