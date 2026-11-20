@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: androidx.lifecycle:lifecycle-common-jvm:2.11.0" type="java-imported" external-system-id="GRADLE">
+    <properties groupId="androidx.lifecycle" artifactId="lifecycle-common-jvm" version="2.11.0" baseVersion="2.11.0" />
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.lifecycle/lifecycle-common-jvm/2.11.0/2c4f7d92f1fd723121d394c93455f50158403ad9/lifecycle-common-jvm-2.11.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/androidx.lifecycle/lifecycle-common-jvm/2.11.0/2c01329051e36016bae1c30edc1412393b4103d3/lifecycle-common-jvm-2.11.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

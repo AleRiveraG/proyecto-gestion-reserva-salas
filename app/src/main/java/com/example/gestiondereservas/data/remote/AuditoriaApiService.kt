@@ -1,0 +1,31 @@
+package com.example.gestiondereservas.data.remote
+
+import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
+import com.example.gestiondereservas.data.remote.dto.AuditoriaResponse
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.Path
+import java.time.LocalDate
+
+interface AuditoriaApiService {
+
+    @GET("api/auditoria")
+    suspend fun obtenerAuditorias(): List<AuditoriaResponse>
+
+    @POST("api/auditoria")
+    suspend fun registrarAuditoria(
+        @Body auditoria: AuditoriaDto
+    ): AuditoriaResponse
+
+    @GET("apí/auditoria/tipo/{tipo}")
+    suspend fun obtenerPorTipo(
+        @Path("tipo") tipo: String
+    ): List<AuditoriaResponse>
+
+    @GET("apí/auditoria/fecha/{fecha}")
+    suspend fun obtenerPorFecha(
+        @Path("fecha") fecha: LocalDate
+    ): List<AuditoriaResponse>
+}

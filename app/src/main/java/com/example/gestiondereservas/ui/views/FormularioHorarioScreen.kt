@@ -57,14 +57,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.data.ProveedorDatos
-import com.example.gestiondereservas.data.ProveedorDatosHorarios
+import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.repository.HorarioRepository
+import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
+import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.components.AreaChip
-import com.example.gestiondereservas.ui.viewmodel.FormularioHorarioViewModel
+import com.example.gestiondereservas.viewmodel.FormularioHorarioViewModel
 import com.example.gestiondereservas.utils.FormatoHora
 import com.example.gestiondereservas.utils.ValidacionesHorario
+import com.example.gestiondereservas.utils.formatearHora
+import java.time.LocalDate
+import com.example.gestiondereservas.utils.ConfirmacionHorarioGuardado
+import kotlinx.coroutines.delay
+import java.time.LocalTime
 
 
 import androidx.compose.ui.window.Dialog
@@ -85,11 +92,12 @@ fun rememberFormularioHorarioViewModel(
         key = "formulario-horario-$horarioId",
         factory = viewModelFactory {
             initializer {
-                FormularioHorarioViewModel(
-                    HorarioRepository(
-                        ProveedorDatosHorarios.horarioDao(contexto),
-                        ProveedorDatos.salaDao(contexto)
-                    ),
+                val horarioDao = AppDatabase.getInstance(contexto).horarioDao()
+                val salaDao = AppDatabase.getInstance(contexto).salaDao()
+                val reservaDao = AppDatabase.getInstance(contexto).reservaDao()
+                val usoSalaDao = AppDatabase.getInstance(contexto).usoSalaDao()
+                val repository = HorarioRepository(horarioDao, salaDao, reservaDao, usoSalaDao)
+                FormularioHorarioViewModel(repository,
                     horarioId,
                     salaInicialId,
                     diaInicial?.let { nombre ->
@@ -114,7 +122,8 @@ fun FormularioHorarioScreen(
         salaInicialId,
         diaInicial,
         inicioInicialMin
-    )
+    ),
+    onRegistrarAuditoria: (AuditoriaDto) -> Unit
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val contexto = LocalContext.current
@@ -128,15 +137,22 @@ fun FormularioHorarioScreen(
         if (estado.hayCambios) confirmarDescarte = true else onVolver()
     }
 
+    fun crearAuditoria(accion: String): AuditoriaDto{
+        return AuditoriaDto(
+            accion = accion,
+            detalle = "${d.dia} - ${d.salaId} " ,
+            fecha = LocalDate.now(),
+            hora = LocalTime.now(),
+            tipo = TipoAuditoria.HORARIOS.name
+        )
+    }
+
     BackHandler { intentarVolver() }
 
     /*LaunchedEffect(estado.guardado) {
         if (estado.guardado) {
-            Toast.makeText(
-                contexto,
-                if (estado.esNuevo) "Horario creado" else "Horario actualizado",
-                Toast.LENGTH_SHORT
-            ).show()
+            onRegistrarAuditoria(crearAuditoria("Se creo un horario"))
+            delay(2400)
             onVolver()
         }
     }*/
@@ -152,12 +168,19 @@ fun FormularioHorarioScreen(
         ConfirmacionHorarioGuardado(esNuevo = estado.esNuevo)
     }
 
+    if (estado.guardado) {
+        ConfirmacionHorarioGuardado(esNuevo = estado.esNuevo)
+    }
+
     LaunchedEffect(estado.eliminado) {
         if (estado.eliminado) {
             Toast.makeText(contexto, "Horario eliminado", Toast.LENGTH_SHORT).show()
+            val auditoria = crearAuditoria("Se elimino un horario")
+            onRegistrarAuditoria(auditoria)
             onVolver()
         }
     }
+
 
     if (estado.cargando) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

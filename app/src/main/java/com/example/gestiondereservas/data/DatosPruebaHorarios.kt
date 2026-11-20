@@ -32,6 +32,12 @@ object DatosPruebaHorarios {
         bloque("F101", DiaSemana.LUNES, hora(9), hora(12)),
         bloque("D302", DiaSemana.VIERNES, hora(8, 30), hora(10)),
         bloque("A105", DiaSemana.MARTES, hora(10, 10), hora(11, 40)),
-        bloque("A105", DiaSemana.SABADO, hora(9), hora(13), activo = false)
+        bloque("A105", DiaSemana.SABADO, hora(9), hora(13), activo = false),
+        bloque("S210", DiaSemana.MIERCOLES, hora(10, 10), hora(11, 40)),
+        bloque("S210", DiaSemana.VIERNES, hora(14, 30), hora(16)),
+        bloque("G104", DiaSemana.MARTES, hora(8, 30), hora(10)),
+        bloque("G104", DiaSemana.JUEVES, hora(10, 10), hora(11, 40)),
+        bloque("T305", DiaSemana.LUNES, hora(14, 30), hora(16)),
+        bloque("T305", DiaSemana.MIERCOLES, hora(16, 10), hora(17, 40))
     )
 }

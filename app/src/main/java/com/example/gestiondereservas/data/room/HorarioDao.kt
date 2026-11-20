@@ -5,8 +5,8 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.example.gestiondereservas.data.room.entidades.Horario
 import com.example.gestiondereservas.data.room.entidades.HorarioConSala
+import com.example.gestiondereservas.data.room.entidades.HorarioEntity
 import com.example.gestiondereservas.utils.ValidacionesHorario
 import kotlinx.coroutines.flow.Flow
 
@@ -50,13 +50,13 @@ interface HorarioDao {
     suspend fun contarHorarios(): Int
 
     @Insert
-    suspend fun insertarHorario(horario: Horario): Long
+    suspend fun insertarHorario(horario: HorarioEntity): Long
 
     @Update
-    suspend fun actualizarHorario(horario: Horario)
+    suspend fun actualizarHorario(horario: HorarioEntity)
 
     @Transaction
-    suspend fun guardar(horario: Horario): Long {
+    suspend fun guardar(horario: HorarioEntity): Long {
         check(
             contarCruces(
                 horario.salaId,

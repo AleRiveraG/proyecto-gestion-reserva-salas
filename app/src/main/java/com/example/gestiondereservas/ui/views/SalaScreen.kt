@@ -30,6 +30,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,11 +49,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.data.ProveedorDatos
+import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.repository.SalaRepository
-import com.example.gestiondereservas.data.room.entidades.Sala
+import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.ui.components.AreaChip
-import com.example.gestiondereservas.ui.viewmodel.SalasViewModel
+import com.example.gestiondereservas.viewmodel.SalasViewModel
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
+import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 
 @Composable
 fun rememberSalasViewModel(): SalasViewModel {
@@ -61,9 +68,9 @@ fun rememberSalasViewModel(): SalasViewModel {
         key = "salas-coordinador-infraestructura",
         factory = viewModelFactory {
             initializer {
-                SalasViewModel(
-                    SalaRepository(ProveedorDatos.salaDao(contexto))
-                )
+                val dao = AppDatabase.getInstance(contexto).salaDao()
+                val repository = SalaRepository(dao)
+                SalasViewModel(repository)
             }
         }
     )
@@ -73,10 +80,28 @@ fun rememberSalasViewModel(): SalasViewModel {
 fun SalasScreen(
     onNuevaSala: () -> Unit = {},
     onEditarSala: (Long) -> Unit = {},
+    onRegistrarAuditoria: (AuditoriaDto) -> Unit,
     viewModel: SalasViewModel = rememberSalasViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
-    var salaPorCambiar by remember { mutableStateOf<Sala?>(null) }
+    var salaEntityPorCambiar by remember { mutableStateOf<SalaEntity?>(null) }
+    var texto by remember { mutableStateOf(estado.busqueda) }
+
+    LaunchedEffect(estado.busqueda) {
+        if (estado.busqueda != texto) {
+            texto = estado.busqueda
+        }
+    }
+
+    fun crearAuditoria(): AuditoriaDto{
+        return AuditoriaDto(
+            accion = "Se actualizaron los datos de la sala",
+            detalle = "${salaEntityPorCambiar?.codigo} - ${salaEntityPorCambiar?.nombre} ",
+            fecha = LocalDate.now(),
+            hora = LocalTime.now(),
+            tipo = TipoAuditoria.SALAS.name
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -97,8 +122,10 @@ fun SalasScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         OutlinedTextField(
-            value = estado.busqueda,
-            onValueChange = viewModel::onBusquedaChange,
+            value = texto,
+            onValueChange = { nuevoTexto ->
+                texto = nuevoTexto
+                viewModel.onBusquedaChange(nuevoTexto) },
             placeholder = { Text("Buscar por código o nombre") },
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
@@ -129,32 +156,32 @@ fun SalasScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(estado.salas, key = { it.sala.id }) { item ->
+                items(estado.salas, key = { it.salaEntity.id }) { item ->
                     SalaCard(
-                        sala = item.sala,
-                        onClick = { onEditarSala(item.sala.id) },
-                        onToggle = { salaPorCambiar = item.sala }
+                        salaEntity = item.salaEntity,
+                        onClick = { onEditarSala(item.salaEntity.id) },
+                        onToggle = { salaEntityPorCambiar = item.salaEntity }
                     )
                 }
             }
         }
     }
 
-    salaPorCambiar?.let { sala ->
+    salaEntityPorCambiar?.let { sala ->
         val activar = !sala.activa
         AlertDialog(
-            onDismissRequest = { salaPorCambiar = null },
+            onDismissRequest = { salaEntityPorCambiar = null },
             title = {
                 Text("¿${if (activar) "Activar" else "Desactivar"} la sala ${sala.codigo}?")
             },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.alternarEstado(sala)
-                    salaPorCambiar = null
+                    salaEntityPorCambiar = null
                 }) { Text("Confirmar") }
             },
             dismissButton = {
-                TextButton(onClick = { salaPorCambiar = null }) { Text("Cancelar") }
+                TextButton(onClick = { salaEntityPorCambiar = null }) { Text("Cancelar") }
             }
         )
     }
@@ -162,7 +189,7 @@ fun SalasScreen(
 
 @Composable
 private fun SalaCard(
-    sala: Sala,
+    salaEntity: SalaEntity,
     onClick: () -> Unit,
     onToggle: () -> Unit
 ) {
@@ -173,7 +200,7 @@ private fun SalaCard(
         border = BorderStroke(1.dp, Color(0xFFEEEEEE)),
         modifier = Modifier
             .fillMaxWidth()
-            .alpha(if (sala.activa) 1f else 0.6f)
+            .alpha(if (salaEntity.activa) 1f else 0.6f)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -195,26 +222,26 @@ private fun SalaCard(
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${sala.codigo} · ${sala.nombre}",
+                    text = "${salaEntity.codigo} · ${salaEntity.nombre}",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Capacidad ${sala.capacidad}",
+                    text = "Capacidad ${salaEntity.capacidad}",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFF666666)
                 )
                 Spacer(modifier = Modifier.height(6.dp))
-                AreaChip(sala.area)
+                AreaChip(salaEntity.area)
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = if (sala.activa) "Activa" else "Inactiva",
+                    text = if (salaEntity.activa) "Activa" else "Inactiva",
                     style = MaterialTheme.typography.labelMedium,
-                    color = if (sala.activa) Color(0xFF2E7D32) else Color(0xFF666666)
+                    color = if (salaEntity.activa) Color(0xFF2E7D32) else Color(0xFF666666)
                 )
                 Switch(
-                    checked = sala.activa,
+                    checked = salaEntity.activa,
                     onCheckedChange = { onToggle() },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = MaterialTheme.colorScheme.primary,

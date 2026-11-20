@@ -1,20 +1,16 @@
+
 package com.example.gestiondereservas.ui.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,58 +23,93 @@ import com.example.gestiondereservas.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar() {
+fun TopBar(
+    onNotificacionesClick: () -> Unit = {},
+    onCerrarSesion: () -> Unit,
+    tieneNotificacionesSinLeer: Boolean = false
+) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary,
             titleContentColor = MaterialTheme.colorScheme.secondary
         ),
         title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) { /*
                 Image(
-                    painter = painterResource(id = R.drawable.logo),
+                    painter = painterResource(id = R.drawable.logov4),
                     contentDescription = "Logo Duoc UC",
-                    modifier = Modifier.size(100.dp),
-                    colorFilter = ColorFilter.tint(Color.White)
+                    modifier = Modifier.size(60.dp)
+                        .clip(),
+                    //colorFilter = ColorFilter.tint(Color.White)
                 )
+
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("Reserva", color = MaterialTheme.colorScheme.secondary)
-                Text("Salas", color = MaterialTheme.colorScheme.tertiary)
+                */
+                Text(
+                    text = "Reserva",
+                    color = MaterialTheme.colorScheme.secondary
+                )
+
+                Text(
+                    text = "Salas",
+                    color = MaterialTheme.colorScheme.tertiary
+                )
             }
         },
         actions = {
-            Row {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Box(
                     modifier = Modifier
-                        .size(50.dp)
+                        .size(40.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF3B3B3B))
-                        .clickable { },
+                        .clickable {
+                            onNotificacionesClick()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Default.Notifications,
+                        contentDescription = "Notificaciones",
+                        tint = Color.White,
+                        modifier = Modifier.size(25.dp)
+                    )
+                    if (tieneNotificacionesSinLeer) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(top = 5.dp, end = 5.dp)
+                                .size(9.dp)
+                                .background(Color.Red, CircleShape)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFF3B3B3B))
+                        .clickable {
+                            onCerrarSesion()
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.bell),
-                        contentDescription = "Icono notificaciones",
+                        imageVector = Icons.Default.Logout,
+                        contentDescription = "Cerrar sesión",
                         tint = Color.White,
-                        modifier = Modifier.size(30.dp)
+                        modifier = Modifier.size(25.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                Box(
-                    modifier = Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF3B3B3B))
-                        .clickable { },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.user_circle),
-                        contentDescription = "Icono usuario",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
-                }
+
                 Spacer(modifier = Modifier.width(12.dp))
             }
         }

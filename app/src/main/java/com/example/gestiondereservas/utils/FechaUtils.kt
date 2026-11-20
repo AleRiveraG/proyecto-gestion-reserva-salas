@@ -1,0 +1,58 @@
+package com.example.gestiondereservas.utils
+
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.MonthDay
+import java.time.Year
+import java.time.format.DateTimeFormatter
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
+
+fun formatearFecha(): String {
+    val fecha = LocalDate.now()
+
+    val formato = DateTimeFormatter.ofPattern("EEEE',' d 'de' MMMM")
+
+    return fecha.format(formato).uppercase()
+}
+
+fun formatoFecha(millis: Long): String {
+    val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    formatter.timeZone = TimeZone.getTimeZone("UTC")
+    return formatter.format(Date(millis))
+}
+
+fun formatoFechaPantalla(fecha: String): String? {
+    if(fecha.isBlank()) return ""
+    val fechaLD = LocalDate.parse(fecha)
+    val formato = DateTimeFormatter.ofPattern("MM/dd")
+    return fechaLD.format(formato)
+}
+
+fun formatearFechaPerso(fecha: String): String {
+    return try {
+        val formatoEntrada = DateTimeFormatter.ofPattern("dd/MM")
+        val diaMes = MonthDay.parse(fecha, formatoEntrada)
+
+        val anio = Year.now().value
+        val fechaCompleta = diaMes.atYear(anio)
+
+        val formato = DateTimeFormatter.ofPattern("EEEE',' d 'de' MMMM")
+
+        fechaCompleta.format(formato).replaceFirstChar { it.uppercase() }
+    } catch (e: Exception) {
+        fecha
+    }
+}
+
+fun StringALocalDate(fecha: String): LocalDate {
+    return LocalDate.parse(fecha)
+}
+
+fun LocalDateAString(fecha: LocalDate): String {
+    val formato = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val fechaString = fecha.format(formato)
+    return fechaString
+}
+

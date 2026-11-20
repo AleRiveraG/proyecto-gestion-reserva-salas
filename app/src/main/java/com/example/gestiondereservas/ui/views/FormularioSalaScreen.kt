@@ -68,14 +68,22 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
-import com.example.gestiondereservas.data.ProveedorDatos
+import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.repository.SalaRepository
+import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.Area
+import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
+import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.components.AreaChip
-import com.example.gestiondereservas.ui.viewmodel.EquipoForm
-import com.example.gestiondereservas.ui.viewmodel.FormularioSalaViewModel
+import com.example.gestiondereservas.viewmodel.EquipoForm
+import com.example.gestiondereservas.viewmodel.FormularioSalaViewModel
+import com.example.gestiondereservas.utils.formatearHora
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.time.LocalDate
+import com.example.gestiondereservas.utils.ConfirmacionSalaGuardada
+import kotlinx.coroutines.delay
+import java.time.LocalTime
 
 import kotlinx.coroutines.delay
 import androidx.compose.ui.window.Dialog
@@ -92,8 +100,9 @@ fun rememberFormularioSalaViewModel(
         key = "formulario-sala-$salaId",
         factory = viewModelFactory {
             initializer {
+                val dao = AppDatabase.getInstance(contexto).salaDao()
                 FormularioSalaViewModel(
-                    SalaRepository(ProveedorDatos.salaDao(contexto)),
+                    SalaRepository(dao),
                     salaId
                 )
             }
@@ -108,7 +117,8 @@ fun FormularioSalaScreen(
     onVolver: () -> Unit,
     viewModel: FormularioSalaViewModel = rememberFormularioSalaViewModel(
         salaId
-    )
+    ),
+    onRegistrarAuditoria: (AuditoriaDto) -> Unit
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val contexto = LocalContext.current
@@ -132,22 +142,23 @@ fun FormularioSalaScreen(
         }
     }
 
+    fun crearAuditoria(): AuditoriaDto{
+        return AuditoriaDto(
+            accion = "Se actualizo una sala",
+            detalle = "${d.codigo} - ${d.nombre} " ,
+            fecha = LocalDate.now(),
+            hora = LocalTime.now(),
+            tipo = TipoAuditoria.SALAS.name
+        )
+    }
+
     fun intentarVolver() {
         if (estado.hayCambios) confirmarDescarte = true else onVolver()
     }
 
     BackHandler { intentarVolver() }
 
-    /*LaunchedEffect(estado.guardada) {
-        if (estado.guardada) {
-            Toast.makeText(
-                contexto,
-                if (estado.esNueva) "Sala creada" else "Sala actualizada",
-                Toast.LENGTH_SHORT
-            ).show()
-            onVolver()
-        }
-    }*/
+
 
     LaunchedEffect(estado.guardada) {
         if (estado.guardada) {
@@ -159,7 +170,6 @@ fun FormularioSalaScreen(
     if (estado.guardada) {
         ConfirmacionSalaGuardada(esNueva = estado.esNueva)
     }
-
 
     if (estado.cargando) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

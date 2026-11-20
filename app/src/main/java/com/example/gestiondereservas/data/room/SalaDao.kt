@@ -7,7 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import com.example.gestiondereservas.data.room.entidades.Equipamiento
-import com.example.gestiondereservas.data.room.entidades.Sala
+import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
 import kotlinx.coroutines.flow.Flow
 
@@ -34,10 +34,10 @@ interface SalaDao {
     suspend fun cambiarEstado(id: Long, activa: Boolean)
 
     @Insert
-    suspend fun insertarSala(sala: Sala): Long
+    suspend fun insertarSala(salaEntity: SalaEntity): Long
 
     @Update
-    suspend fun actualizarSala(sala: Sala)
+    suspend fun actualizarSala(salaEntity: SalaEntity)
 
     @Query("DELETE FROM equipamientos WHERE salaId = :salaId")
     suspend fun borrarEquipamientos(salaId: Long)
@@ -49,12 +49,12 @@ interface SalaDao {
     suspend fun contarSalas(): Int
 
     @Transaction
-    suspend fun guardar(sala: Sala, equipos: List<Equipamiento>): Long {
-        val id = if (sala.id == 0L) {
-            insertarSala(sala)
+    suspend fun guardar(salaEntity: SalaEntity, equipos: List<Equipamiento>): Long {
+        val id = if (salaEntity.id == 0L) {
+            insertarSala(salaEntity)
         } else {
-            actualizarSala(sala)
-            sala.id
+            actualizarSala(salaEntity)
+            salaEntity.id
         }
 
         borrarEquipamientos(id)
@@ -64,4 +64,11 @@ interface SalaDao {
 
         return id
     }
+
+    @Query("SELECT * FROM salas")
+    suspend fun obtenerSalas(): List<SalaEntity>
+
+    @Query("SELECT * FROM salas WHERE id = :id")
+    suspend fun obtenerSalaPorId(id: Long): SalaEntity?
+
 }
