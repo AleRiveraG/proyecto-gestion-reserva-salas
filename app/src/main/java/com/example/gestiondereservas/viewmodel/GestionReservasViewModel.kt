@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import android.content.Context
 import com.example.gestiondereservas.data.remote.dto.DocumentoResponse
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 
 class GestionReservasViewModel(
@@ -51,7 +52,7 @@ class GestionReservasViewModel(
         }
     }
 
-    suspend fun buscarSala(id: Long): SalaEntity? {
+    suspend fun buscarSala(id: Long): SalaResponse? {
         return repository.obtenerSalaPorId(id)
     }
 

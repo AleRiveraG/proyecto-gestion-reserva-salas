@@ -2,6 +2,7 @@ package com.example.gestiondereservas.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
@@ -26,7 +27,7 @@ data class FiltrosAvanzados(
 data class SalasUiState(
     val busqueda: String = "",
     val filtros: FiltrosAvanzados = FiltrosAvanzados(),
-    val salas: List<SalaConEquipamiento> = emptyList()
+    val salas: List<SalaResponse> = emptyList()
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -38,20 +39,15 @@ class SalasViewModel(
 
     private val filtrosAvanzados = MutableStateFlow(FiltrosAvanzados())
 
-    init {
-        viewModelScope.launch { repositorio.sembrarSiVacio() }
-    }
     val uiState: StateFlow<SalasUiState> = combine(busqueda, filtrosAvanzados) { texto, filtros ->
         Pair(texto, filtros)
     }.flatMapLatest { (texto, filtros) ->
 
         repositorio.observarTodas(texto).map { listaDesdeBd ->
 
-            val salasFiltradas = listaDesdeBd.filter { salaCompleta ->
-                val sala = salaCompleta.salaEntity
-                val equipamientosBd = salaCompleta.equipamiento
+            val capacidadReq = filtros.capacidad.filter { it.isDigit() }.toIntOrNull() ?: 0
 
-                val capacidadReq = filtros.capacidad.filter { it.isDigit() }.toIntOrNull() ?: 0
+            val salasFiltradas = listaDesdeBd.filter { sala ->
                 val cumpleCapacidad = capacidadReq == 0 || sala.capacidad >= capacidadReq
 
                 val cumpleArea = filtros.area.isBlank() ||
@@ -60,7 +56,7 @@ class SalasViewModel(
 
                 val cumpleEquipamiento = filtros.equipamientos.isEmpty() ||
                         filtros.equipamientos.all { eqRequerido ->
-                            equipamientosBd.any { it.nombre == eqRequerido }
+                            sala.equipamiento.any { it.nombre == eqRequerido }
                         }
                 cumpleCapacidad && cumpleArea && cumpleEquipamiento
             }
@@ -74,8 +70,8 @@ class SalasViewModel(
         busqueda.value = texto
     }
 
-    fun alternarEstado(salaEntity: SalaEntity) {
-        viewModelScope.launch { repositorio.cambiarEstado(salaEntity.id, !salaEntity.activa) }
+    fun alternarEstado(salaEntity: SalaResponse) {
+        viewModelScope.launch { repositorio.cambiarEstado(salaEntity.salaId, !salaEntity.activa) }
     }
 
     fun actualizarFiltros(

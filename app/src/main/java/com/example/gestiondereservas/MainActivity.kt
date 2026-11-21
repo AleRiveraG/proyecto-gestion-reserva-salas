@@ -63,9 +63,7 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
-        lifecycleScope.launch(Dispatchers.IO) {
-            DatosPruebaUsuariosReservas.sembrar(AppDatabase.getInstance(applicationContext))
-        }
+        
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)

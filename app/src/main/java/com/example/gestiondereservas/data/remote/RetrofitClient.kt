@@ -94,4 +94,24 @@ object RetrofitClient {
             .build()
             .create(AuditoriaApiService::class.java)
     }
+
+    val apiSalas: SalaApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL_SALAS)
+            .client(okHttp)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+            .create(SalaApiService::class.java)
+    }
+
+    val apiHorarios: HorarioApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL_HORARIOS)
+            .client(okHttp)
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+            .create(HorarioApiService::class.java)
+    }
+
 }

@@ -89,6 +89,7 @@ import androidx.compose.foundation.selection.toggleable
 import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.remote.dto.ReservaDTO
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.utils.AnimacionCarga
 import com.example.gestiondereservas.utils.AnimacionError
 import com.example.gestiondereservas.utils.AnimacionReloj
@@ -109,8 +110,7 @@ fun rememberReservaViewModel(): ReservaViewModel {
     return viewModel(
         factory = viewModelFactory {
             initializer {
-                val daoSalas = AppDatabase.getInstance(contexto).salaDao()
-                val repository = ReservaRepository(daoSalas, RetrofitClient.api)
+                val repository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api)
                 ReservaViewModel(repository)
             }
         }
@@ -631,7 +631,7 @@ fun ContentPaso2(fechaActividad:String,
                  onRequiereFormChange: (Boolean) -> Unit,
                  onSalaIdChange: (Long) -> Unit,
                  salaId: Long,
-                 listaSalas: List<SalaEntity>,
+                 listaSalas: List<SalaResponse>,
                  nombres: String,
                  onNombresChange: (String) -> Unit,
                  pdfUri: Uri?,
@@ -1187,7 +1187,7 @@ fun ContentPaso3(complemento: String,
 
 @Composable
 fun Final(onEnviar: () -> Unit,
-          sala: SalaEntity?,
+          sala: SalaResponse?,
           fechaMontaje: String,
           horaMontaje: String ,
           fechaActividad: String,
@@ -1610,7 +1610,7 @@ fun MenuEscuelas(titulo: String,
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Recinto(titulo: String,
-            listaSalas: List<SalaEntity>,
+            listaSalas: List<SalaResponse>,
             onRecintoChange: (Long) -> Unit,
             menuRecintoError: Boolean,
             salaId: Long
@@ -1619,7 +1619,7 @@ fun Recinto(titulo: String,
     var opcion by remember { mutableStateOf("") }
 
     LaunchedEffect(salaId, listaSalas) {
-        opcion = listaSalas.find { it.id == salaId }?.nombre ?: ""
+        opcion = listaSalas.find { it.salaId == salaId }?.nombre ?: ""
     }
 
     Column {
@@ -1667,7 +1667,7 @@ fun Recinto(titulo: String,
                 listaSalas.forEach { sala ->
                     DropdownMenuItem(
                         onClick = { opcion = sala.nombre
-                                  onRecintoChange(sala.id)
+                                  onRecintoChange(sala.salaId)
                                   expanded = false},
                         text = {
                             Row(modifier = Modifier

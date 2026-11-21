@@ -3,6 +3,7 @@ package com.example.gestiondereservas.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
@@ -38,10 +39,10 @@ class ReservaViewModel(
     private val repository: ReservaRepository
 ): ViewModel() {
 
-    private val _sala = MutableStateFlow<SalaEntity?>(null)
-    val sala: StateFlow<SalaEntity?> = _sala.asStateFlow()
-    private val _listasalas = MutableStateFlow<List<SalaEntity>>(emptyList())
-    val listaSalas: StateFlow<List<SalaEntity>> = _listasalas.asStateFlow()
+    private val _sala = MutableStateFlow<SalaResponse?>(null)
+    val sala: StateFlow<SalaResponse?> = _sala.asStateFlow()
+    private val _listasalas = MutableStateFlow<List<SalaResponse>>(emptyList())
+    val listaSalas: StateFlow<List<SalaResponse>> = _listasalas.asStateFlow()
     private val _reservas = MutableStateFlow<List<ReservaResponse>>(emptyList())
     val reservas: StateFlow<List<ReservaResponse>> = _reservas
 

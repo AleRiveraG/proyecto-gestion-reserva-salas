@@ -3,7 +3,10 @@ package com.example.gestiondereservas.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.Ocupacion
+import com.example.gestiondereservas.data.remote.dto.HorarioResponse
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.HorarioRepository
+import com.example.gestiondereservas.data.room.entidades.DiaSemana
 import com.example.gestiondereservas.data.room.entidades.HorarioEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,10 +23,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class HorariosUiState(
-    val salas: List<SalaEntity> = emptyList(),
-    val sala: SalaEntity? = null,
+    val salas: List<SalaResponse> = emptyList(),
+    val sala: SalaResponse? = null,
     // bloques de horario de atención de la sala elegida (todos los días)
-    val horarios: List<HorarioEntity> = emptyList(),
+    val horarios: List<HorarioResponse> = emptyList(),
     // franjas ocupadas de la sala elegida (la pantalla filtra las de la semana visible)
     val ocupaciones: List<Ocupacion> = emptyList(),
     // 0 = esta semana, -1 = la anterior, 1 = la siguiente
@@ -38,47 +41,71 @@ class HorariosViewModel(
     private val salaElegida = MutableStateFlow<Long?>(null)
     private val semana = MutableStateFlow(0)
 
-    init {
-        viewModelScope.launch { repositorio.sembrarSiVacio() }
-    }
-
-    private val base: Flow<HorariosUiState> =
+    private val salaActiva: Flow<Pair<List<SalaResponse>, SalaResponse?>> =
         combine(
             repositorio.observarSalas(),
-            repositorio.observarTodos(""),
             salaElegida
-        ) { salas, todos, id ->
-            val sala = salas.firstOrNull { it.id == id } ?: salas.firstOrNull()
-
-            HorariosUiState(
-                salas = salas,
-                sala = sala,
-                horarios = todos
-                    .filter { it.sala.id == sala?.id }
-                    .map { it.horario }
-            )
+        ) { salas, id ->
+            val seleccionada = salas.firstOrNull { it.salaId == id } ?: salas.firstOrNull()
+            salas to seleccionada
         }
 
-    private val ocupacionesDeLaSala: Flow<List<Ocupacion>> =
-        base
-            .map { it.sala?.id }
+    private val horariosSala: Flow<List<HorarioResponse>> =
+        salaActiva
+            .map { (_, sala) -> sala?.salaId }
             .distinctUntilChanged()
             .flatMapLatest { salaId ->
                 flow {
-                    emit(
-                        if (salaId == null) emptyList()
-                        else repositorio.obtenerOcupacionesPorSala(salaId)
-                    )
+                    if(salaId == null) {
+                        emit(emptyList())
+                    } else {
+                        val horarioPorDia = DiaSemana.entries.flatMap { dia ->
+                            repositorio.obtenerHorariosPorSalaYDia(salaId, dia)
+                        }
+                        emit(horarioPorDia)
+                    }
+                }
+            }
+
+    private val ocupacionesSala: Flow<List<Ocupacion>> =
+        salaActiva
+            .map { (_, sala) -> sala?.salaId }
+            .distinctUntilChanged()
+            .flatMapLatest { salaId ->
+                flow {
+                    if(salaId == null) {
+                        emit(emptyList())
+                    } else {
+                        val ocupaciones = try {
+                            repositorio.obtenerOcupacionesPorSala(salaId)
+                        } catch (_: Exception) {
+                            emptyList()
+                        }
+                        emit(ocupaciones)
+                    }
+
                 }
             }
 
     val uiState: StateFlow<HorariosUiState> =
-        combine(base, semana, ocupacionesDeLaSala) { estado, semanaActual, lista ->
-            estado.copy(semana = semanaActual, ocupaciones = lista)
+        combine(
+            salaActiva,
+            horariosSala,
+            ocupacionesSala,
+            semana
+        ) { (salas, sala), horarios, ocupaciones, semanaActual ->
+
+            HorariosUiState(
+                salas = salas,
+                sala = sala,
+                horarios = horarios,
+                ocupaciones = ocupaciones,
+                semana = semanaActual
+            )
         }.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(5_000),
-            HorariosUiState()
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = HorariosUiState()
         )
 
     fun onSalaChange(salaId: Long) {

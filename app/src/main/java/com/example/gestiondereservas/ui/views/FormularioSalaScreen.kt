@@ -91,18 +91,18 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.gestiondereservas.data.remote.RetrofitClient
+
 @Composable
 fun rememberFormularioSalaViewModel(
     salaId: Long
 ): FormularioSalaViewModel {
-    val contexto = LocalContext.current.applicationContext
     return viewModel(
         key = "formulario-sala-$salaId",
         factory = viewModelFactory {
             initializer {
-                val dao = AppDatabase.getInstance(contexto).salaDao()
                 FormularioSalaViewModel(
-                    SalaRepository(dao),
+                    SalaRepository(RetrofitClient.apiSalas),
                     salaId
                 )
             }

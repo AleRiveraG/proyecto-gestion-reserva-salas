@@ -80,6 +80,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.example.gestiondereservas.data.remote.RetrofitClient
 import kotlinx.coroutines.delay
 @Composable
 fun rememberFormularioHorarioViewModel(
@@ -93,11 +94,9 @@ fun rememberFormularioHorarioViewModel(
         key = "formulario-horario-$horarioId",
         factory = viewModelFactory {
             initializer {
-                val horarioDao = AppDatabase.getInstance(contexto).horarioDao()
-                val salaDao = AppDatabase.getInstance(contexto).salaDao()
-                val reservaDao = AppDatabase.getInstance(contexto).reservaDao()
                 val usoSalaDao = AppDatabase.getInstance(contexto).usoSalaDao()
-                val repository = HorarioRepository(horarioDao, salaDao, reservaDao, usoSalaDao)
+                val repository = HorarioRepository(RetrofitClient.apiHorarios, RetrofitClient.apiSalas,
+                    RetrofitClient.api, usoSalaDao)
                 FormularioHorarioViewModel(repository,
                     horarioId,
                     salaInicialId,
@@ -132,7 +131,7 @@ fun FormularioHorarioScreen(
     var confirmarEliminar by remember { mutableStateOf(false) }
     var desplegarSalas by remember { mutableStateOf(false) }
     val d = estado.datos
-    val salaSeleccionada = estado.salas.firstOrNull { it.id == d.salaId }
+    val salaSeleccionada = estado.salas.firstOrNull { it.salaId == d.salaId }
 
     fun intentarVolver() {
         if (estado.hayCambios) confirmarDescarte = true else onVolver()
@@ -313,7 +312,7 @@ fun FormularioHorarioScreen(
                         DropdownMenuItem(
                             text = { Text("${sala.codigo} · ${sala.nombre}") },
                             onClick = {
-                                viewModel.onSalaChange(sala.id)
+                                viewModel.onSalaChange(sala.salaId)
                                 desplegarSalas = false
                             }
                         )

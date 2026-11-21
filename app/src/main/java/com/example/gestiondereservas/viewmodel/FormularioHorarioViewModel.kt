@@ -2,10 +2,14 @@ package com.example.gestiondereservas.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.gestiondereservas.data.remote.dto.HorarioDto
+import com.example.gestiondereservas.data.remote.dto.HorarioResponse
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.HorarioRepository
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
 import com.example.gestiondereservas.data.room.entidades.HorarioEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
+import com.example.gestiondereservas.utils.IntALocalTime
 import com.example.gestiondereservas.utils.ValidacionesHorario
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +30,7 @@ data class FormularioHorarioState(
     val esNuevo: Boolean = true,
     val datos: DatosHorario = DatosHorario(),
     val original: DatosHorario = DatosHorario(),
-    val salas: List<SalaEntity> = emptyList(),
+    val salas: List<SalaResponse> = emptyList(),
     val errorSala: String? = null,
     val errorHorario: String? = null,
     val errorAcceso: String? = null,
@@ -52,7 +56,7 @@ class FormularioHorarioViewModel(
 
     val estado: StateFlow<FormularioHorarioState> = _estado.asStateFlow()
 
-    private var horarioCargado: HorarioEntity? = null
+    private var horarioCargado: HorarioResponse? = null
 
     init {
         cargar()
@@ -87,7 +91,7 @@ class FormularioHorarioViewModel(
                         // "original" queda con los valores por defecto así lo
                         // preseleccionado cuenta como cambio y se puede crear de inmediato
                         datos = DatosHorario(
-                            salaId = activas.firstOrNull { sala -> sala.id == salaInicialId }?.id ?: 0L,
+                            salaId = activas.firstOrNull { sala -> sala.salaId == salaInicialId }?.salaId ?: 0L,
                             dia = diaInicial ?: porDefecto.dia,
                             inicioMin = inicio,
                             finMin = fin
@@ -109,14 +113,14 @@ class FormularioHorarioViewModel(
                 return@launch
             }
 
-            horarioCargado = item.horario
+            horarioCargado = item
 
             val datos = DatosHorario(
-                salaId = item.horario.salaId,
-                dia = item.horario.dia,
-                inicioMin = item.horario.inicioMin,
-                finMin = item.horario.finMin,
-                activo = item.horario.activo
+                salaId = item.salaId,
+                dia = item.dia,
+                inicioMin = item.horaInicio.toSecondOfDay() /60,
+                finMin = item.horaTermino.toSecondOfDay() /60,
+                activo = item.activo
             )
 
             _estado.update {
@@ -127,7 +131,7 @@ class FormularioHorarioViewModel(
                     original = datos,
                     // Una sala inactiva solo se ofrece si ya es la de este horario
                     salas = salas.filter { sala ->
-                        sala.activa || sala.id == item.horario.salaId
+                        sala.activa || sala.salaId == item.salaId
                     }
                 )
             }
@@ -216,12 +220,11 @@ class FormularioHorarioViewModel(
                     return@launch
                 }
 
-                val horario = HorarioEntity(
-                    id = horarioCargado?.id ?: 0L,
+                val horario = HorarioDto(
                     salaId = datos.salaId,
                     dia = datos.dia,
-                    inicioMin = datos.inicioMin,
-                    finMin = datos.finMin,
+                    horaInicio = IntALocalTime(datos.inicioMin),
+                    horaTermino = IntALocalTime(datos.finMin),
                     activo = datos.activo
                 )
 

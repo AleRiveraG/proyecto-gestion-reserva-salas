@@ -49,7 +49,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
@@ -63,13 +65,12 @@ import java.time.LocalTime
 
 @Composable
 fun rememberSalasViewModel(): SalasViewModel {
-    val contexto = LocalContext.current.applicationContext
     return viewModel(
         key = "salas-coordinador-infraestructura",
         factory = viewModelFactory {
             initializer {
-                val dao = AppDatabase.getInstance(contexto).salaDao()
-                val repository = SalaRepository(dao)
+
+                val repository = SalaRepository(RetrofitClient.apiSalas)
                 SalasViewModel(repository)
             }
         }
@@ -84,7 +85,7 @@ fun SalasScreen(
     viewModel: SalasViewModel = rememberSalasViewModel()
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
-    var salaEntityPorCambiar by remember { mutableStateOf<SalaEntity?>(null) }
+    var salaEntityPorCambiar by remember { mutableStateOf<SalaResponse?>(null) }
     var texto by remember { mutableStateOf(estado.busqueda) }
 
     LaunchedEffect(estado.busqueda) {
@@ -156,11 +157,11 @@ fun SalasScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(bottom = 16.dp)
             ) {
-                items(estado.salas, key = { it.salaEntity.id }) { item ->
+                items(estado.salas, key = { sala -> sala.salaId }) { sala ->
                     SalaCard(
-                        salaEntity = item.salaEntity,
-                        onClick = { onEditarSala(item.salaEntity.id) },
-                        onToggle = { salaEntityPorCambiar = item.salaEntity }
+                        salaEntity = sala,
+                        onClick = { onEditarSala(sala.salaId) },
+                        onToggle = { salaEntityPorCambiar = sala }
                     )
                 }
             }
@@ -189,7 +190,7 @@ fun SalasScreen(
 
 @Composable
 private fun SalaCard(
-    salaEntity: SalaEntity,
+    salaEntity: SalaResponse,
     onClick: () -> Unit,
     onToggle: () -> Unit
 ) {

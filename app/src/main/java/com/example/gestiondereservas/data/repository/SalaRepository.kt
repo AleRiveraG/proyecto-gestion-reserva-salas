@@ -1,29 +1,45 @@
 package com.example.gestiondereservas.data.repository
 
-import com.example.gestiondereservas.data.room.SalaDao
-import com.example.gestiondereservas.data.room.entidades.Equipamiento
-import com.example.gestiondereservas.data.room.entidades.SalaEntity
-import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
+
 import kotlinx.coroutines.flow.Flow
-import com.example.gestiondereservas.data.DatosPrueba
+import com.example.gestiondereservas.data.remote.SalaApiService
+import com.example.gestiondereservas.data.remote.dto.SalaDto
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
+import kotlinx.coroutines.flow.flow
 
-class SalaRepository(private val dao: SalaDao) {
+class SalaRepository(
+    private val apiService: SalaApiService
+) {
 
-    fun observarTodas(busqueda: String): Flow<List<SalaConEquipamiento>> =
-        dao.observarTodas(busqueda.trim())
 
-    suspend fun obtener(id: Long): SalaConEquipamiento? = dao.obtenerPorId(id)
+    fun observarTodas(busqueda: String): Flow<List<SalaResponse>> = flow {
+        val termino = busqueda.trim()
+        val todas = apiService.listar()
+        val resultado = if(termino.isBlank()) {
+            todas
+        } else {
+            todas.filter { sala ->
+                sala.codigo.contains(termino, ignoreCase = true) ||
+                        sala.nombre.contains(termino, ignoreCase = true)
+            }
+        }
+        emit(resultado)
+    }
 
-    suspend fun cambiarEstado(id: Long, activa: Boolean) = dao.cambiarEstado(id, activa)
+    suspend fun obtener(id: Long): SalaResponse = apiService.obtener(id)
 
-    suspend fun guardar(salaEntity: SalaEntity, equipos: List<Equipamiento>): Long =
-        dao.guardar(salaEntity, equipos)
+    suspend fun cambiarEstado(id: Long, activa: Boolean) = apiService.cambiarEstado(id, activa)
+
+    suspend fun guardar(salaEntity: SalaDto): SalaResponse = apiService.crear(salaEntity)
 
     suspend fun codigoDisponible(codigo: String, excluirId: Long): Boolean =
-        dao.contarCodigo(codigo.trim(), excluirId) == 0
+        apiService.codigoDisponible(codigo.trim(), excluirId)
 
+    /*
     suspend fun sembrarSiVacio() {
         if (dao.contarSalas() > 0) return
         DatosPrueba.salas.forEach { (sala, equipos) -> dao.guardar(sala, equipos) }
     }
+
+     */
 }

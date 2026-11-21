@@ -1,8 +1,10 @@
 package com.example.gestiondereservas.data.repository
 
 import com.example.gestiondereservas.data.remote.ReservaApiService
+import com.example.gestiondereservas.data.remote.SalaApiService
 import com.example.gestiondereservas.data.remote.dto.DocumentoResponse
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.room.ReservaDao
 import com.example.gestiondereservas.data.room.SalaDao
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
@@ -12,7 +14,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 
 class ReservaRepository(
-    private val salaDao: SalaDao,
+    private val salaApi: SalaApiService,
     private val api: ReservaApiService
 ) {
     suspend fun registrarReserva(reserva: RequestBody, archivo: MultipartBody.Part): ReservaResponse {
@@ -44,12 +46,12 @@ class ReservaRepository(
         return cantidad
     }
 
-    suspend fun obtenerSalas(): List<SalaEntity> {
-        return salaDao.obtenerSalas()
+    suspend fun obtenerSalas(): List<SalaResponse> {
+        return salaApi.listar()
     }
 
-    suspend fun obtenerSalaPorId(id: Long): SalaEntity? {
-        return salaDao.obtenerSalaPorId(id)
+    suspend fun obtenerSalaPorId(id: Long): SalaResponse? {
+        return salaApi.obtener(id)
     }
 
     suspend fun obtenerReservaPorIdUsuario(id: Long): List<ReservaResponse> {

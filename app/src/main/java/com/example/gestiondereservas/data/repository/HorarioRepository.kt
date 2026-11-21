@@ -1,45 +1,47 @@
 
 package com.example.gestiondereservas.data.repository
 
-import com.example.gestiondereservas.data.DatosPruebaHorarios
 import com.example.gestiondereservas.data.Ocupacion
 import com.example.gestiondereservas.data.OcupacionMapper
 import com.example.gestiondereservas.data.TipoOcupacion
-import com.example.gestiondereservas.data.room.HorarioDao
-import com.example.gestiondereservas.data.room.ReservaDao
-import com.example.gestiondereservas.data.room.SalaDao
+import com.example.gestiondereservas.data.remote.HorarioApiService
+import com.example.gestiondereservas.data.remote.ReservaApiService
+import com.example.gestiondereservas.data.remote.SalaApiService
+import com.example.gestiondereservas.data.remote.dto.HorarioDto
+import com.example.gestiondereservas.data.remote.dto.HorarioResponse
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.room.UsoSalaDao
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
-import com.example.gestiondereservas.data.room.entidades.HorarioConSala
-import com.example.gestiondereservas.data.room.entidades.HorarioEntity
-import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.utils.ValidacionesHorario
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flow
 import java.time.LocalDateTime
 
-class HorarioRepository(
-    private val dao: HorarioDao,
-    private val salaDao: SalaDao,
-    private val reservaDao: ReservaDao,
+class   HorarioRepository(
+    private val horarioApi: HorarioApiService,
+    private val salaApi: SalaApiService,
+    private val reservaApi: ReservaApiService,
     private val usoSalaDao: UsoSalaDao
 ) {
 
-    fun observarTodos(busqueda: String): Flow<List<HorarioConSala>> =
-        dao.observarTodos(busqueda.trim())
 
-    suspend fun obtener(id: Long): HorarioConSala? =
-        dao.obtenerPorId(id)
+    suspend fun obtenerHorariosPorSalaYDia(salaId: Long, dia: DiaSemana): List<HorarioResponse> =
+        horarioApi.listar(salaId, dia)
+
+
+
+    suspend fun obtener(id: Long): HorarioResponse =
+        horarioApi.obtener(id)
 
     suspend fun cambiarEstado(id: Long, activo: Boolean) =
-        dao.cambiarEstado(id, activo)
+        horarioApi.cambiarEstado(id, activo)
 
-    suspend fun guardar(horario: HorarioEntity): Long =
-        dao.guardar(horario)
+    suspend fun guardar(horario: HorarioDto): HorarioResponse =
+        horarioApi.crear(horario)
 
     suspend fun eliminar(id: Long) =
-        dao.eliminar(id)
+        horarioApi.eliminar(id)
+
 
     suspend fun hayCruce(
         salaId: Long,
@@ -47,64 +49,40 @@ class HorarioRepository(
         inicioMin: Int,
         finMin: Int,
         excluirId: Long
-    ): Boolean =
-        dao.contarCruces(
-            salaId,
-            dia.name,
-            inicioMin - ValidacionesHorario.INTERVALO_MIN,
-            finMin + ValidacionesHorario.INTERVALO_MIN,
-            excluirId
-        ) > 0
+    ): Boolean {
+        val margen = ValidacionesHorario.INTERVALO_MIN
+        val nuevoInicio = inicioMin - margen
+        val nuevoFin = finMin + margen
 
-    fun observarSalas(): Flow<List<SalaEntity>> =
-        salaDao.observarTodas("").map { lista ->
-            lista.map { it.salaEntity }
-        }
+        val horariosDia = horarioApi.listar(salaId, dia)
 
-    suspend fun salasDisponibles(): List<SalaEntity> =
-        salaDao.observarTodas("").first().map {
-            it.salaEntity
-        }
-
-    suspend fun sembrarSiVacio() {
-        if (dao.contarHorarios() > 0) return
-
-        // Los horarios dependen de las salas.
-        runCatching {
-            SalaRepository(salaDao).sembrarSiVacio()
-        }
-
-        val salasPorCodigo = salasDisponibles()
-            .associateBy { it.codigo.lowercase() }
-
-        DatosPruebaHorarios.horarios.forEach { semilla ->
-            val sala = salasPorCodigo[semilla.codigoSala.lowercase()]
-                ?: return@forEach
-
-            dao.guardar(
-                HorarioEntity(
-                    salaId = sala.id,
-                    dia = semilla.dia,
-                    inicioMin = semilla.inicioMin,
-                    finMin = semilla.finMin,
-                    activo = semilla.activo
-                )
-            )
+        return horariosDia.any { existente ->
+            existente.id != excluirId &&
+                    nuevoInicio < existente.horaInicio.toSecondOfDay() / 60 &&
+                    nuevoFin > existente.horaTermino.toSecondOfDay() / 60
         }
     }
+
+    fun observarSalas(): Flow<List<SalaResponse>> = flow {
+        emit(salaApi.listar().filter { it.activa })
+    }
+
+
+    suspend fun salasDisponibles(): List<SalaResponse> =
+        salaApi.listar().filter { it.activa }
 
     suspend fun obtenerOcupacionesPorSala(
         salaId: Long
     ): List<Ocupacion> {
 
-        val reservas = reservaDao.obtenerReservasPorSala(salaId)
+        val reservas = reservaApi.obtenerReservasPorSala(salaId)
         val lista = mutableListOf<Ocupacion>()
 
         reservas.forEach { reserva ->
 
             if (reserva.estado.name == "APROBADA") {
 
-                val uso = usoSalaDao.obtenerPorReserva(reserva.id)
+                val uso = usoSalaDao.obtenerPorReserva(reserva.idReserva)
                 val ocupaciones = OcupacionMapper.desdeReserva(reserva)
 
                 if (

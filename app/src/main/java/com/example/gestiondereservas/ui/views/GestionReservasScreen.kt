@@ -67,16 +67,15 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import androidx.core.net.toUri
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import java.time.LocalTime
 
 @Composable
 fun rememberGestionReservasViewModel(): GestionReservasViewModel {
-    val contexto = LocalContext.current.applicationContext
     return viewModel(
         factory = viewModelFactory {
             initializer {
-                val daoSalas = AppDatabase.getInstance(contexto).salaDao()
-                val repository = ReservaRepository(daoSalas, RetrofitClient.api)
+                val repository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api)
                 GestionReservasViewModel(repository)
             }
         }
@@ -128,7 +127,7 @@ fun Contenido(reservas: List<ReservaResponse>,
               aprobadas: Long,
               rechazadas: Long,
               pendientes: Long,
-              onBuscarSala: suspend (Long) -> SalaEntity?,
+              onBuscarSala: suspend (Long) -> SalaResponse?,
               onAprobar: (Long) -> Unit,
               onRechazar: (Long) -> Unit,
               onObtenerDocumento: suspend (Long) -> String
@@ -240,11 +239,11 @@ fun Contador(pendientes: Long,
 fun Reserva(reserva: ReservaResponse,
             onAprobar: (Long) -> Unit,
             onRechazar: (Long) -> Unit,
-            onBuscarSala: suspend (Long) -> SalaEntity?,
+            onBuscarSala: suspend (Long) -> SalaResponse?,
             onObtenerDocumento: suspend (Long) -> String) {
     var mostrarModal by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
-    var sala by remember { mutableStateOf<SalaEntity?>(null) }
+    var sala by remember { mutableStateOf<SalaResponse?>(null) }
 
     LaunchedEffect(reserva.salaId) {
         sala = onBuscarSala(reserva.salaId)
@@ -582,7 +581,7 @@ fun DetalleSolicitud(
     onAprobar: (Long) -> Unit,
     onRechazar: (Long) -> Unit,
     soloLectura: Boolean = false,
-    sala: SalaEntity? = null,
+    sala: SalaResponse? = null,
     onObtenerDocumento: suspend (Long) -> String
 ) {
 

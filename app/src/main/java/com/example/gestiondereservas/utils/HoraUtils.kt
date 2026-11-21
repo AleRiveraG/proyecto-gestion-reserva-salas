@@ -19,3 +19,8 @@ fun LocalTimeAString(hora: LocalTime): String {
     val horaString = hora.format(formato)
     return horaString
 }
+
+fun IntALocalTime(hora: Int): LocalTime {
+    val normaliza = hora.coerceIn(0, 24 * 60 - 1)
+    return LocalTime.of(normaliza / 60, normaliza % 60)
+}

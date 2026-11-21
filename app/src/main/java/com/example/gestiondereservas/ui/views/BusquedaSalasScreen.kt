@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.CatalogoEquipamientos
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.viewmodel.FiltrosAvanzados
@@ -175,13 +176,13 @@ private fun Contenido(uiState: SalasUiState,
 }
 
 @Composable
-fun salasDisponibles(salas: List<SalaConEquipamiento>,
+fun salasDisponibles(salas: List<SalaResponse>,
                      fecha: String,
                      hora: String,
                      onAtras: () -> Unit,
                      onReservas: (String?, String?, Long) -> Unit
 ) {
-    var salaSeleccionada by remember { mutableStateOf<SalaEntity?>(null) }
+    var salaSeleccionada by remember { mutableStateOf<SalaResponse?>(null) }
     Box(modifier = Modifier.fillMaxSize())
     {
         Column(
@@ -221,13 +222,13 @@ fun salasDisponibles(salas: List<SalaConEquipamiento>,
             ) {
                 items(
                     items = salas,
-                    key = { it.salaEntity.id }) { sala ->
-                    val esSeleccionada = salaSeleccionada?.id == sala.salaEntity.id
+                    key = { it.salaId }) { sala ->
+                    val esSeleccionada = salaSeleccionada?.salaId == sala.salaId
                     salaCard(
                         sala = sala,
                         seleccionada = esSeleccionada,
                         onClickSala = {
-                            salaSeleccionada = if (esSeleccionada) null else sala.salaEntity
+                            salaSeleccionada = if (esSeleccionada) null else sala
                         }
                     )
                     Spacer(modifier = Modifier.height(12.dp))
@@ -589,11 +590,11 @@ fun menuEquipamientos(titulo: String,
 }
 
 @Composable
-fun salaCard(sala: SalaConEquipamiento,
+fun salaCard(sala: SalaResponse,
              seleccionada: Boolean,
              onClickSala: () -> Unit) {
 
-    val salaCompleta = sala.salaEntity
+    val salaCompleta = sala
     val equipamientosTexto = if (sala.equipamiento.isEmpty()) {
         "Sin equipamiento"
     } else {
@@ -665,7 +666,7 @@ fun salaCard(sala: SalaConEquipamiento,
 fun salaSeleccionada(onReservas: (String?, String?, Long) -> Unit,
                      fecha: String,
                      hora: String,
-                     salaSeleccionada: SalaEntity?
+                     salaSeleccionada: SalaResponse?
 ) {
     Row(
         modifier = Modifier
@@ -686,7 +687,7 @@ fun salaSeleccionada(onReservas: (String?, String?, Long) -> Unit,
                 salaSeleccionada?.let { onReservas(
                     fecha,
                     hora,
-                    it.id
+                    it.salaId
                 ) }
             },
             colors = ButtonDefaults.buttonColors(

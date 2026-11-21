@@ -47,6 +47,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.UsuarioRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
@@ -104,7 +105,7 @@ fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
 @Composable
 private fun Contenido(
     nombreUsuario: String,
-    sala: SalaEntity?,
+    sala: SalaResponse?,
     onReservas: () -> Unit,
     onActividad: (Long) -> Unit,
     onCalendario: () -> Unit,
@@ -170,7 +171,7 @@ private fun Contenido(
 @Composable
 fun infoReserva(onActividad: (Long) -> Unit,
                 reserva: ReservaResponse,
-                sala: SalaEntity?
+                sala: SalaResponse?
 ) {
     var checked by remember { mutableStateOf(false) }
 

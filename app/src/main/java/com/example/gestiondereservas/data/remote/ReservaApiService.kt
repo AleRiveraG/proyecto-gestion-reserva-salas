@@ -22,7 +22,7 @@ interface ReservaApiService {
         @Path("estado") estado: EstadoReserva
     ): Long
 
-    @GET("api/reservas/sala&/{salaId}")
+    @GET("api/reservas/sala/{salaId}")
     suspend fun obtenerReservasPorSala(
         @Path("salaId") salaId: Long
     ): List<ReservaResponse>

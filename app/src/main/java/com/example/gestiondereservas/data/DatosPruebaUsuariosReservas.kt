@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.first
 // Los roles deben ser EXACTAMENTE iguales a RolUsuario.nombreMostrar, porque
 // a tener en cuent aLoginViewModel compara usuario.rol != rolUsuario.nombreMostrar.
 object DatosPruebaUsuariosReservas {
-
+/*
     const val ROL_TRABAJADOR = "Relator / Trabajador"
     const val ROL_COORDINADOR = "Coordinador"
 
@@ -127,4 +127,6 @@ object DatosPruebaUsuariosReservas {
             )
         }
     }
+
+ */
 }

@@ -589,7 +589,7 @@ fun LoginScreen(
     when (pantallaDestinoInterna) {
         "relator" -> {
             RelatorScreen(
-                idUsuario = 0L,
+                idUsuario = 1L,
                 onReservas = {},
                 onBuscarSala = {},
                 onCalendario = {},
@@ -599,10 +599,10 @@ fun LoginScreen(
             return
         }
         "supervisor" -> {
-            val supervisorVm: GestionReservasViewModel = viewModel()
-            val usuarioVm: UsuarioViewModel = viewModel()
+            val supervisorVm: GestionReservasViewModel = rememberGestionReservasViewModel()
+            val usuarioVm: UsuarioViewModel = rememberUsuarioViewModel()
             SupervisorScreen(
-                idUsuario = 0L,
+                idUsuario = 2L,
                 usuarioViewModel = usuarioVm,
                 onHorarios = {},
                 onGestionSalas = {},

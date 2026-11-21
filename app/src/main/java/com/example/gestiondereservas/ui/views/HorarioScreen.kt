@@ -53,6 +53,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.Ocupacion
 import com.example.gestiondereservas.data.TipoOcupacion
+import com.example.gestiondereservas.data.remote.RetrofitClient
+import com.example.gestiondereservas.data.remote.dto.HorarioResponse
 import com.example.gestiondereservas.data.repository.HorarioRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
@@ -60,8 +62,10 @@ import com.example.gestiondereservas.data.room.entidades.HorarioEntity
 import com.example.gestiondereservas.viewmodel.HorariosViewModel
 import com.example.gestiondereservas.utils.FechasSemana
 import com.example.gestiondereservas.utils.FormatoHora
+import com.example.gestiondereservas.utils.IntALocalTime
 import com.example.gestiondereservas.utils.ValidacionesHorario
 import java.util.Calendar
+import kotlin.collections.firstOrNull
 import kotlin.collections.isNotEmpty
 
 private val ColorLibre = Color.White
@@ -85,11 +89,9 @@ fun rememberHorariosViewModel(): HorariosViewModel {
         key = "horarios-coordinador-infraestructura",
         factory = viewModelFactory {
             initializer {
-                val horarioDao = AppDatabase.getInstance(contexto).horarioDao()
-                val salaDao = AppDatabase.getInstance(contexto).salaDao()
-                val reservaDao = AppDatabase.getInstance(contexto).reservaDao()
                 val usoSalaDao = AppDatabase.getInstance(contexto).usoSalaDao()
-                val repository = HorarioRepository(horarioDao, salaDao, reservaDao, usoSalaDao)
+                val repository = HorarioRepository(RetrofitClient.apiHorarios, RetrofitClient.apiSalas,
+                    RetrofitClient.api, usoSalaDao)
                 HorariosViewModel(repository)
             }
         }
@@ -189,7 +191,7 @@ fun HorariosScreen(
                             DropdownMenuItem(
                                 text = { Text("${opcion.codigo} · ${opcion.nombre}$sufijo") },
                                 onClick = {
-                                    viewModel.onSalaChange(opcion.id)
+                                    viewModel.onSalaChange(opcion.salaId)
                                     desplegarSalas = false
                                 }
                             )
@@ -200,7 +202,7 @@ fun HorariosScreen(
 
             if (puedeEditar) {
                 OutlinedButton(
-                    onClick = { if (sala != null) onNuevoHorario(sala.id, null, -1) },
+                    onClick = { if (sala != null) onNuevoHorario(sala.salaId, null, -1) },
                     enabled = sala != null,
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.weight(1.2f)
@@ -241,7 +243,7 @@ fun HorariosScreen(
                 dias = dias,
                 onEditar = { id -> if (puedeEditar) onEditarHorario(id) },
                 onNuevo = { dia, inicioMin ->
-                    if (puedeEditar) onNuevoHorario(sala.id, dia, inicioMin)
+                    if (puedeEditar) onNuevoHorario(sala.salaId, dia, inicioMin)
                 },
                 onOcupacion = { ocupacion, dia -> detalle = ocupacion to dia },
                 puedeEditar = puedeEditar,
@@ -259,7 +261,7 @@ fun HorariosScreen(
                         bloqueOcupado ->
                             mensaje = "Este bloque ya tiene una actividad. Elige otro."
                         else -> solicitud = SolicitudPendiente(
-                            salaId = sala.id,
+                            salaId = sala.salaId,
                             codigoSala = sala.codigo,
                             nombreSala = sala.nombre,
                             fecha = fecha,
@@ -444,7 +446,7 @@ private fun ItemLeyenda(color: Color, texto: String) {
 
 @Composable
 private fun GrillaSemanal(
-    horarios: List<HorarioEntity>,
+    horarios: List<HorarioResponse>,
     ocupaciones: List<Ocupacion>,
     dias: List<Calendar>,
     onEditar: (Long) -> Unit,
@@ -505,7 +507,7 @@ private fun GrillaSemanal(
                         val fin = inicio + 60
                         //cualquier bloque de atención que toque esta hora activo o no
                         val bloque = horarios.firstOrNull {
-                            !it.activo && it.dia == dia && it.inicioMin < fin && it.finMin > inicio
+                            !it.activo && it.dia == dia && it.horaInicio.toSecondOfDay() / 60 < fin && it.horaTermino.toSecondOfDay() / 60 > inicio
                         }
                         //franjas ocupadas de ese día que tocan esta hora
                         val ocupadas = ocupaciones
@@ -539,7 +541,7 @@ private fun GrillaSemanal(
 
 @Composable
 private fun CeldaHorario(
-    bloque: HorarioEntity?,
+    bloque: HorarioResponse?,
     ocupadas: List<Ocupacion>,
     inicioHora: Int,
     onClick: () -> Unit

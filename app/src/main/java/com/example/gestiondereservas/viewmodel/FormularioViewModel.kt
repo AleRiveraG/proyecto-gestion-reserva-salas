@@ -3,6 +3,9 @@ package com.example.gestiondereservas.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.CatalogoEquipamientos
+import com.example.gestiondereservas.data.remote.dto.EquipamientoDto
+import com.example.gestiondereservas.data.remote.dto.SalaDto
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.data.room.entidades.Area
 import com.example.gestiondereservas.data.room.entidades.Equipamiento
@@ -65,7 +68,7 @@ class FormularioSalaViewModel(
 
     val estado: StateFlow<FormularioSalaState> = _estado.asStateFlow()
 
-    private var salaCargada: SalaEntity? = null
+    private var salaCargada: SalaResponse? = null
 
     init {
         cargar()
@@ -92,16 +95,16 @@ class FormularioSalaViewModel(
                 return@launch
             }
 
-            salaCargada = item.salaEntity
+            salaCargada = item
 
-            salaCargada = item.salaEntity
+            salaCargada = item
             val datos = DatosSala(
-                codigo = item.salaEntity.codigo,
-                nombre = item.salaEntity.nombre,
-                capacidad = item.salaEntity.capacidad,
-                area = item.salaEntity.area,
+                codigo = item.codigo,
+                nombre = item.nombre,
+                capacidad = item.capacidad,
+                area = item.area,
                 equipos = equiposParaFormulario(item.equipamiento),
-                imagenUri = item.salaEntity.imagenUri
+                imagenUri = item.imagenUri
             )
 
             _estado.update {
@@ -214,7 +217,7 @@ class FormularioSalaViewModel(
                 val codigo = datos.codigo.trim()
                 val disponible = repositorio.codigoDisponible(
                     codigo,
-                    salaCargada?.id ?: 0L
+                    salaCargada?.salaId ?: 0L
                 )
 
                 if (!disponible) {
@@ -227,27 +230,27 @@ class FormularioSalaViewModel(
                     return@launch
                 }
 
-                val sala = SalaEntity(
-                    id = salaCargada?.id ?: 0L,
+                val equipamientoSeleccionados = datos.equipos
+                    .filter { it.seleccionado }
+                    .map { equipo ->
+                        EquipamientoDto(
+                            nombre = equipo.nombre,
+                            ocupado = equipo.ocupado
+                        )
+
+                    }
+
+                val sala = SalaDto(
                     codigo = codigo,
                     nombre = datos.nombre.trim(),
                     area = datos.area,
                     capacidad = datos.capacidad,
                     activa = salaCargada?.activa ?: true,
-                    imagenUri = datos.imagenUri
+                    imagenUri = datos.imagenUri,
+                    equipamiento = equipamientoSeleccionados
                 )
 
-                val equipos = datos.equipos
-                    .filter { it.seleccionado }
-                    .map { equipo ->
-                        Equipamiento(
-                            salaId = sala.id,
-                            nombre = equipo.nombre,
-                            ocupado = equipo.ocupado
-                        )
-                    }
-
-                repositorio.guardar(sala, equipos)
+                repositorio.guardar(sala)
 
                 _estado.update {
                     it.copy(guardando = false, guardada = true)
@@ -265,7 +268,7 @@ class FormularioSalaViewModel(
 }
 
 private fun equiposParaFormulario(
-    equipamientos: List<Equipamiento>
+    equipamientos: List<EquipamientoDto>
 ): List<EquipoForm> {
     val existentes = equipamientos.associateBy {
         it.nombre.trim().lowercase()
