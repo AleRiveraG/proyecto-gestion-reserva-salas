@@ -88,6 +88,10 @@ fun SalasScreen(
     var salaEntityPorCambiar by remember { mutableStateOf<SalaResponse?>(null) }
     var texto by remember { mutableStateOf(estado.busqueda) }
 
+    LaunchedEffect(Unit) {
+        viewModel.recargar() //este tambien es para recargar al instante
+    }
+
     LaunchedEffect(estado.busqueda) {
         if (estado.busqueda != texto) {
             texto = estado.busqueda

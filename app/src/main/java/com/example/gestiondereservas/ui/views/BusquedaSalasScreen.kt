@@ -63,12 +63,18 @@ import com.example.gestiondereservas.utils.AnimacionCarga
 import com.example.gestiondereservas.utils.formatearFecha
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun BusquedaSalasScreen(onReservas: (String?, String?, Long) -> Unit,
                         viewModel: SalasViewModel = rememberSalasViewModel()
 ){
     val uiState by viewModel.uiState.collectAsState()
+    //tambien le agrego esto como ocupa el mismo salas viewmodel
+    // para que el relator vea el estado actualizado de las salas al volver a ella
+    LaunchedEffect(Unit) {
+        viewModel.recargar()
+    }
     var paso by remember { mutableIntStateOf(1) }
 
     when(paso) {

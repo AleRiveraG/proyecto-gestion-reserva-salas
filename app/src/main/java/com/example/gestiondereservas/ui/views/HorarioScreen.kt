@@ -67,6 +67,7 @@ import com.example.gestiondereservas.utils.ValidacionesHorario
 import java.util.Calendar
 import kotlin.collections.firstOrNull
 import kotlin.collections.isNotEmpty
+import androidx.compose.runtime.LaunchedEffect
 
 private val ColorLibre = Color.White
 private val ColorBloqueado = Color(0xFFC9C9C9)
@@ -112,6 +113,11 @@ fun HorariosScreen(
     onReservas: (fecha: String, horaInicio: String, salaId: Long) -> Unit = { _, _, _, -> }
 ) {
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
+
+    //esto tambien es para que la carga sea instantanea
+    LaunchedEffect(Unit) {
+        viewModel.recargar()
+    }
     var desplegarSalas by remember { mutableStateOf(false) }
     var detalle by remember { mutableStateOf<Pair<Ocupacion, DiaSemana>?>(null) }
     var mensaje by remember { mutableStateOf<String?>(null) }

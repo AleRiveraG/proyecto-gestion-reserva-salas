@@ -39,7 +39,10 @@ class SalasViewModel(
 
     private val filtrosAvanzados = MutableStateFlow(FiltrosAvanzados())
 
-    val uiState: StateFlow<SalasUiState> = combine(busqueda, filtrosAvanzados) { texto, filtros ->
+    private val recarga = MutableStateFlow(0) //esto es nuevo tiene que
+    // ver para al desactivar/activar una sala sea instantaneo y se le agrega abajo al combine
+
+    val uiState: StateFlow<SalasUiState> = combine(busqueda, filtrosAvanzados,recarga) { texto, filtros, _ ->
         Pair(texto, filtros)
     }.flatMapLatest { (texto, filtros) ->
 
@@ -65,13 +68,23 @@ class SalasViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SalasUiState())
 
+    fun alternarEstado(sala: SalaResponse) {
+        viewModelScope.launch {
+            try {
+                repositorio.cambiarEstado(sala.salaId, !sala.activa)
+            } catch (_: Exception) {  // si falla, igual se recarga para mostrar el estado asi no se cierra la app
+            }
+            recarga.update { it + 1 }
+        }
+    }
+
 
     fun onBusquedaChange(texto: String) {
         busqueda.value = texto
-    }
 
-    fun alternarEstado(salaEntity: SalaResponse) {
-        viewModelScope.launch { repositorio.cambiarEstado(salaEntity.salaId, !salaEntity.activa) }
+    }
+    fun recargar() {
+        recarga.update { it + 1 }
     }
 
     fun actualizarFiltros(

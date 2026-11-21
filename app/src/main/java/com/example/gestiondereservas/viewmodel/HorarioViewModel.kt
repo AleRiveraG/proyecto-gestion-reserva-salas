@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class HorariosUiState(
@@ -33,6 +34,7 @@ data class HorariosUiState(
     val semana: Int = 0
 )
 
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class HorariosViewModel(
     private val repositorio: HorarioRepository
@@ -40,23 +42,27 @@ class HorariosViewModel(
 
     private val salaElegida = MutableStateFlow<Long?>(null)
     private val semana = MutableStateFlow(0)
+    private val recarga = MutableStateFlow(0)
 
     private val salaActiva: Flow<Pair<List<SalaResponse>, SalaResponse?>> =
         combine(
-            repositorio.observarSalas(),
+            recarga.flatMapLatest { repositorio.observarSalas() },
             salaElegida
         ) { salas, id ->
             val seleccionada = salas.firstOrNull { it.salaId == id } ?: salas.firstOrNull()
             salas to seleccionada
         }
 
-    private val horariosSala: Flow<List<HorarioResponse>> =
+    private val salaIdActiva: Flow<Long?> =
         salaActiva
             .map { (_, sala) -> sala?.salaId }
             .distinctUntilChanged()
+
+    private val horariosSala: Flow<List<HorarioResponse>> =
+        combine(salaIdActiva, recarga) { salaId, _ -> salaId }
             .flatMapLatest { salaId ->
                 flow {
-                    if(salaId == null) {
+                    if (salaId == null) {
                         emit(emptyList())
                     } else {
                         val horarioPorDia = DiaSemana.entries.flatMap { dia ->
@@ -68,12 +74,10 @@ class HorariosViewModel(
             }
 
     private val ocupacionesSala: Flow<List<Ocupacion>> =
-        salaActiva
-            .map { (_, sala) -> sala?.salaId }
-            .distinctUntilChanged()
+        combine(salaIdActiva, recarga) { salaId, _ -> salaId }
             .flatMapLatest { salaId ->
                 flow {
-                    if(salaId == null) {
+                    if (salaId == null) {
                         emit(emptyList())
                     } else {
                         val ocupaciones = try {
@@ -83,7 +87,6 @@ class HorariosViewModel(
                         }
                         emit(ocupaciones)
                     }
-
                 }
             }
 
@@ -94,7 +97,6 @@ class HorariosViewModel(
             ocupacionesSala,
             semana
         ) { (salas, sala), horarios, ocupaciones, semanaActual ->
-
             HorariosUiState(
                 salas = salas,
                 sala = sala,
@@ -118,5 +120,9 @@ class HorariosViewModel(
 
     fun irAHoy() {
         semana.value = 0
+    }
+
+    fun recargar() {
+        recarga.update { it + 1 }
     }
 }
