@@ -406,7 +406,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                     ValidacionesReserva.validarMontaje(fechaMontaje, fechaActividad) &&
                     ValidacionesReserva.validarHoraMontaje(fechaMontaje, fechaActividad, horaMontaje, horaInicio) &&
                     ValidacionesReserva.validarDocumento(pdfUri)
-
+                
                 if(formValido) {
                     if (horarioDisponible) {
                         mostrarAlertaDisponibilidad = false

@@ -131,6 +131,7 @@ class ReservaViewModel(
 
             if(!hayBloqueo) {
                 _horarioDisponible.value = false
+                return@launch
             }
 
             val hayCruce = repository.crucesReservas(
