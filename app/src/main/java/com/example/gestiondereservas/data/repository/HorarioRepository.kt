@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.time.LocalDateTime
 
-class   HorarioRepository(
+class HorarioRepository(
     private val horarioApi: HorarioApiService,
     private val salaApi: SalaApiService,
     private val reservaApi: ReservaApiService,
@@ -27,8 +27,6 @@ class   HorarioRepository(
 
     suspend fun obtenerHorariosPorSalaYDia(salaId: Long, dia: DiaSemana): List<HorarioResponse> =
         horarioApi.listar(salaId, dia)
-
-
 
     suspend fun obtener(id: Long): HorarioResponse =
         horarioApi.obtener(id)
@@ -92,13 +90,12 @@ class   HorarioRepository(
                     val horaFinReal = LocalDateTime
                         .parse(uso.fechaHoraFin)
                         .toLocalTime()
-                        .toSecondOfDay() / 60
 
                     ocupaciones.forEach { ocupacion ->
 
                         if (ocupacion.tipo == TipoOcupacion.MONTAJE) {
                             lista.add(ocupacion)
-                        } else if (horaFinReal > ocupacion.inicioMin) {
+                        } else if (horaFinReal.isAfter(ocupacion.inicioMin)) {
                             lista.add(
                                 ocupacion.copy(
                                     finMin = minOf(

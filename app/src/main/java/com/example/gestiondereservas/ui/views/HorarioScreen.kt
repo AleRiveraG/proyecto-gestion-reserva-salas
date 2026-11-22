@@ -68,6 +68,11 @@ import java.util.Calendar
 import kotlin.collections.firstOrNull
 import kotlin.collections.isNotEmpty
 import androidx.compose.runtime.LaunchedEffect
+import com.example.gestiondereservas.utils.formatearHora
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 
 private val ColorLibre = Color.White
 private val ColorBloqueado = Color(0xFFC9C9C9)
@@ -254,15 +259,23 @@ fun HorariosScreen(
                 onOcupacion = { ocupacion, dia -> detalle = ocupacion to dia },
                 puedeEditar = puedeEditar,
                 onSolicitar = { inicioMin, finMin, indiceDia -> //cambio en onsoliticar
-                    val diaElegido = dias[indiceDia]
-                    val fecha = FechasSemana.ddMM(diaElegido)
+                    val diaCalendar = dias[indiceDia]
+                    val fechaLocal: LocalDate = diaCalendar.toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                    val horaInicioLocal: LocalTime = LocalTime.of(inicioMin / 60, inicioMin % 60)
+                    val horaFinLocal: LocalTime = if (finMin >= 24 * 60) {
+                        LocalTime.MAX
+                    } else {
+                        LocalTime.of(finMin / 60, finMin % 60)
+                    }
                     val bloqueOcupado = estado.ocupaciones.any {
-                        it.fecha == fecha &&
-                                it.inicioMin < finMin &&
-                                it.finMin > inicioMin
+                        it.fecha == fechaLocal &&
+                                it.inicioMin.isBefore(horaFinLocal) &&
+                                it.finMin.isAfter(horaInicioLocal)
                     }
                     when {
-                        FechasSemana.esPasado(diaElegido) ->
+                        FechasSemana.esPasado(diaCalendar) ->
                             mensaje = "Ese día ya pasó. Elige una fecha desde hoy."
                         bloqueOcupado ->
                             mensaje = "Este bloque ya tiene una actividad. Elige otro."
@@ -270,10 +283,10 @@ fun HorariosScreen(
                             salaId = sala.salaId,
                             codigoSala = sala.codigo,
                             nombreSala = sala.nombre,
-                            fecha = fecha,
+                            fecha = fechaLocal,
                             dia = DiaSemana.entries[indiceDia],
-                            inicioMin = inicioMin, //inicio y fin cambiados
-                            finMin = finMin
+                            inicioMin = horaInicioLocal, //inicio y fin cambiados
+                            finMin = horaFinLocal
                         )
                     }
                 }
@@ -294,6 +307,10 @@ fun HorariosScreen(
     }
 
     solicitud?.let { pendiente ->
+        val fechaTexto = FormatoHora.fechaDdMm(pendiente.fecha)
+        val inicioTexto = FormatoHora.hora(pendiente.inicioMin)
+        val finTexto = FormatoHora.hora(pendiente.finMin)
+
         AlertDialog(
             onDismissRequest = { solicitud = null },
             title = { Text("¿Solicitar este bloque?") },
@@ -313,12 +330,12 @@ fun HorariosScreen(
             confirmButton = {
                 TextButton(onClick = {
                     solicitud = null
-                    onReservas(pendiente.fecha, FormatoHora.minutos(pendiente.inicioMin), pendiente.salaId)
+                    onReservas(fechaTexto, inicioTexto, pendiente.salaId)
                     onSolicitarBloque(
                         pendiente.salaId,
-                        pendiente.fecha,
-                        FormatoHora.minutos(pendiente.inicioMin),
-                        FormatoHora.minutos(pendiente.finMin)
+                        fechaTexto,
+                        inicioTexto,
+                        finTexto
                     )
                 }) { Text("Continuar") }
             },
@@ -339,13 +356,14 @@ fun HorariosScreen(
     }
 
     detalle?.let { (ocupacion, dia) ->
+        val fechaTexto = FormatoHora.fechaDdMm(ocupacion.fecha)
         AlertDialog(
             onDismissRequest = { detalle = null },
             title = { Text(ocupacion.titulo) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("Tipo: ${nombreTipo(ocupacion.tipo)}")
-                    Text("Fecha: ${dia.nombre} ${ocupacion.fecha}")
+                    Text("Fecha: ${dia.nombre} $fechaTexto")
                     Text("Horario: ${FormatoHora.rango(ocupacion.inicioMin, ocupacion.finMin)}")
                     if (ocupacion.responsable.isNotBlank()) {
                         Text("Responsable: ${ocupacion.responsable}")
@@ -364,10 +382,10 @@ private data class SolicitudPendiente(
     val salaId: Long,
     val codigoSala: String,
     val nombreSala: String,
-    val fecha: String,
+    val fecha: LocalDate,
     val dia: DiaSemana,
-    val inicioMin: Int,
-    val finMin: Int
+    val inicioMin: LocalTime,
+    val finMin: LocalTime
 )
 
 private fun nombreTipo(tipo: TipoOcupacion): String = when (tipo) {
@@ -493,7 +511,9 @@ private fun GrillaSemanal(
             horizontalArrangement = Arrangement.spacedBy(SeparacionCeldas)
         ) {
             DiaSemana.entries.forEachIndexed { indice, dia ->
-                val fecha = FechasSemana.ddMM(dias[indice])
+                val diaCalendar = dias[indice]
+                val fecha = diaCalendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                val ocupacionesDia = ocupaciones.filter { it.fecha == fecha }
 
                 Column(verticalArrangement = Arrangement.spacedBy(SeparacionCeldas)) {
                     Box(
@@ -503,7 +523,7 @@ private fun GrillaSemanal(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "${dia.abreviatura} ${FechasSemana.numero(dias[indice])}",
+                            text = "${dia.abreviatura} ${FechasSemana.numero(diaCalendar)}",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -511,22 +531,28 @@ private fun GrillaSemanal(
                     horas.forEach { hora ->
                         val inicio = hora * 60
                         val fin = inicio + 60
+                        val inicioHora = LocalTime.of(hora,0)
+                        val finHora = if(hora>= 23) LocalTime.MAX else LocalTime.of(hora + 1, 0)
+
                         //cualquier bloque de atención que toque esta hora activo o no
                         val bloque = horarios.firstOrNull {
                             !it.activo && it.dia == dia && it.horaInicio.toSecondOfDay() / 60 < fin && it.horaTermino.toSecondOfDay() / 60 > inicio
                         }
                         //franjas ocupadas de ese día que tocan esta hora
-                        val ocupadas = ocupaciones
-                            .filter {
-                                it.fecha == fecha && it.inicioMin < fin && it.finMin > inicio
+                        val ocupadas = ocupacionesDia
+                            .filter { ocu ->
+                                ocu.inicioMin.isBefore(finHora) && ocu.finMin.isAfter(inicioHora)
                             }
-                            .sortedByDescending {
-                                minOf(it.finMin, fin) - maxOf(it.inicioMin, inicio)
+                            .sortedByDescending { ocu ->
+                                val solapeInicio = maxOf(ocu.inicioMin, inicioHora)
+                                val solapeFin = minOf(ocu.finMin, finHora)
+                                Duration.between(solapeInicio, solapeFin).toMinutes()
                             }
+
                         CeldaHorario(
                             bloque = bloque,
                             ocupadas = ocupadas,
-                            inicioHora = inicio,
+                            inicioHora = inicioHora,
                             onClick = {
                                 val principal = ocupadas.firstOrNull()
                                 when {
@@ -549,7 +575,7 @@ private fun GrillaSemanal(
 private fun CeldaHorario(
     bloque: HorarioResponse?,
     ocupadas: List<Ocupacion>,
-    inicioHora: Int,
+    inicioHora: LocalTime,
     onClick: () -> Unit
 ) {
     val principal = ocupadas.firstOrNull()

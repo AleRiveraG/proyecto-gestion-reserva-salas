@@ -222,7 +222,8 @@ fun AnimacionCarga(
 fun AnimacionError(
     modifier: Modifier = Modifier,
     tamano: Dp = 200.dp,
-    onCerrar: () -> Unit
+    onCerrar: () -> Unit,
+    texto: String
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
@@ -250,7 +251,7 @@ fun AnimacionError(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Error al registrar la reserva. Intente nuevamente.",
+                    text = texto,
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold

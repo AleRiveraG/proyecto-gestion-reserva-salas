@@ -75,7 +75,8 @@ fun rememberGestionReservasViewModel(): GestionReservasViewModel {
     return viewModel(
         factory = viewModelFactory {
             initializer {
-                val repository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api)
+                val repository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
+                    RetrofitClient.apiHorarios)
                 GestionReservasViewModel(repository)
             }
         }

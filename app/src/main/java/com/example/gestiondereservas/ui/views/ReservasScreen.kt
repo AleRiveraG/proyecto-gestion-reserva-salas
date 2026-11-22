@@ -93,7 +93,9 @@ import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.utils.AnimacionCarga
 import com.example.gestiondereservas.utils.AnimacionError
 import com.example.gestiondereservas.utils.AnimacionReloj
+import com.example.gestiondereservas.utils.StringALocalDate
 import com.example.gestiondereservas.utils.formatoFechaPantalla
+import com.example.gestiondereservas.utils.stringALocalTime
 import com.example.gestiondereservas.viewmodel.ReservaState
 import com.example.gestiondereservas.viewmodel.UsuarioViewModel
 import com.google.gson.Gson
@@ -110,7 +112,8 @@ fun rememberReservaViewModel(): ReservaViewModel {
     return viewModel(
         factory = viewModelFactory {
             initializer {
-                val repository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api)
+                val repository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
+                    RetrofitClient.apiHorarios)
                 ReservaViewModel(repository)
             }
         }
@@ -173,14 +176,16 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var complemento by remember { mutableStateOf("") }
     var proveedores by remember { mutableStateOf("")}
 
+    val horarioDisponible by viewModel.horarioDisponible.collectAsState()
+
     val nombreError = validacionReactivaPaso1 && !ValidacionesReserva.validarTexto(nombre)
     val menuTipoActividadError = validacionReactivaPaso1 && !ValidacionesReserva.validarMenu(tipoActividad)
     val menuTieneValidacionError = validacionReactivaPaso1 && !ValidacionesReserva.validarMenu(tieneValidacion)
     val menuAreaError = validacionReactivaPaso1 && !ValidacionesReserva.validarMenu(organizador)
     val menuRecintoError = validacionReactivaPaso2 && !ValidacionesReserva.validarSala(salaId)
-    val fechaActividadError = validacionReactivaPaso2 && !ValidacionesReserva.validarFechas(fechaActividad)
-    val horaInicioError = validacionReactivaPaso2 && !ValidacionesReserva.validarHoras(horaInicio)
-    val horaTerminoError = validacionReactivaPaso2 && !ValidacionesReserva.validarHoras(horaTermino)
+    val fechaActividadError = validacionReactivaPaso2 && !ValidacionesReserva.validarFechas(fechaActividad) && !horarioDisponible
+    val horaInicioError = validacionReactivaPaso2 && !ValidacionesReserva.validarHoras(horaInicio) && !horarioDisponible
+    val horaTerminoError = validacionReactivaPaso2 && !ValidacionesReserva.validarHoras(horaTermino) && !horarioDisponible
     val fechaMontajeError = validacionReactivaPaso2 && (!ValidacionesReserva.validarFechas(fechaMontaje) || !ValidacionesReserva.validarMontaje(fechaMontaje, fechaActividad))
     val horaMontajeError = validacionReactivaPaso2 && (!ValidacionesReserva.validarHoras(horaMontaje) || !ValidacionesReserva.validarHoraMontaje(fechaMontaje, fechaActividad, horaMontaje, horaInicio))
     val publicoSeleccionadoError = validacionReactivaPaso2 && !ValidacionesReserva.validarMenuMultiple(publicoSelecionado)
@@ -188,6 +193,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     val nombresInvitadosError = validacionReactivaPaso2 && publicoSelecionado.contains("Externos") && !ValidacionesReserva.validarTexto(nombres)
     val documentoError = validacionReactivaPaso2 && !ValidacionesReserva.validarDocumento(pdfUri)
 
+    var mostrarAlertaDisponibilidad by remember { mutableStateOf(false) }
 
     val selectorPdf = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
@@ -202,6 +208,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     val usuario by usuarioViewModel.usuario.collectAsState()
     val reservaState by viewModel.reservaState.collectAsState()
 
+
     LaunchedEffect(salaIdB, idUsuario) {
         if(salaIdB != null && salaIdB > 0L) {
             salaId = salaIdB
@@ -209,6 +216,24 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
         }
 
         usuarioViewModel.cargarUsuario(idUsuario)
+    }
+
+    LaunchedEffect(salaId, fechaActividad, horaInicio, horaTermino) {
+        if(
+            ValidacionesReserva.validarSala(salaId) &&
+            ValidacionesReserva.validarFechas(fechaActividad) &&
+            ValidacionesReserva.validarHoras(horaInicio) &&
+            ValidacionesReserva.validarHoras(horaTermino)
+        ) {
+            viewModel.comprobarDisponibilidad(
+                salaId,
+                StringALocalDate(fechaActividad),
+                stringALocalTime(horaInicio),
+                stringALocalTime(horaTermino)
+            )
+        } else {
+            viewModel.reiniciarDisponibilidad()
+        }
     }
 
     fun crearReserva(): ReservaDTO {
@@ -321,11 +346,20 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
         )
         2 -> ContentPaso2(
             fechaActividad,
-            { fechaActividad = it },
+            {
+                fechaActividad = it
+                viewModel.reiniciarDisponibilidad()
+            },
             horaInicio,
-            { horaInicio = it},
+            {
+                horaInicio = it
+                viewModel.reiniciarDisponibilidad()
+            },
             horaTermino,
-            { horaTermino = it},
+            {
+                horaTermino = it
+                viewModel.reiniciarDisponibilidad()
+            },
             fechaMontaje,
             { fechaMontaje = it},
             horaMontaje,
@@ -336,7 +370,9 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             { requiereForm = it},
             { id ->
                 salaId = id
-                viewModel.buscarSala(id)},
+                viewModel.reiniciarDisponibilidad()
+                viewModel.buscarSala(id)
+            },
             salaId,
             listaSalas,
             nombres,
@@ -358,7 +394,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             onSiguiente = {
                 validacionReactivaPaso2 = true
 
-                if(ValidacionesReserva.validarSala(salaId) &&
+                val formValido = ValidacionesReserva.validarSala(salaId) &&
                     ValidacionesReserva.validarFechas(fechaActividad) &&
                     ValidacionesReserva.validarHoras(horaInicio) &&
                     ValidacionesReserva.validarHoras(horaTermino) &&
@@ -370,8 +406,14 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                     ValidacionesReserva.validarMontaje(fechaMontaje, fechaActividad) &&
                     ValidacionesReserva.validarHoraMontaje(fechaMontaje, fechaActividad, horaMontaje, horaInicio) &&
                     ValidacionesReserva.validarDocumento(pdfUri)
-                    ) {
-                    paso = 3
+
+                if(formValido) {
+                    if (horarioDisponible) {
+                        mostrarAlertaDisponibilidad = false
+                        paso = 3
+                    } else {
+                        mostrarAlertaDisponibilidad = true
+                    }
                 }
             }
         )
@@ -402,7 +444,15 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
 
     if(reservaState is ReservaState.error) {
         AnimacionError(
+            texto = "Error al registrar la reserva. Intentelo nuevamente",
             onCerrar = { viewModel.reiniciarEstado() }
+        )
+    }
+
+    if(mostrarAlertaDisponibilidad) {
+        AnimacionError(
+            texto = "Horario no disponible. Intentelo nuevamente",
+            onCerrar = { mostrarAlertaDisponibilidad = false}
         )
     }
 }

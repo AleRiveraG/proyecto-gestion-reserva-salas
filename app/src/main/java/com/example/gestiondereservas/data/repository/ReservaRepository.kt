@@ -1,5 +1,6 @@
 package com.example.gestiondereservas.data.repository
 
+import com.example.gestiondereservas.data.remote.HorarioApiService
 import com.example.gestiondereservas.data.remote.ReservaApiService
 import com.example.gestiondereservas.data.remote.SalaApiService
 import com.example.gestiondereservas.data.remote.dto.DocumentoResponse
@@ -12,10 +13,13 @@ import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import java.time.LocalDate
+import java.time.LocalTime
 
 class ReservaRepository(
     private val salaApi: SalaApiService,
-    private val api: ReservaApiService
+    private val api: ReservaApiService,
+    private val horarioApi: HorarioApiService
 ) {
     suspend fun registrarReserva(reserva: RequestBody, archivo: MultipartBody.Part): ReservaResponse {
         val reservaRespuesta = api.registrarReserva(reserva, archivo)
@@ -62,5 +66,36 @@ class ReservaRepository(
     suspend fun obtenerDocumento(idReserva: Long): String {
         val documento = api.obtenerDocumento(idReserva)
         return documento
+    }
+
+    suspend fun horarioDisponible(
+        salaId: Long,
+        fecha: LocalDate,
+        horaInicio: LocalTime,
+        horaTermino: LocalTime
+    ): Boolean {
+        return horarioApi.disponibilidad(salaId, fecha, horaInicio, horaTermino)
+    }
+
+    suspend fun crucesReservas(
+        salaId: Long,
+        fecha: LocalDate,
+        horaInicio: LocalTime,
+        horaTermino: LocalTime
+    ): Boolean {
+        val aprobadas = api.obtenerReservasPorEstado(EstadoReserva.APROBADA)
+        val pendientes = api.obtenerReservasPorEstado(EstadoReserva.PENDIENTE)
+
+        val candidatas = (aprobadas + pendientes).distinctBy { it.idReserva }
+
+        return candidatas.any { reserva ->
+            val mismaSala = reserva.salaId == salaId
+            val mismaFecha = reserva.fechaActividad == fecha
+            val seCruza = reserva.horaInicio.isBefore(horaTermino) &&
+                    reserva.horaTermino.isAfter(horaInicio)
+
+            mismaSala && mismaFecha && seCruza
+        }
+
     }
 }

@@ -18,6 +18,7 @@ import okhttp3.RequestBody
 import retrofit2.HttpException
 import java.io.IOException
 import java.time.LocalDate
+import java.time.LocalTime
 
 sealed interface ReservaState {
 
@@ -48,6 +49,9 @@ class ReservaViewModel(
 
     private val _reservaState = MutableStateFlow<ReservaState>(ReservaState.normal)
     val reservaState: StateFlow<ReservaState> = _reservaState.asStateFlow()
+
+    private val _horarioDisponible = MutableStateFlow(false)
+    val horarioDisponible: StateFlow<Boolean> = _horarioDisponible.asStateFlow()
 
     init {
         cargarSalas()
@@ -111,4 +115,36 @@ class ReservaViewModel(
         _reservaState.value = ReservaState.normal
     }
 
+    fun comprobarDisponibilidad(
+        salaId: Long,
+        fecha: LocalDate,
+        horaInicio: LocalTime,
+        horaTermino: LocalTime
+    ) {
+        viewModelScope.launch {
+            val hayBloqueo = repository.horarioDisponible(
+                salaId,
+                fecha,
+                horaInicio,
+                horaTermino
+            )
+
+            if(!hayBloqueo) {
+                _horarioDisponible.value = false
+            }
+
+            val hayCruce = repository.crucesReservas(
+                salaId,
+                fecha,
+                horaInicio,
+                horaTermino
+            )
+
+            _horarioDisponible.value = !hayCruce
+        }
+    }
+
+    fun reiniciarDisponibilidad() {
+        _horarioDisponible.value = false
+    }
 }
