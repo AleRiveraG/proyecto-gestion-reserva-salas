@@ -585,7 +585,6 @@ fun LoginScreen(
 ) {
     var pantallaDestinoInterna by remember { mutableStateOf<String?>(null) }
 
-
     when (pantallaDestinoInterna) {
         "relator" -> {
             RelatorScreen(
@@ -625,34 +624,10 @@ fun LoginScreen(
             usuariosRegistrados = usuariosRegistrados,
             passwordsRegistrados = passwordsRegistrados,
             alHacerClicEnRegistrarse = alNavegarARegistro,
-            alIniciarSesionExitoso = { correo, password, rol ->
-                val correoLimpio = correo.trim().lowercase()
+            alIniciarSesionExitoso = { correo, password, rol ->  //Solo envía las credenciales al backend vía Navigation.kt
 
-                if (!usuariosRegistradosMemoria.containsKey(correoLimpio)) {
-                    usuariosRegistradosMemoria[correoLimpio] = rol
-                }
-                if (!passwordsUsuariosMemoria.containsKey(correoLimpio)) {
-                    passwordsUsuariosMemoria[correoLimpio] = password
-                }
-
+                //Navigation.kt navegará automáticamente cuando el backend responda HTTP 200
                 alIniciarSesionExitoso(correo, password, rol)
-
-                when (rol) {
-                    RolUsuario.RELATOR -> {
-                        try {
-                            alNavegarARelator(0L)
-                        } catch (e: Exception) {
-                        }
-                        pantallaDestinoInterna = "relator"
-                    }
-                    RolUsuario.COORDINADOR -> {
-                        try {
-                            alNavegarASupervisor(0L)
-                        } catch (e: Exception) {
-                        }
-                        pantallaDestinoInterna = "supervisor"
-                    }
-                }
             }
         )
     }

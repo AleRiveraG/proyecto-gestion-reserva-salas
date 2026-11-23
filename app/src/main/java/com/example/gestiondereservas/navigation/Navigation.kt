@@ -1,4 +1,3 @@
-
 package com.example.gestiondereservas.navigation
 
 import androidx.compose.animation.core.tween
@@ -33,6 +32,8 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavType
 import com.example.gestiondereservas.data.remote.AuditoriaApiService
 import com.example.gestiondereservas.data.remote.RetrofitClient
+import com.example.gestiondereservas.data.remote.SessionManager
+import com.example.gestiondereservas.ui.viewmodel.AutenticacionViewModel
 import com.example.gestiondereservas.ui.views.NotificacionesScreen
 import com.example.gestiondereservas.ui.views.RolUsuario
 
@@ -69,6 +70,7 @@ fun AppNavigation(navController: NavHostController,
                   abrirNotificaciones: Boolean = false
 ) {
     val auditoriaViewModel: AuditoriaViewModel = rememberAuditoriaViewModel()
+    val autenticacionViewModel: AutenticacionViewModel = viewModel()
     var correoUsuario by remember { mutableStateOf<String?>(null) }
     var rolUsuario by remember { mutableStateOf<RolUsuario?>(null) }
     val esSupervisor = rolUsuario == RolUsuario.COORDINADOR
@@ -89,8 +91,35 @@ fun AppNavigation(navController: NavHostController,
         popExitTransition = { fadeOut(animationSpec = tween(300)) + slideOutHorizontally(targetOffsetX = { 1000 }) }
     ) {
         composable("login") {
+            val authState by autenticacionViewModel.uiState.collectAsState()
+
+            //Navega solo cuando el backend confirma el login (HTTP 200)
+            LaunchedEffect(authState.usuarioAutenticado) {
+                val usuario = authState.usuarioAutenticado ?: return@LaunchedEffect
+                correoUsuario = usuario.correo
+                rolUsuario = if (usuario.rol.equals("RELATOR", ignoreCase = true)) {
+                    RolUsuario.RELATOR
+                } else {
+                    RolUsuario.COORDINADOR
+                }
+                val destino = if (rolUsuario == RolUsuario.RELATOR) {
+                    "baseRelator/${usuario.idUsuario}"
+                } else {
+                    "baseSupervisor/${usuario.idUsuario}"
+                }
+                autenticacionViewModel.limpiarEstado()
+                navController.navigate(destino) {
+                    popUpTo("login") { inclusive = true }
+                }
+            }
+
             LoginScreen(
-                alNavegarARegistro = { navController.navigate("registro") },
+                estaCargando = authState.estaCargando,
+                mensajeErrorGeneral = authState.mensajeError,
+                alNavegarARegistro = {
+                    autenticacionViewModel.limpiarEstado()
+                    navController.navigate("registro")
+                },
                 alNavegarARelator = { idUsuario ->
                     navController.navigate("baseRelator/$idUsuario") {
                         popUpTo("login") { inclusive = true }
@@ -100,28 +129,33 @@ fun AppNavigation(navController: NavHostController,
                     navController.navigate("baseSupervisor/$idUsuario") {
                         popUpTo("login") { inclusive = true }
                     }
+                },
+                alIniciarSesionExitoso = { correo, password, rol ->
+                    autenticacionViewModel.iniciarSesion(correo, password, rol.name)
                 }
             )
         }
 
         composable("registro") {
-            val registroViewModel: RegistroViewModel = rememberRegistroViewModel()
-            val estaCargando by registroViewModel.estaCargando.collectAsState()
-            val mensajeError by registroViewModel.mensajeError.collectAsState()
+            val authState by autenticacionViewModel.uiState.collectAsState()
+
+            //Vuelve al login cuando el backend confirma el registro (HTTP 201)
+            LaunchedEffect(authState.registroExitoso) {
+                if (authState.registroExitoso) {
+                    autenticacionViewModel.limpiarEstado()
+                    navController.popBackStack()
+                }
+            }
 
             RegistroScreen(
-                estaCargando = estaCargando,
-                mensajeErrorGeneral = mensajeError,
+                estaCargando = authState.estaCargando,
+                mensajeErrorGeneral = authState.mensajeError,
                 alRegistrarExitoso = { nombre, correo, password, telefono, rol ->
-                    registroViewModel.registrarUsuario(
+                    autenticacionViewModel.registrarUsuario(
                         nombre = nombre,
                         correo = correo,
-                        contrasena = password,
-                        telefono = telefono,
-                        rol = rol.nombreMostrar,
-                        onRegistroExitoso = {
-                            navController.popBackStack()
-                        }
+                        password = password,
+                        rol = rol.name
                     )
                 }
             )
@@ -133,14 +167,14 @@ fun AppNavigation(navController: NavHostController,
         ) { backStackEntry ->
             val idUsuario = backStackEntry.arguments?.getLong("idUsuario") ?: 0
             val contexto = LocalContext.current
-            var correoUsuario by remember { mutableStateOf<String?>(null) }
+            var correoUsuario by remember { mutableStateOf<String?>(SessionManager.correo) }  //Fallback desde SessionManager
 
             LaunchedEffect(idUsuario) {
                 withContext(Dispatchers.IO) {
                     val usuario = AppDatabase.getInstance(contexto)
                         .usuarioDao()
                         .obtenerUsuarioPorId(idUsuario)
-                    correoUsuario = usuario?.correo
+                    correoUsuario = usuario?.correo ?: SessionManager.correo
                 }
             }
             PantallaBaseRelator(
@@ -152,6 +186,7 @@ fun AppNavigation(navController: NavHostController,
                 },
                 correoUsuario = correoUsuario,
                 onCerrarSesion = {
+                    SessionManager.cerrarSesion()  //Limpia el token JWT
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
@@ -171,6 +206,7 @@ fun AppNavigation(navController: NavHostController,
                     auditoriaViewModel.registrarReserva(evento)
                 },
                 onCerrarSesion = {
+                    SessionManager.cerrarSesion()  //Limpia el token JWT
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
