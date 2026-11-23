@@ -69,8 +69,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.data.repository.ReservaRepository
-import com.example.gestiondereservas.data.room.AppDatabase
-import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.viewmodel.ReservaViewModel
 import com.example.gestiondereservas.utils.ValidacionesReserva
@@ -86,6 +84,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.material3.DatePickerColors
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.TimePickerColors
+import androidx.compose.material3.TimePickerDefaults
 import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.remote.dto.ReservaDTO
@@ -108,7 +110,6 @@ import java.time.LocalTime
 
 @Composable
 fun rememberReservaViewModel(): ReservaViewModel {
-    val contexto = LocalContext.current.applicationContext
     return viewModel(
         factory = viewModelFactory {
             initializer {
@@ -1764,7 +1765,9 @@ fun SeleccionarFecha(titulo: String,
         )
 
         Box(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = { mostrar = !mostrar })
         ) {
             OutlinedTextField(
                 value = formatoFechaPantalla(fecha) ?: "",
@@ -1785,7 +1788,8 @@ fun SeleccionarFecha(titulo: String,
                         )
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.primary,
                     unfocusedTextColor = MaterialTheme.colorScheme.primary
@@ -1817,8 +1821,13 @@ fun SeleccionarFecha(titulo: String,
                                 color = MaterialTheme.colorScheme.primary)
                         }
                     },
+                    colors = DatePickerDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    )
                 ) {
-                    DatePicker(state = datePickerState)
+                    DatePicker(state = datePickerState,
+                        colors = DatePickerDefaults.colors(containerColor =
+                            MaterialTheme.colorScheme.secondary))
                 }
             }
         }
@@ -1840,7 +1849,9 @@ fun SeleccionarHora(titulo: String,
             fontSize = 14.sp)
 
         Box(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = { mostrar = !mostrar })
         ) {
             OutlinedTextField(
                 value = hora,
@@ -1861,7 +1872,8 @@ fun SeleccionarHora(titulo: String,
                         )
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedTextColor = MaterialTheme.colorScheme.primary,
                     unfocusedTextColor = MaterialTheme.colorScheme.primary
@@ -1879,8 +1891,15 @@ fun SeleccionarHora(titulo: String,
                 onDismissRequest = { mostrar = false },
                 title = { Text("Ingresar hora") },
                 text = {
-                    TimeInput(state = timePickerState)
+                    TimeInput(state = timePickerState,
+                        colors = TimePickerDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.secondary,
+                            timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.secondary
+                        )
+                    )
                 },
+
                 confirmButton = {
                     TextButton(onClick = {
                         mostrar = false
@@ -1903,7 +1922,7 @@ fun SeleccionarHora(titulo: String,
                         Text("Cancelar",
                             color = MaterialTheme.colorScheme.primary)
                     }
-                }
+                },
             )
         }
     }
