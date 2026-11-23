@@ -149,13 +149,13 @@ fun FormularioHorarioScreen(
 
     BackHandler { intentarVolver() }
 
-    /*LaunchedEffect(estado.guardado) {
+    LaunchedEffect(estado.guardado) {
         if (estado.guardado) {
             onRegistrarAuditoria(crearAuditoria("Se creo un horario"))
             delay(2400)
             onVolver()
         }
-    }*/
+    }
 
     LaunchedEffect(estado.guardado) {
         if (estado.guardado) {

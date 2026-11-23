@@ -561,7 +561,7 @@ fun menuEquipamientos(titulo: String,
 
                     DropdownMenuItem(
                         text = {
-                            Row() {
+                            Row {
                                 Checkbox(
                                     checked = isSelected,
                                     onCheckedChange = null,

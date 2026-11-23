@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter
 object FormatoHora {
 
     private val formatterHora = DateTimeFormatter.ofPattern("HH:mm")
-    private val formatterFechaDdMm = DateTimeFormatter.ofPattern("dd/MM")
+    private val formatterFechaDdMm = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
     fun minutos(total: Int): String {
         val horas = (total / 60).toString().padStart(2, '0')
