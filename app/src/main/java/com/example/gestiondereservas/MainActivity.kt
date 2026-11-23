@@ -24,6 +24,7 @@ import com.example.gestiondereservas.utils.ObservadorRecordatorios
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import com.example.gestiondereservas.data.DatosPruebaUsuariosReservas
+import com.example.gestiondereservas.ui.views.UsoSalaScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -86,6 +87,7 @@ class MainActivity : ComponentActivity() {
             intent.getBooleanExtra("abrirNotificaciones", false)
     }
 }
+
 
 @Composable
 fun MyApp(abrirNotificaciones: Boolean = false) {
