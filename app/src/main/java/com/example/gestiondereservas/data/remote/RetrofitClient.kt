@@ -114,4 +114,12 @@ object RetrofitClient {
             .create(HorarioApiService::class.java)
     }
 
+    val apiLogin: AutenticacionApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl(BASE_URL_LOGIN)
+            .client(okHttp)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(AutenticacionApiService::class.java)
+    }
 }

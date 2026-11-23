@@ -2,6 +2,7 @@ package com.example.gestiondereservas.data.repository
 
 import com.example.gestiondereservas.data.remote.AutenticacionApiService
 import com.example.gestiondereservas.data.remote.AutenticacionRetrofitClient
+import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.SessionManager
 import com.example.gestiondereservas.data.remote.dto.AuthResponseDto
 import com.example.gestiondereservas.data.remote.dto.ErrorResponseDto
@@ -13,7 +14,7 @@ import java.net.ConnectException
 import java.net.SocketTimeoutException
 
 class AutenticacionRepository(
-    private val api: AutenticacionApiService = AutenticacionRetrofitClient.api
+    private val api: AutenticacionApiService = RetrofitClient.apiLogin
 ) {
     private val gson = Gson()
 
