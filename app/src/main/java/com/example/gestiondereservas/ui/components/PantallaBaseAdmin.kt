@@ -156,7 +156,6 @@ fun PantallaBaseAdmin(
             ) {
                 composable("paginaSupervisor") {
                     SupervisorScreen(
-                        idUsuario = idUsuario,
                         onHorarios = { tabNavController.navigate("calendarioSupervisor")},
                         onGestionSalas = { tabNavController.navigate("gestion_salas")},
                         onAuditoria = { tabNavController.navigate("auditoria")},

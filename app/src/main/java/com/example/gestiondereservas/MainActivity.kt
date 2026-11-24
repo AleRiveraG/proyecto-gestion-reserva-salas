@@ -11,7 +11,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.example.gestiondereservas.navigation.AppNavigation
@@ -87,12 +86,9 @@ class MainActivity : ComponentActivity() {
 fun MyApp(abrirNotificaciones: Boolean = false) {
 
     val navController = rememberNavController()
-    val contexto = LocalContext.current
 
-    MaterialTheme {
-        AppNavigation(
-            navController = navController,
-            abrirNotificaciones = abrirNotificaciones
-        )
-    }
+    AppNavigation(
+        navController = navController,
+        abrirNotificaciones = abrirNotificaciones
+    )
 }

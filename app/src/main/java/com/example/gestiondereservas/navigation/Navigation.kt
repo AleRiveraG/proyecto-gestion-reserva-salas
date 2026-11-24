@@ -7,7 +7,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -23,6 +22,7 @@ import com.example.gestiondereservas.ui.views.LoginScreen
 import com.example.gestiondereservas.ui.views.RegistroScreen
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.SessionManager
@@ -43,8 +43,6 @@ fun rememberAuditoriaViewModel(): AuditoriaViewModel {
     )
 }
 
-
-
 @Composable
 fun AppNavigation(navController: NavHostController,
                   abrirNotificaciones: Boolean = false
@@ -58,9 +56,11 @@ fun AppNavigation(navController: NavHostController,
     val repository = remember { ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
         RetrofitClient.apiHorarios) }
 
-    LaunchedEffect(abrirNotificaciones, correoUsuario, rolUsuario) {
+    LaunchedEffect(abrirNotificaciones, correoUsuario) {
         if (abrirNotificaciones && correoUsuario != null) {
-            navController.navigate("notificaciones/$esSupervisor") {
+            navController.navigate(
+                "notificaciones/$esSupervisor"
+            ) {
                 launchSingleTop = true
             }
         }
@@ -75,25 +75,28 @@ fun AppNavigation(navController: NavHostController,
         popExitTransition = { fadeOut(animationSpec = tween(300)) + slideOutHorizontally(targetOffsetX = { 1000 }) }
     ) {
         composable("login") {
-            val authState by autenticacionViewModel.uiState.collectAsState()
+            val authState by autenticacionViewModel.uiState.collectAsStateWithLifecycle()
 
             //Navega solo cuando el backend confirma el login (HTTP 200)
             LaunchedEffect(authState.usuarioAutenticado) {
                 val usuario = authState.usuarioAutenticado ?: return@LaunchedEffect
-                val idValido = usuario.idUsuario ?: 0L
+                val idValido = usuario.idUsuario
 
-                correoUsuario = usuario.correo
                 rolUsuario = if (usuario.rol.equals("RELATOR", ignoreCase = true)) {
                     RolUsuario.RELATOR
                 } else {
                     RolUsuario.COORDINADOR
                 }
+
+                correoUsuario = usuario.correo
+
                 val destino = if (rolUsuario == RolUsuario.RELATOR) {
                     "baseRelator/$idValido"
                 } else {
                     "baseSupervisor/$idValido"
                 }
                 autenticacionViewModel.limpiarEstado()
+
                 navController.navigate(destino) {
                     popUpTo("login") { inclusive = true }
                     launchSingleTop = true
@@ -103,6 +106,7 @@ fun AppNavigation(navController: NavHostController,
             LoginScreen(
                 estaCargando = authState.estaCargando,
                 mensajeErrorGeneral = authState.mensajeError,
+
                 alNavegarARegistro = {
                     autenticacionViewModel.limpiarEstado()
                     navController.navigate("registro")

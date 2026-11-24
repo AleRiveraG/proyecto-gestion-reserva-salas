@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -46,7 +48,6 @@ import com.example.gestiondereservas.utils.formatearFecha
 
 @Composable
 fun SupervisorScreen(
-                     idUsuario: Long,
                      onHorarios: () -> Unit,
                      onGestionSalas: () -> Unit,
                      onAuditoria: () -> Unit,
@@ -155,17 +156,24 @@ private fun Contenido(nombreUsuario: String,
                 }
             }
         } else
-            listaReservas.forEach { reserva ->
-                reservasPendientes(reserva,
-                    onAprobar = { id -> viewModel.modificarEstado(id, EstadoReserva.APROBADA,
-                        EstadoReserva.PENDIENTE) } ,
-                    onRechazar = { id -> viewModel.modificarEstado(id, EstadoReserva.RECHAZADA,
-                        EstadoReserva.PENDIENTE)})
-        }
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(listaReservas) { reserva ->
+                    ReservasPendientes(
+                        reserva,
+                        onAprobar = { id -> viewModel.modificarEstado(id, EstadoReserva.APROBADA,
+                            EstadoReserva.PENDIENTE) } ,
+                        onRechazar = { id -> viewModel.modificarEstado(id, EstadoReserva.RECHAZADA,
+                            EstadoReserva.PENDIENTE)}
+                    )
+                }
+            }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        accesosDirectos(onHorarios,
+        AccesosDirectos(onHorarios,
             onGestionSalas,
             onReportes,
             onAuditoria
@@ -174,10 +182,10 @@ private fun Contenido(nombreUsuario: String,
 }
 
 @Composable
-fun reservasPendientes(reserva: ReservaResponse,
+fun ReservasPendientes(reserva: ReservaResponse,
                        onAprobar: (Long) -> Unit,
                        onRechazar: (Long) -> Unit) {
-   Row() {
+   Row {
        val (icono, colorFondo) = when (reserva.organizador) {
            "Administración y Negocios" -> Pair(R.drawable.bar_chart, Color(0xFFC98BDB))
            "Comunicación" -> Pair(R.drawable.message_square, Color(0xFFDF4661))
@@ -263,8 +271,7 @@ fun reservasPendientes(reserva: ReservaResponse,
                        )
                    }
                }
-               Column(
-               ) {
+               Column{
                    IconButton(
                        modifier = Modifier
                            .clip(RoundedCornerShape(12.dp))
@@ -299,7 +306,7 @@ fun reservasPendientes(reserva: ReservaResponse,
 }
 
 @Composable
-private fun accesosDirectos(onHorarios: () -> Unit,
+private fun AccesosDirectos(onHorarios: () -> Unit,
                             onGestionSalas: () -> Unit,
                             onReportes: () -> Unit,
                             onAuditoria: () -> Unit) {
