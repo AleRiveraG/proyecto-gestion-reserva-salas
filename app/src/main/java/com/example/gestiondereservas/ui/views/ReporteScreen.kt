@@ -19,11 +19,14 @@ import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,22 +37,49 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.gestiondereservas.data.remote.RetrofitClient
+import com.example.gestiondereservas.data.remote.dto.ReporteResponse
+import com.example.gestiondereservas.data.remote.dto.ReservaResponse
+import com.example.gestiondereservas.data.remote.dto.SalaResponse
+import com.example.gestiondereservas.data.repository.ReservaRepository
+import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
+import com.example.gestiondereservas.viewmodel.ReportesViewModel
+import com.example.gestiondereservas.viewmodel.ReservaViewModel
+import kotlin.collections.emptyList
+import kotlin.collections.map
+
+@Composable
+fun rememberReportesViewModel(): ReportesViewModel {
+    return viewModel(
+        factory = viewModelFactory {
+            initializer {
+                val reservaRepository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
+                    RetrofitClient.apiHorarios)
+                val salaRepository = SalaRepository(RetrofitClient.apiSalas)
+                ReportesViewModel(reservaRepository, salaRepository)
+            }
+        }
+    )
+}
 
 //Modelo de datos por cada elemento de la lista de ocupación (RF16)
 data class ItemReporteSala(
     val codigoSala: String,
     val tipoEspacio: String,
-    val totalReservas: Int,
-    val horasOcupadas: Int,
-    val porcentajeUso: Int
+    val totalReservas: Long,
+    val horasOcupadas: Long,
+    val porcentajeUso: Long
 )
 
 //Periodos académicos predefinidos para la auditoría y consolidación
 enum class PeriodoAcademico(val etiqueta: String) {
     SEMANAL("Esta semana"),
     MENSUAL("Mes actual"),
-    SEMESTRAL("Semestre 2026-1")
+    SEMESTRAL("Ultimos 6 meses")
 }
 
 //- - - - - - - - - - - - - - - - - - - - - - - - -
@@ -58,52 +88,36 @@ enum class PeriodoAcademico(val etiqueta: String) {
 
 @Composable
 fun ReporteBody(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    reportesViewModel: ReportesViewModel = rememberReportesViewModel()
 ) {
+    val salas by reportesViewModel.salas.collectAsState()
+    val reporte by reportesViewModel.reporte.collectAsState()
+    val reportesSala by reportesViewModel.reportesPorSala.collectAsState()
+
     //Estados de filtros locales
     var periodoSeleccionado by remember { mutableStateOf(PeriodoAcademico.MENSUAL) }
 
-    //Datos simulados estructurados según las reglas de negocio de la institución
-    val itemsReporte = remember(periodoSeleccionado) {
-        when (periodoSeleccionado) {
-            PeriodoAcademico.SEMANAL -> {  //Exclusivamente salas con reservas activas durante la semana actual (jornada diurna/vespertina)
-                listOf(
-                    ItemReporteSala("A105", "Sala de Conferencias", 6, 18, 23),
-                    ItemReporteSala("C204", "Laboratorio Multimedia", 12, 48, 61),
-                    ItemReporteSala("C205", "Laboratorio Desarrollo", 14, 56, 71),
-                    ItemReporteSala("D302", "Taller de Diseño", 10, 40, 51),
-                    ItemReporteSala("G104", "Aula Gastronómica", 8, 32, 41)
-                )
-            }
-            PeriodoAcademico.MENSUAL -> {  //Carga consolidada típica del mes actual en curso (~4 semanas hábiles)
-                listOf(
-                    ItemReporteSala("A105", "Sala de Conferencias", 22, 66, 21),
-                    ItemReporteSala("C204", "Laboratorio Multimedia", 46, 184, 59),
-                    ItemReporteSala("C205", "Laboratorio Desarrollo", 52, 208, 66),
-                    ItemReporteSala("D302", "Taller de Diseño", 40, 160, 51),
-                    ItemReporteSala("F101", "Estudio Fotográfico", 28, 112, 36),
-                    ItemReporteSala("G104", "Aula Gastronómica", 34, 136, 43),
-                    ItemReporteSala("S210", "Sala Clínica", 38, 152, 48),
-                    ItemReporteSala("T305", "Sala Turismo", 30, 120, 38)
-                )
-            }
-            PeriodoAcademico.SEMESTRAL -> {  //Total acumulado del Semestre 2026-1 (~18 semanas académicas)
-                listOf(
-                    ItemReporteSala("A105", "Sala de Conferencias", 95, 285, 20),
-                    ItemReporteSala("C204", "Laboratorio Multimedia", 210, 840, 60),
-                    ItemReporteSala("C205", "Laboratorio Desarrollo", 235, 940, 67),
-                    ItemReporteSala("D302", "Taller de Diseño", 180, 720, 51),
-                    ItemReporteSala("F101", "Estudio Fotográfico", 125, 500, 35),
-                    ItemReporteSala("G104", "Aula Gastronómica", 155, 620, 44),
-                    ItemReporteSala("S210", "Sala Clínica", 170, 680, 48),
-                    ItemReporteSala("T305", "Sala Turismo", 130, 520, 37)
-                )
-            }
+    LaunchedEffect(periodoSeleccionado) {
+        val tiempo = when (periodoSeleccionado) {
+            PeriodoAcademico.SEMANAL -> "Semanal"
+            PeriodoAcademico.MENSUAL -> "Mensual"
+            PeriodoAcademico.SEMESTRAL -> "Semestral"
         }
+        reportesViewModel.generarReporteGeneral(tiempo)
+        reportesViewModel.generarReportes(salas, tiempo)
     }
 
-    val totalReservasCalculado = itemsReporte.sumOf { it.totalReservas }
-    val horasUsoCalculadas = itemsReporte.sumOf { it.horasOcupadas }
+    //Datos simulados estructurados según las reglas de negocio de la institución
+    val itemsReporte = remember(salas, periodoSeleccionado, reportesSala) {
+        salas.map { sala ->
+            val metricasSala = reportesSala[sala.salaId] ?: ReporteResponse()
+            val porcentaje = if(reporte.horas > 0) (metricasSala.horas * 100) / reporte.horas else 0
+            ItemReporteSala(sala.codigo, sala.nombre, metricasSala.cantidad, metricasSala.horas, porcentaje)
+        }
+
+    }
+
 
     LazyColumn(
         modifier = modifier
@@ -158,7 +172,10 @@ fun ReporteBody(
                         FilterChip(
                             selected = periodoSeleccionado == periodo,
                             onClick = { periodoSeleccionado = periodo },
-                            label = { Text(periodo.etiqueta) }
+                            label = { Text(periodo.etiqueta) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.tertiary.copy(0.6f)
+                            )
                         )
                     }
                 }
@@ -173,13 +190,13 @@ fun ReporteBody(
             ) {
                 TarjetaMetrica(
                     titulo = "Total de Reservas",
-                    valor = "$totalReservasCalculado",
+                    valor = "${reporte.cantidad}",
                     icono = Icons.Default.DateRange,
                     modifier = Modifier.weight(1f)
                 )
                 TarjetaMetrica(
                     titulo = "Horas de Uso",
-                    valor = "$horasUsoCalculadas hrs",
+                    valor = "${reporte.horas} hrs",
                     icono = Icons.Default.MeetingRoom,
                     modifier = Modifier.weight(1f)
                 )
@@ -215,7 +232,7 @@ fun TarjetaMetrica(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+            containerColor = MaterialTheme.colorScheme.primary.copy(0.1f)
         )
     ) {
         Column(
@@ -230,13 +247,13 @@ fun TarjetaMetrica(
             Text(
                 text = titulo,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = valor,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -283,7 +300,7 @@ fun TarjetaDetalleSala(
             }
             Surface(
                 shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer
+                color = MaterialTheme.colorScheme.tertiary.copy(0.4f)
             ) {
                 Text(
                     text = "Uso: ${item.porcentajeUso}%",

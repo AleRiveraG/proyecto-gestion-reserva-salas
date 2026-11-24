@@ -42,4 +42,8 @@ class SalaRepository(
     }
 
      */
+
+    suspend fun listarSalas(): List<SalaResponse> {
+        return apiService.listar()
+    }
 }

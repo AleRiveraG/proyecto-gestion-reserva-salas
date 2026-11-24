@@ -71,6 +71,6 @@ data class ReservaDTO (
 )
 
 data class ReporteResponse(
-    @SerializedName("cantidad") val cantidad: Long,
-    @SerializedName("horas") val horas: Long
+    @SerializedName("cantidad", alternate = ["Cantidad"]) val cantidad: Long = 0L,
+    @SerializedName("horas", alternate = ["Horas"]) val horas: Long = 0L
 )
