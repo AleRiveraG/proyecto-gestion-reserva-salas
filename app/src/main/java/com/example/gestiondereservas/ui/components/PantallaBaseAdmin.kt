@@ -40,6 +40,10 @@ import com.example.gestiondereservas.ui.views.rememberGestionReservasViewModel
 import kotlinx.coroutines.flow.Flow
 import com.example.gestiondereservas.ui.views.rememberUsuarioViewModel
 
+//estos dos imports nuevos
+import androidx.compose.runtime.LaunchedEffect
+import com.example.gestiondereservas.ui.views.rememberHorariosViewModel
+
 object GestionSalasRutas {
     const val SALAS = "gestion_salas"
     const val FORMULARIO_SALA = "gestion_salas/formulario/{salaId}"
@@ -77,6 +81,10 @@ fun PantallaBaseAdmin(
 ) {
     val tabNavController = rememberNavController()
     val contexto = LocalContext.current
+    //estas dos tambien son nuevas para precargar los horarios desde el momento del login
+    val horariosViewModel = rememberHorariosViewModel()
+    LaunchedEffect(Unit) {horariosViewModel.recargar() }
+
 
     val navBackStackEntry by tabNavController.currentBackStackEntryAsState()
     val rutaActual = navBackStackEntry?.destination?.route
@@ -162,6 +170,7 @@ fun PantallaBaseAdmin(
 
                 composable("calendarioSupervisor") {
                     HorariosScreen(
+                        viewModel = horariosViewModel,
                         puedeEditar = true,
                         onNuevoHorario = { salaId, dia, inicioMin ->
                             tabNavController.navigate(

@@ -61,6 +61,10 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+//nuevo impotr lo necesito para precargar
+import com.example.gestiondereservas.ui.views.rememberHorariosViewModel
+
+
 @Composable
 fun PantallaBaseRelator(
     navController: NavHostController,
@@ -74,6 +78,10 @@ fun PantallaBaseRelator(
 ) {
     val tabNavController = rememberNavController()
     val contexto = LocalContext.current
+    //estas dos las mismas que en pantalla base admin para la precarga
+    val horariosViewModel = rememberHorariosViewModel()
+    LaunchedEffect(Unit) {horariosViewModel.recargar() }
+
     val scope = rememberCoroutineScope()
 
     val navBackStackEntry by tabNavController.currentBackStackEntryAsState()
@@ -278,6 +286,7 @@ fun PantallaBaseRelator(
 
                 composable("calendarioRelator") {
                     HorariosScreen(
+                        viewModel = horariosViewModel,
                         puedeEditar = false,
                         onSolicitarBloque = { salaId, fecha, horaInicio, horaTermino ->
                             Toast.makeText(

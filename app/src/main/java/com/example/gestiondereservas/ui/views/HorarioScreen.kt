@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -181,7 +182,7 @@ fun HorariosScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = sala?.codigo ?: "Sin salas",
+                            text = sala?.codigo ?: if (estado.cargando) "Cargando..." else "Sin salas",
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f)
@@ -241,7 +242,16 @@ fun HorariosScreen(
         Leyenda()
         Spacer(modifier = Modifier.height(12.dp))
 
-        if (sala == null) {
+        if (estado.cargando) {//cambio para que en horario cargen bien y no se demore
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 48.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = ColorReservado)
+            }
+        } else if (sala == null) {
             Text(
                 text = "Aún no hay salas. Créalas primero en la sección Salas.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -639,3 +649,4 @@ private fun CeldaHorario(
         }
     }
 }
+

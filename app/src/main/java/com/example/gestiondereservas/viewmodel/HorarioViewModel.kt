@@ -1,5 +1,6 @@
 package com.example.gestiondereservas.viewmodel
 
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.Ocupacion
@@ -7,19 +8,14 @@ import com.example.gestiondereservas.data.remote.dto.HorarioResponse
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.HorarioRepository
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
-import com.example.gestiondereservas.data.room.entidades.HorarioEntity
-import com.example.gestiondereservas.data.room.entidades.SalaEntity
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -31,98 +27,159 @@ data class HorariosUiState(
     // franjas ocupadas de la sala elegida (la pantalla filtra las de la semana visible)
     val ocupaciones: List<Ocupacion> = emptyList(),
     // 0 = esta semana, -1 = la anterior, 1 = la siguiente
-    val semana: Int = 0
+    val semana: Int = 0,
+    // true mientras no hay nada que mostrar todavía (primera carga)
+    val cargando: Boolean = true
 )
 
+data class DatosHorarioSala(
+    val horarios: List<HorarioResponse>,
+    val ocupaciones: List<Ocupacion>
+)
 
-@OptIn(ExperimentalCoroutinesApi::class)
+// Caché en memoria: al volver a la pestaña se muestra al tiro lo último cargado
+object HorariosCache {
+    var salas: List<SalaResponse> = emptyList()
+    var salaId: Long? = null
+    val datos: MutableMap<Long, DatosHorarioSala> = mutableMapOf()
+}
+
 class HorariosViewModel(
     private val repositorio: HorarioRepository
 ) : ViewModel() {
 
-    private val salaElegida = MutableStateFlow<Long?>(null)
-    private val semana = MutableStateFlow(0)
-    private val recarga = MutableStateFlow(0)
+    private var salaElegida: Long? = HorariosCache.salaId
+    private var trabajo: Job? = null
 
-    private val salaActiva: Flow<Pair<List<SalaResponse>, SalaResponse?>> =
-        combine(
-            recarga.flatMapLatest { repositorio.observarSalas() },
-            salaElegida
-        ) { salas, id ->
-            val seleccionada = salas.firstOrNull { it.salaId == id } ?: salas.firstOrNull()
-            salas to seleccionada
+    private val _uiState = MutableStateFlow(estadoInicial())
+    val uiState: StateFlow<HorariosUiState> = _uiState.asStateFlow()
+
+    private fun estadoInicial(): HorariosUiState {
+        val salas = HorariosCache.salas
+        val sala = salas.firstOrNull { it.salaId == salaElegida } ?: salas.firstOrNull()
+        val datos = sala?.let { HorariosCache.datos[it.salaId] }
+        return HorariosUiState(
+            salas = salas,
+            sala = sala,
+            horarios = datos?.horarios ?: emptyList(),
+            ocupaciones = datos?.ocupaciones ?: emptyList(),
+            semana = 0,
+            cargando = datos == null
+        )
+    }
+
+    // Trae horarios (7 días a la vez) y ocupaciones de una sala en paralelo
+    private suspend fun cargarDatos(salaId: Long): DatosHorarioSala = coroutineScope {
+        val horariosDef = DiaSemana.entries.map { dia ->
+            async { repositorio.obtenerHorariosPorSalaYDia(salaId, dia) }
         }
-
-    private val salaIdActiva: Flow<Long?> =
-        salaActiva
-            .map { (_, sala) -> sala?.salaId }
-            .distinctUntilChanged()
-
-    private val horariosSala: Flow<List<HorarioResponse>> =
-        combine(salaIdActiva, recarga) { salaId, _ -> salaId }
-            .flatMapLatest { salaId ->
-                flow {
-                    if (salaId == null) {
-                        emit(emptyList())
-                    } else {
-                        val horarioPorDia = DiaSemana.entries.flatMap { dia ->
-                            repositorio.obtenerHorariosPorSalaYDia(salaId, dia)
-                        }
-                        emit(horarioPorDia)
-                    }
-                }
+        val ocupacionesDef = async {
+            try {
+                repositorio.obtenerOcupacionesPorSala(salaId)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                emptyList()
             }
+        }
+        DatosHorarioSala(
+            horarios = horariosDef.awaitAll().flatten(),
+            ocupaciones = ocupacionesDef.await()
+        )
+    }
 
-    private val ocupacionesSala: Flow<List<Ocupacion>> =
-        combine(salaIdActiva, recarga) { salaId, _ -> salaId }
-            .flatMapLatest { salaId ->
-                flow {
-                    if (salaId == null) {
-                        emit(emptyList())
-                    } else {
-                        val ocupaciones = try {
-                            repositorio.obtenerOcupacionesPorSala(salaId)
-                        } catch (_: Exception) {
-                            emptyList()
-                        }
-                        emit(ocupaciones)
-                    }
-                }
-            }
+    private fun publicar(
+        salas: List<SalaResponse>,
+        sala: SalaResponse?,
+        datos: DatosHorarioSala?
+    ) {
+        HorariosCache.salas = salas
+        HorariosCache.salaId = sala?.salaId
+        if (sala != null && datos != null) HorariosCache.datos[sala.salaId] = datos
+        salaElegida = sala?.salaId
 
-    val uiState: StateFlow<HorariosUiState> =
-        combine(
-            salaActiva,
-            horariosSala,
-            ocupacionesSala,
-            semana
-        ) { (salas, sala), horarios, ocupaciones, semanaActual ->
-            HorariosUiState(
+        _uiState.update {
+            it.copy(
                 salas = salas,
                 sala = sala,
-                horarios = horarios,
-                ocupaciones = ocupaciones,
-                semana = semanaActual
+                horarios = datos?.horarios ?: emptyList(),
+                ocupaciones = datos?.ocupaciones ?: emptyList(),
+                cargando = false
             )
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = HorariosUiState()
-        )
-
-    fun onSalaChange(salaId: Long) {
-        salaElegida.value = salaId
-    }
-
-    fun cambiarSemana(delta: Int) {
-        semana.value = semana.value + delta
-    }
-
-    fun irAHoy() {
-        semana.value = 0
+        }
     }
 
     fun recargar() {
-        recarga.update { it + 1 }
+        // si ya hay una carga en curso no la reinicio
+        if (trabajo?.isActive == true) return
+
+        trabajo = viewModelScope.launch {
+            try {
+                coroutineScope {
+                    val idPrevio = salaElegida ?: _uiState.value.sala?.salaId
+
+                    // salas y datos de la sala conocida arrancan al mismo tiempo
+                    val salasDef = async { repositorio.salasDisponibles() }
+                    val datosPrevioDef = idPrevio?.let { id -> async { cargarDatos(id) } }
+
+                    val salas = salasDef.await()
+                    val sala = salas.firstOrNull { it.salaId == idPrevio } ?: salas.firstOrNull()
+
+                    val datos = when {
+                        sala == null -> {
+                            datosPrevioDef?.cancel()
+                            null
+                        }
+                        sala.salaId == idPrevio && datosPrevioDef != null -> datosPrevioDef.await()
+                        else -> {
+                            datosPrevioDef?.cancel()
+                            cargarDatos(sala.salaId)
+                        }
+                    }
+                    publicar(salas, sala, datos)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                _uiState.update { it.copy(cargando = false) }
+            }
+        }
+    }
+
+    fun onSalaChange(salaId: Long) {
+        val sala = _uiState.value.salas.firstOrNull { it.salaId == salaId } ?: return
+        salaElegida = salaId
+        HorariosCache.salaId = salaId
+
+        val enCache = HorariosCache.datos[salaId]
+        _uiState.update {
+            it.copy(
+                sala = sala,
+                horarios = enCache?.horarios ?: emptyList(),
+                ocupaciones = enCache?.ocupaciones ?: emptyList(),
+                cargando = enCache == null
+            )
+        }
+
+        trabajo?.cancel()
+        trabajo = viewModelScope.launch {
+            try {
+                val datos = cargarDatos(salaId)
+                publicar(_uiState.value.salas, sala, datos)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                _uiState.update { it.copy(cargando = false) }
+            }
+        }
+    }
+
+    fun cambiarSemana(delta: Int) {
+        _uiState.update { it.copy(semana = it.semana + delta) }
+    }
+
+    fun irAHoy() {
+        _uiState.update { it.copy(semana = 0) }
     }
 }
+
