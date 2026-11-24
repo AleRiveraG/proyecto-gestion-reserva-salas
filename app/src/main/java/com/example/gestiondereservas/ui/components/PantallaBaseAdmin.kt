@@ -19,7 +19,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
+import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
@@ -294,7 +296,9 @@ fun PantallaBaseAdmin(
                         },
                         navController = tabNavController,
                         esSupervisor = true,
-                        correoUsuario = null
+                        correoUsuario = null,
+                        reservaRepository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
+                            RetrofitClient.apiHorarios)
                     )
                 }
             }

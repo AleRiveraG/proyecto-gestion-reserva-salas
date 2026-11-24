@@ -70,3 +70,7 @@ data class ReservaDTO (
     @SerializedName("proveedores") val proveedores: String? = null
 )
 
+data class ReporteResponse(
+    @SerializedName("cantidad") val cantidad: Long,
+    @SerializedName("horas") val horas: Long
+)

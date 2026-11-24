@@ -37,7 +37,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.gestiondereservas.data.AppState
+import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
+import com.example.gestiondereservas.data.remote.dto.ReservaResponse
+import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
@@ -67,6 +70,7 @@ fun PantallaBaseRelator(
     onCerrarSesion: () -> Unit,
     appState: AppState,
     correoUsuario: String? = null,
+    reservaRepository: ReservaRepository
 ) {
     val tabNavController = rememberNavController()
     val contexto = LocalContext.current
@@ -144,7 +148,7 @@ fun PantallaBaseRelator(
                 composable("paginaRelator") {
 
                     var mostrarSelectorReservas by remember { mutableStateOf(false) }
-                    var reservasParaElegir by remember { mutableStateOf<List<ReservaEntity>>(emptyList()) }
+                    var reservasParaElegir by remember { mutableStateOf<List<ReservaResponse>>(emptyList()) }
                     var abrirActividadSeleccionada by remember {
                         mutableStateOf<(Long) -> Unit>({})
                     }
@@ -174,9 +178,7 @@ fun PantallaBaseRelator(
                                 scope.launch {
                                     try {
                                         val reservas = withContext(Dispatchers.IO) {
-                                            AppDatabase.getInstance(contexto)
-                                                .reservaDao()
-                                                .obtenerReservasAprobadasPorUsuario(idUsuario)
+                                            reservaRepository.obtenerReservasAprobadas()
                                         }
 
                                         if (reservas.isNotEmpty()) {
@@ -232,7 +234,7 @@ fun PantallaBaseRelator(
                                                     Card(
                                                         onClick = {
                                                             mostrarSelectorReservas = false
-                                                            abrirActividadSeleccionada(reserva.id)
+                                                            abrirActividadSeleccionada(reserva.idReserva)
                                                         },
                                                         modifier = Modifier
                                                             .fillMaxWidth()
@@ -354,7 +356,6 @@ fun PantallaBaseRelator(
                     if (reservaId > 0) {
                         UsoSalaScreen(
                             reservaId = reservaId,
-                            appState = appState,
                             onReservaCancelada = {
                                 tabNavController.navigate("paginaRelator") {
                                     popUpTo("paginaRelator") {
@@ -362,7 +363,9 @@ fun PantallaBaseRelator(
                                     }
                                     launchSingleTop = true
                                 }
-                            }
+                            },
+                            reservaRepository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
+                                RetrofitClient.apiHorarios)
                         )
                     }
                 }
@@ -376,7 +379,9 @@ fun PantallaBaseRelator(
                         onVolver = { tabNavController.popBackStack() },
                         navController = tabNavController,
                         esSupervisor = rolDeRuta,
-                        correoUsuario = correoUsuario
+                        correoUsuario = correoUsuario,
+                        reservaRepository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
+                            RetrofitClient.apiHorarios)
                     )
                 }
 

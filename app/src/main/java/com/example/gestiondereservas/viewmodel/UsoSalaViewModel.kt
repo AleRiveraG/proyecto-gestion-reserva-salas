@@ -25,10 +25,15 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
+import com.example.gestiondereservas.data.remote.dto.ReservaResponse
+import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.workers.FinalizacionActividadWorker
 import java.util.concurrent.TimeUnit
 
-class UsoSalaViewModel : ViewModel() {
+
+class UsoSalaViewModel(
+    private val reservaRepository: ReservaRepository
+) : ViewModel() {
 
     var estadoActividad by mutableStateOf(EstadoActividad.PENDIENTE)
         private set
@@ -90,11 +95,11 @@ class UsoSalaViewModel : ViewModel() {
         try {
             val registrado = withContext(Dispatchers.IO) {
                 db.withTransaction {
-                    val reserva = db.reservaDao().obtenerReservaPorId(id)
+                    val reserva = reservaRepository.obtenerReservaPorId(id)
                     val uso = db.usoSalaDao().obtenerPorReserva(id)
 
                     if (
-                        reserva?.estado != EstadoReserva.APROBADA ||
+                        reserva.estado != EstadoReserva.APROBADA ||
                         uso?.estado == "AUSENTE" ||
                         uso?.estado == "EN_CURSO" ||
                         uso?.estado == "FINALIZADA"
@@ -182,8 +187,8 @@ class UsoSalaViewModel : ViewModel() {
         }
     }
 
-    fun cargarReserva(reserva: ReservaEntity) {
-        reservaId = reserva.id
+    fun cargarReserva(reserva: ReservaResponse) {
+        reservaId = reserva.idReserva
         salaId = reserva.salaId
         nombreActividad = reserva.nombreActividad
 
@@ -193,7 +198,7 @@ class UsoSalaViewModel : ViewModel() {
         )
 
         val fin = inicio.toLocalDate().atTime(
-            LocalTime.parse(reserva.horaTermino)
+            reserva.horaTermino
         )
 
         trabajoCronometro?.cancel()

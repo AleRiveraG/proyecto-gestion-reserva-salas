@@ -38,14 +38,31 @@ import com.example.gestiondereservas.utils.AnimacionConfetti
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.gestiondereservas.data.remote.RetrofitClient
+import com.example.gestiondereservas.data.repository.ReservaRepository
+import com.example.gestiondereservas.viewmodel.ReservaViewModel
 import kotlinx.coroutines.delay
 
 @Composable
+fun rememberUsoSalaViewModel(): UsoSalaViewModel {
+    return viewModel(
+        factory = viewModelFactory {
+            initializer {
+                val repository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
+                    RetrofitClient.apiHorarios)
+                UsoSalaViewModel(repository)
+            }
+        }
+    )
+}
+@Composable
 fun UsoSalaScreen(
     reservaId : Long,
-    appState: AppState,
     onReservaCancelada : () -> Unit ,
-    viewModel: UsoSalaViewModel = viewModel()
+    viewModel: UsoSalaViewModel = rememberUsoSalaViewModel(),
+    reservaRepository: ReservaRepository
 ) {
     val estadoActividad = viewModel.estadoActividad
 
@@ -225,14 +242,14 @@ fun UsoSalaScreen(
         reservaAprobada = false
 
         try {
-            val reserva = appState.consultarReservaPorId(reservaId)
+            val reserva = reservaRepository.obtenerReservaPorId(reservaId)
 
-            if (reserva != null && reserva.estado == EstadoReserva.APROBADA) {
+            if (reserva.estado == EstadoReserva.APROBADA) {
                 viewModel.cargarReserva(reserva)
                 viewModel.cargarEstadoGuardado(usoSalaDao, reservaId)
 
                 val reservaActualizada = withContext(Dispatchers.IO) {
-                    reservaDao.obtenerReservaPorId(reservaId)
+                    reservaRepository.obtenerReservaPorId(reservaId)
                 }
 
                 if (reservaActualizada?.estado != EstadoReserva.APROBADA) {
@@ -754,7 +771,7 @@ fun UsoSalaScreen(
                                 cancelandoReserva = true
                                 try {
                                     val canceladas = withContext(Dispatchers.IO) {
-                                        val reserva = reservaDao.obtenerReservaPorId(reservaId)
+                                        val reserva = reservaRepository.obtenerReservaPorId(reservaId)
 
                                         if (reserva != null &&
                                             LocalDateTime.now().isBefore(

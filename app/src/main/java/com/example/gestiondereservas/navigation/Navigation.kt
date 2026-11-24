@@ -33,6 +33,7 @@ import androidx.navigation.NavType
 import com.example.gestiondereservas.data.remote.AuditoriaApiService
 import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.SessionManager
+import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.ui.viewmodel.AutenticacionViewModel
 import com.example.gestiondereservas.ui.views.NotificacionesScreen
 import com.example.gestiondereservas.ui.views.RolUsuario
@@ -190,7 +191,10 @@ fun AppNavigation(navController: NavHostController,
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }
                     }
-                }
+                },
+                reservaRepository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
+                    RetrofitClient.apiHorarios)
+
             )
         }
 
@@ -226,7 +230,9 @@ fun AppNavigation(navController: NavHostController,
                 correoUsuario = correoUsuario,
                 onVolver = {
                     navController.popBackStack()
-                }
+                },
+                reservaRepository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
+                    RetrofitClient.apiHorarios)
             )
         }
     }

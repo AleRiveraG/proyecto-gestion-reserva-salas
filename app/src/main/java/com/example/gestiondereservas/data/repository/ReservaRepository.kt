@@ -4,6 +4,7 @@ import com.example.gestiondereservas.data.remote.HorarioApiService
 import com.example.gestiondereservas.data.remote.ReservaApiService
 import com.example.gestiondereservas.data.remote.SalaApiService
 import com.example.gestiondereservas.data.remote.dto.DocumentoResponse
+import com.example.gestiondereservas.data.remote.dto.ReporteResponse
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.room.ReservaDao
@@ -35,6 +36,10 @@ class ReservaRepository(
         return reservas
     }
 
+    suspend fun obtenerReservasAprobadas(): List<ReservaResponse> {
+        val reservas = api.obtenerReservasPorEstado(EstadoReserva.APROBADA)
+        return reservas
+    }
     suspend fun obtenerAprobadas(): Long {
         val cantidad = api.obtenerCantidadPorEstado(EstadoReserva.APROBADA)
         return cantidad
@@ -97,5 +102,17 @@ class ReservaRepository(
             mismaSala && mismaFecha && seCruza
         }
 
+    }
+
+    suspend fun obtenerReservaPorId(idReserva: Long): ReservaResponse {
+        return api.obtenerReservaPorId(idReserva)
+    }
+
+    suspend fun contarReservasGeneral(tiempo: String): ReporteResponse {
+        return api.contarReservasGeneral(tiempo)
+    }
+
+    suspend fun contarReservasSala(salaId: Long, tiempo: String): ReporteResponse {
+        return api.contarReservasSala(salaId, tiempo)
     }
 }

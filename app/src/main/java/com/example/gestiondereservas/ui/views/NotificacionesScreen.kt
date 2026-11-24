@@ -44,6 +44,8 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeOut
 import com.example.gestiondereservas.utils.AnimacionNotificacionesVacias
 import androidx.compose.animation.fadeIn
+import com.example.gestiondereservas.data.remote.dto.ReservaResponse
+import com.example.gestiondereservas.data.repository.ReservaRepository
 
 private data class NotificacionUI(
     val id: Long,
@@ -68,7 +70,8 @@ fun NotificacionesScreen(
     onVolver: () -> Unit,
     navController: NavController,
     esSupervisor: Boolean,
-    correoUsuario: String? = null
+    correoUsuario: String? = null,
+    reservaRepository: ReservaRepository
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -82,7 +85,7 @@ fun NotificacionesScreen(
     }
 
     var reservaSeleccionada by remember {
-        mutableStateOf<ReservaEntity?>(null)
+        mutableStateOf<ReservaResponse?>(null)
     }
 
     val correoNormalizado = remember(correoUsuario) {
@@ -292,10 +295,7 @@ fun NotificacionesScreen(
 
                                     if (reservaId != null) {
                                         reservaSeleccionada =
-                                            database.reservaDao()
-                                                .obtenerReservaPorId(
-                                                    reservaId
-                                                )
+                                            reservaRepository.obtenerReservaPorId(reservaId)
                                     }
                                 }
                             }
