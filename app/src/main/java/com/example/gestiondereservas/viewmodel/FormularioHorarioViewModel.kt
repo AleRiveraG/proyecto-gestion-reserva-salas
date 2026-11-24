@@ -7,8 +7,6 @@ import com.example.gestiondereservas.data.remote.dto.HorarioResponse
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.HorarioRepository
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
-import com.example.gestiondereservas.data.room.entidades.HorarioEntity
-import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.utils.IntALocalTime
 import com.example.gestiondereservas.utils.ValidacionesHorario
 import kotlinx.coroutines.flow.MutableStateFlow

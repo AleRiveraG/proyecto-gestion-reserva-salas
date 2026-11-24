@@ -15,7 +15,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.viewmodel.EstadoActividad
 import com.example.gestiondereservas.viewmodel.UsoSalaViewModel
 import com.example.gestiondereservas.ui.theme.Black
@@ -42,7 +41,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.repository.ReservaRepository
-import com.example.gestiondereservas.viewmodel.ReservaViewModel
 import kotlinx.coroutines.delay
 
 @Composable
@@ -217,9 +215,6 @@ fun UsoSalaScreen(
         mutableStateOf(true)
     }
 
-    val reservaDao = remember(context) {
-        AppDatabase.getInstance(context).reservaDao()
-    }
 
     var estadoYaCargado by remember(reservaId) { mutableStateOf(false) }
     var mostrarExito by remember(reservaId) { mutableStateOf(false) }
@@ -234,6 +229,9 @@ fun UsoSalaScreen(
 
         if (estadoActividad == EstadoActividad.FINALIZADA) {
             mostrarExito = true
+            val reserva = reservaRepository.obtenerReservaPorId(reservaId)
+
+            reservaRepository.modificarEstado(reservaId, EstadoReserva.FINALIZADA, reserva.estado)
         }
     }
 
@@ -773,13 +771,13 @@ fun UsoSalaScreen(
                                     val canceladas = withContext(Dispatchers.IO) {
                                         val reserva = reservaRepository.obtenerReservaPorId(reservaId)
 
-                                        if (reserva != null &&
-                                            LocalDateTime.now().isBefore(
-                                                viewModel.inicioReserva
-                                            ) &&
+                                        if (LocalDateTime.now().isBefore(viewModel.inicioReserva) &&
                                             usoSalaDao.obtenerPorReserva(reservaId)?.estado != "EN_CURSO"
                                         ) {
-                                            reservaDao.cancelarReservaAprobada(reservaId)
+                                            reservaRepository.modificarEstado(reservaId,
+                                                EstadoReserva.CANCELADA,
+                                                reserva.estado)
+                                            1
                                         } else {
                                             0
                                         }

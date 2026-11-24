@@ -4,6 +4,6 @@ enum class EstadoReserva {
     PENDIENTE,
     APROBADA,
     RECHAZADA,
-
+    FINALIZADA,
     CANCELADA
 }

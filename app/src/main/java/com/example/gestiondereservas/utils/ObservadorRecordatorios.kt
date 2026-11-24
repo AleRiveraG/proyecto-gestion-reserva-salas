@@ -2,23 +2,28 @@
 package com.example.gestiondereservas.utils
 
 import android.content.Context
-import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.remote.RetrofitClient
+import com.example.gestiondereservas.data.repository.ReservaRepository
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import java.time.LocalDate
+import java.time.LocalTime
+
 object ObservadorRecordatorios {
 
     suspend fun observar(context: Context) {
 
-        val dao = AppDatabase.getInstance(context).reservaDao()
+        val repository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
+            RetrofitClient.apiHorarios)
 
-        var reservasAnteriores = emptyMap<Long, Pair<String, String>>()
+        var reservasAnteriores = emptyMap<Long, Pair<LocalDate, LocalTime>>()
 
-        dao.observarReservasAprobadas()
+        repository.observarReservasAprobadas()
             .distinctUntilChanged()
             .collectLatest { reservas ->
 
                 val reservasActuales = reservas.associate {
-                    it.id to (it.fechaActividad to it.horaInicio)
+                    it.idReserva to (it.fechaActividad to it.horaInicio)
                 }
 
                 val idsAprobadas = reservasActuales.keys
@@ -36,7 +41,7 @@ object ObservadorRecordatorios {
                     val horarioActual =
                         reserva.fechaActividad to reserva.horaInicio
 
-                    if (reservasAnteriores[reserva.id] != horarioActual) {
+                    if (reservasAnteriores[reserva.idReserva] != horarioActual) {
                         RecordatoriosReservas.programar(context, reserva)
                     }
                 }

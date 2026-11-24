@@ -2,7 +2,6 @@ package com.example.gestiondereservas.data.remote
 
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.remote.dto.AuditoriaResponse
-import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST

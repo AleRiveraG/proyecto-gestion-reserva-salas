@@ -14,6 +14,7 @@ data class RegistroRequestDto(
     @SerializedName("nombre") val nombre: String,
     @SerializedName("correo") val correo: String,
     @SerializedName("password") val password: String,
+    @SerializedName("telefono") val telefono: String,
     @SerializedName("rol") val rol: String  //"RELATOR" o "COORDINADOR"
 )
 
@@ -24,6 +25,7 @@ data class AuthResponseDto(
     @SerializedName("idUsuario") val idUsuario: Long = 0L,
     @SerializedName("nombre") val nombre: String = "",
     @SerializedName("correo") val correo: String = "",
+    @SerializedName("telefono") val telefono: String = "",
     @SerializedName("rol") val rol: String = "",
     @SerializedName("mensaje") val mensaje: String? = null
 )
@@ -34,6 +36,7 @@ data class UsuarioResponseDto(
     @SerializedName("nombre") val nombre: String = "",
     @SerializedName("correo") val correo: String = "",
     @SerializedName("rol") val rol: String = "",
+    @SerializedName("telefono") val telefono: String = "",
     @SerializedName("activo") val activo: Boolean = true,
     @SerializedName("fechaCreacion") val fechaCreacion: String? = null
 )

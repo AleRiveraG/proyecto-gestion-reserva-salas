@@ -6,12 +6,14 @@ object SessionManager {
     var nombre: String? = null
     var correo: String? = null
     var rol: String? = null
+    var telefono: String? = null
 
-    fun guardarSesion(token: String, idUsuario: Long, nombre: String, correo: String, rol: String) {
+    fun guardarSesion(token: String, idUsuario: Long, nombre: String, correo: String, telefono: String, rol: String) {
         this.token = token
         this.idUsuario = idUsuario
         this.nombre = nombre
         this.correo = correo
+        this.telefono = telefono
         this.rol = rol
     }
 
@@ -22,6 +24,7 @@ object SessionManager {
         idUsuario = null
         nombre = null
         correo = null
+        telefono = null
         rol = null
     }
 }

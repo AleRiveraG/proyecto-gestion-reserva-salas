@@ -3,15 +3,13 @@ package com.example.gestiondereservas.data.repository
 import com.example.gestiondereservas.data.remote.HorarioApiService
 import com.example.gestiondereservas.data.remote.ReservaApiService
 import com.example.gestiondereservas.data.remote.SalaApiService
-import com.example.gestiondereservas.data.remote.dto.DocumentoResponse
 import com.example.gestiondereservas.data.remote.dto.ReporteResponse
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
-import com.example.gestiondereservas.data.room.ReservaDao
-import com.example.gestiondereservas.data.room.SalaDao
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
-import com.example.gestiondereservas.data.room.entidades.SalaEntity
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import java.time.LocalDate
@@ -115,4 +113,18 @@ class ReservaRepository(
     suspend fun contarReservasSala(salaId: Long, tiempo: String): ReporteResponse {
         return api.contarReservasSala(salaId, tiempo)
     }
-}
+
+    suspend fun obtenerReservasResueltas(): List<ReservaResponse> {
+        val reservas = api.obtenerReservasPorEstado(EstadoReserva.APROBADA) + api.obtenerReservasPorEstado(
+            EstadoReserva.PENDIENTE)
+
+        return  reservas
+    }
+
+    suspend fun observarReservasAprobadas(): Flow<List<ReservaResponse>> =
+        flow {
+            while (true) {
+                emit(api.obtenerReservasPorEstado(EstadoReserva.APROBADA))
+            }
+        }.distinctUntilChanged()
+    }

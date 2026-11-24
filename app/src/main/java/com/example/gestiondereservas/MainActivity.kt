@@ -11,20 +11,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
-import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.navigation.AppNavigation
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
-import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.utils.ObservadorNotificaciones
 import com.example.gestiondereservas.utils.ObservadorRecordatorios
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import com.example.gestiondereservas.data.DatosPruebaUsuariosReservas
-import com.example.gestiondereservas.ui.views.UsoSalaScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -95,14 +89,9 @@ fun MyApp(abrirNotificaciones: Boolean = false) {
     val navController = rememberNavController()
     val contexto = LocalContext.current
 
-    val appState = remember {
-        AppState(AppDatabase.getInstance(contexto))
-    }
-
     MaterialTheme {
         AppNavigation(
             navController = navController,
-            appState = appState,
             abrirNotificaciones = abrirNotificaciones
         )
     }

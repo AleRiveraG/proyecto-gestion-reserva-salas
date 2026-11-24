@@ -42,14 +42,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.dto.ReporteResponse
-import com.example.gestiondereservas.data.remote.dto.ReservaResponse
-import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.ui.theme.GestionDeReservasTheme
 import com.example.gestiondereservas.viewmodel.ReportesViewModel
-import com.example.gestiondereservas.viewmodel.ReservaViewModel
-import kotlin.collections.emptyList
 import kotlin.collections.map
 
 @Composable

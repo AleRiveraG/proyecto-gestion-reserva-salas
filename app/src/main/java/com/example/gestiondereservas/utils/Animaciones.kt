@@ -11,7 +11,6 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.example.gestiondereservas.R
 
 import androidx.compose.foundation.layout.Column

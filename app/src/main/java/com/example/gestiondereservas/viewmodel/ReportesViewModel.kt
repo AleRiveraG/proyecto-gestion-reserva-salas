@@ -3,7 +3,6 @@ package com.example.gestiondereservas.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.remote.dto.ReporteResponse
-import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.repository.SalaRepository

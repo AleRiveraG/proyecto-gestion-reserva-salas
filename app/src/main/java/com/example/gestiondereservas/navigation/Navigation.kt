@@ -15,22 +15,15 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.repository.AuditoriaRepository
-import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.ui.components.PantallaBaseAdmin
 import com.example.gestiondereservas.ui.components.PantallaBaseRelator
 import com.example.gestiondereservas.viewmodel.AuditoriaViewModel
 import com.example.gestiondereservas.ui.views.LoginScreen
 import com.example.gestiondereservas.ui.views.RegistroScreen
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import com.example.gestiondereservas.data.repository.UsuarioRepository
-import com.example.gestiondereservas.viewmodel.RegistroViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavType
-import com.example.gestiondereservas.data.remote.AuditoriaApiService
 import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.SessionManager
 import com.example.gestiondereservas.data.repository.ReservaRepository
@@ -40,7 +33,6 @@ import com.example.gestiondereservas.ui.views.RolUsuario
 
 @Composable
 fun rememberAuditoriaViewModel(): AuditoriaViewModel {
-    val contexto = LocalContext.current.applicationContext
     return viewModel(
         factory = viewModelFactory {
             initializer {
@@ -51,23 +43,10 @@ fun rememberAuditoriaViewModel(): AuditoriaViewModel {
     )
 }
 
-@Composable
-fun rememberRegistroViewModel(): RegistroViewModel {
-    val contexto = LocalContext.current.applicationContext
-    return viewModel(
-        factory = viewModelFactory {
-            initializer {
-                val dao = AppDatabase.getInstance(contexto).usuarioDao()
-                val repository = UsuarioRepository(dao)
-                RegistroViewModel(repository)
-            }
-        }
-    )
-}
+
 
 @Composable
 fun AppNavigation(navController: NavHostController,
-                  appState: AppState,
                   abrirNotificaciones: Boolean = false
 ) {
     val auditoriaViewModel: AuditoriaViewModel = rememberAuditoriaViewModel()
@@ -76,6 +55,9 @@ fun AppNavigation(navController: NavHostController,
     var rolUsuario by remember { mutableStateOf<RolUsuario?>(null) }
     val esSupervisor = rolUsuario == RolUsuario.COORDINADOR
 
+    val repository = remember { ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
+        RetrofitClient.apiHorarios) }
+
     LaunchedEffect(abrirNotificaciones, correoUsuario, rolUsuario) {
         if (abrirNotificaciones && correoUsuario != null) {
             navController.navigate("notificaciones/$esSupervisor") {
@@ -83,6 +65,7 @@ fun AppNavigation(navController: NavHostController,
             }
         }
     }
+
     NavHost(
         navController = navController,
         startDestination = "login",
@@ -97,6 +80,8 @@ fun AppNavigation(navController: NavHostController,
             //Navega solo cuando el backend confirma el login (HTTP 200)
             LaunchedEffect(authState.usuarioAutenticado) {
                 val usuario = authState.usuarioAutenticado ?: return@LaunchedEffect
+                val idValido = usuario.idUsuario ?: 0L
+
                 correoUsuario = usuario.correo
                 rolUsuario = if (usuario.rol.equals("RELATOR", ignoreCase = true)) {
                     RolUsuario.RELATOR
@@ -104,13 +89,14 @@ fun AppNavigation(navController: NavHostController,
                     RolUsuario.COORDINADOR
                 }
                 val destino = if (rolUsuario == RolUsuario.RELATOR) {
-                    "baseRelator/${usuario.idUsuario}"
+                    "baseRelator/$idValido"
                 } else {
-                    "baseSupervisor/${usuario.idUsuario}"
+                    "baseSupervisor/$idValido"
                 }
                 autenticacionViewModel.limpiarEstado()
                 navController.navigate(destino) {
                     popUpTo("login") { inclusive = true }
+                    launchSingleTop = true
                 }
             }
 
@@ -121,16 +107,8 @@ fun AppNavigation(navController: NavHostController,
                     autenticacionViewModel.limpiarEstado()
                     navController.navigate("registro")
                 },
-                alNavegarARelator = { idUsuario ->
-                    navController.navigate("baseRelator/$idUsuario") {
-                        popUpTo("login") { inclusive = true }
-                    }
-                },
-                alNavegarASupervisor = { idUsuario ->
-                    navController.navigate("baseSupervisor/$idUsuario") {
-                        popUpTo("login") { inclusive = true }
-                    }
-                },
+                alNavegarARelator = {},
+                alNavegarASupervisor = {},
                 alIniciarSesionExitoso = { correo, password, rol ->
                     autenticacionViewModel.iniciarSesion(correo, password, rol.name)
                 }
@@ -156,7 +134,8 @@ fun AppNavigation(navController: NavHostController,
                         nombre = nombre,
                         correo = correo,
                         password = password,
-                        rol = rol.name
+                        rol = rol.name,
+                        telefono = telefono
                     )
                 }
             )
@@ -167,21 +146,11 @@ fun AppNavigation(navController: NavHostController,
             arguments = listOf(navArgument("idUsuario") { type = NavType.LongType})
         ) { backStackEntry ->
             val idUsuario = backStackEntry.arguments?.getLong("idUsuario") ?: 0
-            val contexto = LocalContext.current
             var correoUsuario by remember { mutableStateOf<String?>(SessionManager.correo) }  //Fallback desde SessionManager
 
-            LaunchedEffect(idUsuario) {
-                withContext(Dispatchers.IO) {
-                    val usuario = AppDatabase.getInstance(contexto)
-                        .usuarioDao()
-                        .obtenerUsuarioPorId(idUsuario)
-                    correoUsuario = usuario?.correo ?: SessionManager.correo
-                }
-            }
+
             PantallaBaseRelator(
-                navController = navController,
                 idUsuario = idUsuario,
-                appState = appState,
                 onRegistrarAuditoria = { evento ->
                     auditoriaViewModel.registrarReserva(evento)
                 },
@@ -192,8 +161,7 @@ fun AppNavigation(navController: NavHostController,
                         popUpTo(0) { inclusive = true }
                     }
                 },
-                reservaRepository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
-                    RetrofitClient.apiHorarios)
+                reservaRepository = repository
 
             )
         }
@@ -231,8 +199,7 @@ fun AppNavigation(navController: NavHostController,
                 onVolver = {
                     navController.popBackStack()
                 },
-                reservaRepository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
-                    RetrofitClient.apiHorarios)
+                reservaRepository =repository
             )
         }
     }

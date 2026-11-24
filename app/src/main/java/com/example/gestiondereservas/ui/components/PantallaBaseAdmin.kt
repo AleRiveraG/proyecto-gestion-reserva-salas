@@ -23,7 +23,6 @@ import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
-import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
 import com.example.gestiondereservas.viewmodel.AuditoriaViewModel
 import com.example.gestiondereservas.ui.views.AuditoriaScreen
@@ -38,7 +37,7 @@ import com.example.gestiondereservas.ui.views.SalasScreen
 import com.example.gestiondereservas.ui.views.SupervisorScreen
 import com.example.gestiondereservas.ui.views.rememberGestionReservasViewModel
 import kotlinx.coroutines.flow.Flow
-import com.example.gestiondereservas.ui.views.rememberUsuarioViewModel
+
 
 //estos dos imports nuevos
 import androidx.compose.runtime.LaunchedEffect
@@ -164,7 +163,6 @@ fun PantallaBaseAdmin(
                         onReportes = { tabNavController.navigate("reportes") },
                         onReservas = { tabNavController.navigate("gestionReserva")},
                         viewModel = rememberGestionReservasViewModel(),
-                        usuarioViewModel = rememberUsuarioViewModel()
                     )
                 }
 

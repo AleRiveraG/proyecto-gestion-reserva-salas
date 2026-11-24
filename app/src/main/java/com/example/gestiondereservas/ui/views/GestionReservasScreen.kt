@@ -54,15 +54,11 @@ import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.repository.ReservaRepository
-import com.example.gestiondereservas.data.room.AppDatabase
-import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
-import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.utils.LocalDateAString
 import com.example.gestiondereservas.viewmodel.GestionReservasViewModel
 import com.example.gestiondereservas.utils.formatearFechaPerso
-import com.example.gestiondereservas.utils.formatearHora
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import androidx.core.net.toUri

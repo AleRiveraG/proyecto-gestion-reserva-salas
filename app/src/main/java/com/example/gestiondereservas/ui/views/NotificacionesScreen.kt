@@ -18,12 +18,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.ui.theme.Black
 import com.example.gestiondereservas.ui.theme.NotificationBackground
 import com.example.gestiondereservas.ui.theme.NotificationBlue
@@ -35,8 +33,6 @@ import com.example.gestiondereservas.ui.theme.NotificationRed
 import com.example.gestiondereservas.ui.theme.NotificationSecondaryText
 import com.example.gestiondereservas.ui.theme.White
 import com.example.gestiondereservas.ui.theme.Yellow
-import com.example.gestiondereservas.utils.NotificacionHelper
-import com.example.gestiondereservas.utils.ProgramadorRecordatorios
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import androidx.compose.animation.AnimatedVisibility

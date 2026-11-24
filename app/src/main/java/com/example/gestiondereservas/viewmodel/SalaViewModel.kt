@@ -4,8 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.SalaRepository
-import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
-import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

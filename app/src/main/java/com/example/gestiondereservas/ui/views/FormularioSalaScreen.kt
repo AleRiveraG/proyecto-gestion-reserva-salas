@@ -3,7 +3,6 @@ package com.example.gestiondereservas.ui.views
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -70,14 +69,11 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.repository.SalaRepository
-import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.Area
-import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.components.AreaChip
 import com.example.gestiondereservas.viewmodel.EquipoForm
 import com.example.gestiondereservas.viewmodel.FormularioSalaViewModel
-import com.example.gestiondereservas.utils.formatearHora
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -85,7 +81,6 @@ import com.example.gestiondereservas.utils.ConfirmacionSalaGuardada
 import kotlinx.coroutines.delay
 import java.time.LocalTime
 
-import kotlinx.coroutines.delay
 import androidx.compose.ui.window.Dialog
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec

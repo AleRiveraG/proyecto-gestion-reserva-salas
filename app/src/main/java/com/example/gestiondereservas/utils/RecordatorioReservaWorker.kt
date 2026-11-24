@@ -5,7 +5,8 @@ import android.content.Context
 import androidx.annotation.RequiresPermission
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.gestiondereservas.data.room.AppDatabase
+import com.example.gestiondereservas.data.remote.RetrofitClient
+import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 
 class RecordatorioReservaWorker(
@@ -22,8 +23,7 @@ class RecordatorioReservaWorker(
                 return Result.failure()
             }
 
-            val dao = AppDatabase.getInstance(applicationContext)
-                .reservaDao()
+            val dao = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api, RetrofitClient.apiHorarios)
 
             val reserva = dao.obtenerReservaPorId(reservaId)
                 ?: return Result.success()

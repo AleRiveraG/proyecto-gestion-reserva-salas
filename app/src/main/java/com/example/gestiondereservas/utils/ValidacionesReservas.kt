@@ -1,7 +1,6 @@
 package com.example.gestiondereservas.utils
 
 import android.net.Uri
-import java.io.File
 import java.time.LocalDate
 import java.time.LocalTime
 

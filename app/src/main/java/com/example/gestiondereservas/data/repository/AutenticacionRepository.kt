@@ -1,7 +1,6 @@
 package com.example.gestiondereservas.data.repository
 
 import com.example.gestiondereservas.data.remote.AutenticacionApiService
-import com.example.gestiondereservas.data.remote.AutenticacionRetrofitClient
 import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.SessionManager
 import com.example.gestiondereservas.data.remote.dto.AuthResponseDto
@@ -35,7 +34,8 @@ class AutenticacionRepository(
                     idUsuario = data.idUsuario,
                     nombre = data.nombre,
                     correo = data.correo,
-                    rol = data.rol
+                    rol = data.rol,
+                    telefono = data.telefono
                 )
                 Result.success(data)
             } else {
@@ -58,7 +58,8 @@ class AutenticacionRepository(
         nombre: String,
         correo: String,
         password: String,
-        rol: String
+        rol: String,
+        telefono: String
     ): Result<AuthResponseDto> {
         return try {
             val response = api.registrar(
@@ -66,7 +67,8 @@ class AutenticacionRepository(
                     nombre = nombre.trim(),
                     correo = correo.trim().lowercase(),
                     password = password,
-                    rol = rol.uppercase()
+                    rol = rol.uppercase(),
+                    telefono = telefono
                 )
             )
             if (response.isSuccessful && response.body() != null) {

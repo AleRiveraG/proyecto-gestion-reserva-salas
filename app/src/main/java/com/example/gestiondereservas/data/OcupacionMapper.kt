@@ -1,10 +1,6 @@
 package com.example.gestiondereservas.data
 
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
-import com.example.gestiondereservas.utils.FormatoHora
-import com.example.gestiondereservas.utils.LocalDateAString
-import com.example.gestiondereservas.utils.LocalTimeAString
 import java.time.LocalTime
 
 //esto convierto los datos de la reserva en las franjas que pinta la grilla

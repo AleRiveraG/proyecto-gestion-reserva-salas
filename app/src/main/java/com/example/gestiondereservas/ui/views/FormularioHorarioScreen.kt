@@ -60,14 +60,12 @@ import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.repository.HorarioRepository
 import com.example.gestiondereservas.data.room.AppDatabase
-import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.DiaSemana
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import com.example.gestiondereservas.ui.components.AreaChip
 import com.example.gestiondereservas.viewmodel.FormularioHorarioViewModel
 import com.example.gestiondereservas.utils.FormatoHora
 import com.example.gestiondereservas.utils.ValidacionesHorario
-import com.example.gestiondereservas.utils.formatearHora
 import java.time.LocalDate
 //el import de abajo era de la confirmación de bloque libre pero como cambiamos la logica ya no se ocupa
 //import com.example.gestiondereservas.utils.ConfirmacionHorarioGuardado
@@ -81,7 +79,8 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.gestiondereservas.data.remote.RetrofitClient
-import kotlinx.coroutines.delay
+
+
 @Composable
 fun rememberFormularioHorarioViewModel(
     horarioId: Long,

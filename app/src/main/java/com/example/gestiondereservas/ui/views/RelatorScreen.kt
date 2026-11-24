@@ -37,41 +37,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.remote.SessionManager
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
-import com.example.gestiondereservas.data.repository.UsuarioRepository
-import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
-import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.viewmodel.ReservaViewModel
-import com.example.gestiondereservas.viewmodel.UsuarioViewModel
 import com.example.gestiondereservas.utils.formatearFecha
-@Composable
-fun rememberUsuarioViewModel(): UsuarioViewModel {
-    val contexto = LocalContext.current.applicationContext
-    return viewModel(
-        factory = viewModelFactory {
-            initializer {
-                val dao = AppDatabase.getInstance(contexto).usuarioDao()
-                val repository = UsuarioRepository(dao, )
-                UsuarioViewModel(repository)
-            }
-        }
-    )
-}
+
 @Composable
 fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
-                  usuarioViewModel: UsuarioViewModel = rememberUsuarioViewModel(),
                   idUsuario: Long,
                   onReservas: () -> Unit,
                   onBuscarSala: () -> Unit,
@@ -80,18 +59,25 @@ fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                   onActividad: (Long) -> Unit)
 {
     val reservas by viewModel.reservas.collectAsState()
-    val usuario by usuarioViewModel.usuario.collectAsState()
     val sala by viewModel.sala.collectAsState()
     val reserva = reservas.firstOrNull()
 
+    val sesion = remember(SessionManager.nombre) {
+        SessionManager.nombre
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.split(" ")
+            ?.firstOrNull()
+            ?: "usuario"
+    }
+
     LaunchedEffect(reserva?.salaId) {
         viewModel.buscarReservaPorId(idUsuario)
-        usuarioViewModel.cargarUsuario(idUsuario)
         reserva?.let {
             viewModel.buscarSala(it.salaId)
         }
     }
-    Contenido(nombreUsuario = usuario?.nombre?.split(" ")[0] ?: "usuario",
+    Contenido(nombreUsuario = sesion,
         sala,
         onReservas,
         onActividad,

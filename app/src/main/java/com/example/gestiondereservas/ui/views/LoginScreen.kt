@@ -23,8 +23,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -36,7 +34,6 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -53,7 +50,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -62,11 +58,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.ui.theme.*
 import com.example.gestiondereservas.viewmodel.GestionReservasViewModel
-import com.example.gestiondereservas.viewmodel.UsuarioViewModel
 import com.example.gestiondereservas.utils.AnimacionLogin
 
 //= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -599,10 +593,8 @@ fun LoginScreen(
         }
         "supervisor" -> {
             val supervisorVm: GestionReservasViewModel = rememberGestionReservasViewModel()
-            val usuarioVm: UsuarioViewModel = rememberUsuarioViewModel()
             SupervisorScreen(
                 idUsuario = 2L,
-                usuarioViewModel = usuarioVm,
                 onHorarios = {},
                 onGestionSalas = {},
                 onAuditoria = {},

@@ -3,14 +3,10 @@ package com.example.gestiondereservas.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.repository.ReservaRepository
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
-import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import android.content.Context
-import com.example.gestiondereservas.data.remote.dto.DocumentoResponse
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva

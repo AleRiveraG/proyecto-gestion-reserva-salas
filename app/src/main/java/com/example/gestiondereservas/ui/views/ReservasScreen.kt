@@ -84,11 +84,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.material3.DatePickerColors
 import androidx.compose.material3.DatePickerDefaults
-import androidx.compose.material3.TimePickerColors
 import androidx.compose.material3.TimePickerDefaults
 import com.example.gestiondereservas.data.remote.RetrofitClient
+import com.example.gestiondereservas.data.remote.SessionManager
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.remote.dto.ReservaDTO
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
@@ -99,7 +98,6 @@ import com.example.gestiondereservas.utils.StringALocalDate
 import com.example.gestiondereservas.utils.formatoFechaPantalla
 import com.example.gestiondereservas.utils.stringALocalTime
 import com.example.gestiondereservas.viewmodel.ReservaState
-import com.example.gestiondereservas.viewmodel.UsuarioViewModel
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -141,7 +139,6 @@ fun uriToFile(context: Context, uri: Uri): File? {
 }
 @Composable
 fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
-                   usuarioViewModel: UsuarioViewModel = rememberUsuarioViewModel(),
                    fechaB: String? = null,
                    horaB: String? = null,
                    salaIdB: Long? = null,
@@ -161,6 +158,9 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var tipoActividad by remember { mutableStateOf("") }
     var tieneValidacion by remember { mutableStateOf("") }
     var organizador by remember { mutableStateOf("") }
+    var nombreResponsable by remember { mutableStateOf("") }
+    var telefonoResponsable by remember { mutableStateOf("") }
+    var correoResponsable by remember { mutableStateOf("") }
 
     var fechaActividad by remember { mutableStateOf(fechaB ?: "") }
     var horaInicio by remember { mutableStateOf(horaB ?: "") }
@@ -206,7 +206,7 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
 
     val listaSalas by viewModel.listaSalas.collectAsState()
     val sala by viewModel.sala.collectAsState()
-    val usuario by usuarioViewModel.usuario.collectAsState()
+
     val reservaState by viewModel.reservaState.collectAsState()
 
 
@@ -215,8 +215,6 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             salaId = salaIdB
             viewModel.buscarSala(salaIdB)
         }
-
-        usuarioViewModel.cargarUsuario(idUsuario)
     }
 
     LaunchedEffect(salaId, fechaActividad, horaInicio, horaTermino) {
@@ -244,9 +242,9 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
             descripcion = descripcion,
             tipoActividad = tipoActividad,
             tieneAutorizacion = if(tieneValidacion == "Si") true else false,
-            nombreResponsable = usuario!!.nombre,
-            telefonoResponsable = usuario!!.telefono,
-            correoResponsable = usuario!!.correo,
+            nombreResponsable = SessionManager.nombre ?: "",
+            telefonoResponsable = SessionManager.telefono ?: "",
+            correoResponsable = SessionManager.correo ?: "",
             organizador = organizador,
 
             salaId = salaId,

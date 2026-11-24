@@ -8,8 +8,6 @@ import com.example.gestiondereservas.data.remote.dto.SalaDto
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.SalaRepository
 import com.example.gestiondereservas.data.room.entidades.Area
-import com.example.gestiondereservas.data.room.entidades.Equipamiento
-import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.utils.ValidacionesSala
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

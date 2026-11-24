@@ -54,8 +54,6 @@ import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.CatalogoEquipamientos
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
-import com.example.gestiondereservas.data.room.entidades.SalaConEquipamiento
-import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.viewmodel.FiltrosAvanzados
 import com.example.gestiondereservas.viewmodel.SalasUiState
 import com.example.gestiondereservas.viewmodel.SalasViewModel

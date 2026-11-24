@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.remote.dto.AuditoriaResponse
 import com.example.gestiondereservas.data.repository.AuditoriaRepository
-import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

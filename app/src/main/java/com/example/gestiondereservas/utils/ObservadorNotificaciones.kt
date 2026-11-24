@@ -5,11 +5,12 @@ import android.content.Context
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import com.example.gestiondereservas.data.remote.RetrofitClient
+import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
 import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 object ObservadorNotificaciones {
@@ -17,19 +18,18 @@ object ObservadorNotificaciones {
     suspend fun observar(context: Context) = coroutineScope {
 
         val database = AppDatabase.getInstance(context)
-        val reservaDao = database.reservaDao()
+        val repository = ReservaRepository(RetrofitClient.apiSalas, RetrofitClient.api,
+            RetrofitClient.apiHorarios)
         val notificacionDao = database.notificacionDao()
 
         // Notificaciones de nuevas solicitudes para el supervisor
         launch {
-            reservaDao.observarReservasPendientes().collectLatest { reservas ->
-
-                reservas.forEach { reserva ->
+            repository.obtenerReservasPendientes().forEach { reserva ->
 
                     val tipo = "SOLICITUD"
 
                     val existe = notificacionDao.contarPorReservaYTipo(
-                        reserva.id,
+                        reserva.idReserva,
                         tipo
                     )
 
@@ -40,7 +40,7 @@ object ObservadorNotificaciones {
                                 descripcion = "${reserva.nombreActividad} · ${reserva.fechaActividad}",
                                 tipo = tipo,
                                 esSupervisor = true,
-                                reservaId = reserva.id
+                                reservaId = reserva.idReserva
                             )
                         )
                         mostrarAvisoSiPermitido(
@@ -49,55 +49,48 @@ object ObservadorNotificaciones {
                             "${reserva.nombreActividad} · ${reserva.fechaActividad}"
                         )
                     }
-                }
             }
         }
 
         // Notificaciones de aprobación o rechazo para el relator
         launch {
-            reservaDao.observarReservasResueltas().collectLatest { reservas ->
+            repository.obtenerReservasResueltas().forEach { reserva ->
+                val tipo = when (reserva.estado) {
+                    EstadoReserva.APROBADA -> "APROBADA"
+                    EstadoReserva.RECHAZADA -> "RECHAZADA"
+                    else -> return@forEach
+                }
+                val existe = notificacionDao.contarPorReservaYTipo(
+                    reserva.idReserva,
+                    tipo
+                )
 
-                reservas.forEach { reserva ->
-
-                    val tipo = when (reserva.estado) {
-                        EstadoReserva.APROBADA -> "APROBADA"
-                        EstadoReserva.RECHAZADA -> "RECHAZADA"
-                        else -> return@forEach
+                if (existe == 0) {
+                    val titulo = if (tipo == "APROBADA") {
+                        "Reserva aprobada"
+                    } else {
+                        "Reserva rechazada"
                     }
 
-                    val existe = notificacionDao.contarPorReservaYTipo(
-                        reserva.id,
-                        tipo
-                    )
+                    val descripcion = if (tipo == "APROBADA") {
+                        "${reserva.nombreActividad} · ${reserva.fechaActividad}"
+                    } else {
+                        "Tu solicitud para ${reserva.nombreActividad} fue rechazada"
+                    }
 
-                    if (existe == 0) {
-
-                        val titulo = if (tipo == "APROBADA") {
-                            "Reserva aprobada"
-                        } else {
-                            "Reserva rechazada"
-                        }
-
-                        val descripcion = if (tipo == "APROBADA") {
-                            "${reserva.nombreActividad} · ${reserva.fechaActividad}"
-                        } else {
-                            "Tu solicitud para ${reserva.nombreActividad} fue rechazada"
-                        }
-
-                        notificacionDao.guardarNotificacion(
-                            NotificacionEntity(
-                                titulo = titulo,
-                                descripcion = descripcion,
-                                tipo = tipo,
-                                esSupervisor = false,
-                                reservaId = reserva.id,
-                                correoDestinatario = reserva.correoResponsable
-                                    .trim()
-                                    .lowercase()
-                            )
+                    notificacionDao.guardarNotificacion(
+                        NotificacionEntity(
+                            titulo = titulo,
+                            descripcion = descripcion,
+                            tipo = tipo,
+                            esSupervisor = false,
+                            reservaId = reserva.idReserva,
+                            correoDestinatario = reserva.correoResponsable
+                                .trim()
+                                .lowercase()
                         )
-                        mostrarAvisoSiPermitido(context, titulo, descripcion)
-                    }
+                    )
+                    mostrarAvisoSiPermitido(context, titulo, descripcion)
                 }
             }
         }

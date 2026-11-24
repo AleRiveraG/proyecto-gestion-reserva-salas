@@ -23,6 +23,9 @@ class AutenticacionViewModel(
     private val _uiState = MutableStateFlow(AutenticacionUiState())
     val uiState: StateFlow<AutenticacionUiState> = _uiState.asStateFlow()
 
+    private val _idUsuario = MutableStateFlow<Long>(0L)
+    val idUsuario: StateFlow<Long> = _idUsuario.asStateFlow()
+
     fun iniciarSesion(correo: String, password: String, rol: String) {
         viewModelScope.launch {
             _uiState.value = AutenticacionUiState(estaCargando = true)
@@ -33,6 +36,7 @@ class AutenticacionViewModel(
                         estaCargando = false,
                         usuarioAutenticado = respuesta
                     )
+                    _idUsuario.value = respuesta.idUsuario
                 },
                 onFailure = { error ->
                     _uiState.value = AutenticacionUiState(
@@ -44,10 +48,10 @@ class AutenticacionViewModel(
         }
     }
 
-    fun registrarUsuario(nombre: String, correo: String, password: String, rol: String) {
+    fun registrarUsuario(nombre: String, correo: String, password: String, rol: String, telefono: String) {
         viewModelScope.launch {
             _uiState.value = AutenticacionUiState(estaCargando = true)
-            val resultado = repository.registrar(nombre, correo, password, rol)
+            val resultado = repository.registrar(nombre, correo, password, rol, telefono)
             resultado.fold(
                 onSuccess = {
                     _uiState.value = AutenticacionUiState(

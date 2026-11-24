@@ -40,7 +40,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -53,14 +52,10 @@ import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.SalaRepository
-import com.example.gestiondereservas.data.room.AppDatabase
-import com.example.gestiondereservas.data.room.entidades.SalaEntity
 import com.example.gestiondereservas.ui.components.AreaChip
 import com.example.gestiondereservas.viewmodel.SalasViewModel
-import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.TipoAuditoria
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 
 @Composable

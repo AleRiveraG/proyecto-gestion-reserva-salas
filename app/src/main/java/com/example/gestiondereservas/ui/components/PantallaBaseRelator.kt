@@ -29,22 +29,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.gestiondereservas.data.AppState
 import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.repository.ReservaRepository
 import com.example.gestiondereservas.data.room.AppDatabase
-import com.example.gestiondereservas.data.room.entidades.AuditoriaEntity
 import com.example.gestiondereservas.data.room.entidades.NotificacionEntity
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.ui.theme.Black
 import com.example.gestiondereservas.ui.theme.White
 import com.example.gestiondereservas.ui.theme.Yellow
@@ -67,12 +63,10 @@ import com.example.gestiondereservas.ui.views.rememberHorariosViewModel
 
 @Composable
 fun PantallaBaseRelator(
-    navController: NavHostController,
     idUsuario: Long,
     onRegistrarAuditoria: (AuditoriaDto) -> Unit = {},
     abrirReservas: Boolean = false,
     onCerrarSesion: () -> Unit,
-    appState: AppState,
     correoUsuario: String? = null,
     reservaRepository: ReservaRepository
 ) {

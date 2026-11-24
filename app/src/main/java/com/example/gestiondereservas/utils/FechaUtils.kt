@@ -2,6 +2,8 @@ package com.example.gestiondereservas.utils
 
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.MonthDay
 import java.time.Year
 import java.time.format.DateTimeFormatter
@@ -54,5 +56,12 @@ fun LocalDateAString(fecha: LocalDate): String {
     val formato = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val fechaString = fecha.format(formato)
     return fechaString
+}
+
+fun calcularInicioReserva(
+    fechaActividad: LocalDate,
+    horaInicio: LocalTime
+): LocalDateTime {
+    return LocalDateTime.of(fechaActividad, horaInicio)
 }
 

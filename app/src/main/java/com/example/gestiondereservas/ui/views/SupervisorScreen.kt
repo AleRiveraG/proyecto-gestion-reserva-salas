@@ -26,9 +26,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,11 +38,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.gestiondereservas.R
+import com.example.gestiondereservas.data.remote.SessionManager
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
-import com.example.gestiondereservas.data.room.entidades.ReservaEntity
 import com.example.gestiondereservas.viewmodel.GestionReservasViewModel
-import com.example.gestiondereservas.viewmodel.UsuarioViewModel
 import com.example.gestiondereservas.utils.formatearFecha
 
 @Composable
@@ -53,17 +52,21 @@ fun SupervisorScreen(
                      onAuditoria: () -> Unit,
                      onReportes: () -> Unit,
                      onReservas: () -> Unit,
-                     usuarioViewModel: UsuarioViewModel,
                      viewModel: GestionReservasViewModel
 ) {
     val listaReservas by viewModel.reservasPendientes.collectAsState()
-    val usuario by usuarioViewModel.usuario.collectAsState()
 
-    LaunchedEffect(idUsuario) {
-        usuarioViewModel.cargarUsuario(idUsuario)
+    val sesion = remember(SessionManager.nombre) {
+        SessionManager.nombre
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.split(" ")
+            ?.firstOrNull()
+            ?: "usuario"
     }
 
-    Contenido(nombreUsuario = usuario?.nombre?.split(" ")[0] ?: "usuario",
+
+    Contenido(nombreUsuario = sesion,
             onHorarios,
             onGestionSalas,
             onAuditoria,
