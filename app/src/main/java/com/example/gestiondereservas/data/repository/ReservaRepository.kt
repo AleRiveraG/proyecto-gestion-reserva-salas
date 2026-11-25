@@ -131,6 +131,14 @@ class ReservaRepository(
                 delay(10000)
             }
         }.distinctUntilChanged()
+
+    fun observarReservasPorUsuario(idUsuario: Long): Flow<List<ReservaResponse>> =
+        flow {
+            while (currentCoroutineContext().isActive) {
+                emit(api.obtenerReservasPorUsuario(idUsuario))
+                delay(10000)
+            }
+        }.distinctUntilChanged()
 }
 
 

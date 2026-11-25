@@ -156,22 +156,29 @@ private fun Contenido(nombreUsuario: String,
                 }
             }
         } else
-            LazyColumn(
+            Column (
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(listaReservas) { reserva ->
+                listaReservas.forEach { reserva ->
                     ReservasPendientes(
                         reserva,
-                        onAprobar = { id -> viewModel.modificarEstado(id, EstadoReserva.APROBADA,
-                            EstadoReserva.PENDIENTE) } ,
-                        onRechazar = { id -> viewModel.modificarEstado(id, EstadoReserva.RECHAZADA,
-                            EstadoReserva.PENDIENTE)}
+                        onAprobar = { id ->
+                            viewModel.modificarEstado(
+                                id, EstadoReserva.APROBADA,
+                                EstadoReserva.PENDIENTE
+                            )
+                        },
+                        onRechazar = { id ->
+                            viewModel.modificarEstado(
+                                id, EstadoReserva.RECHAZADA,
+                                EstadoReserva.PENDIENTE
+                            )
+                        }
                     )
                 }
             }
-
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         AccesosDirectos(onHorarios,
             onGestionSalas,

@@ -2,9 +2,11 @@ package com.example.gestiondereservas.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.gestiondereservas.data.remote.SessionManager
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.repository.ReservaRepository
+import com.example.gestiondereservas.data.room.entidades.EstadoReserva
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -60,16 +62,17 @@ class ReservaViewModel(
     val uiState: StateFlow<ReservasUiState> = _uiState.asStateFlow()
 
     init {
-        observarReservas()
+        observarReservas(SessionManager.idUsuario ?: 0L)
         cargarSalas()
     }
 
-    private fun observarReservas() {
+    private fun observarReservas(idUsuario: Long) {
         viewModelScope.launch {
             try {
-                repository.observarReservasAprobadas().collect { lista ->
+                repository.observarReservasPorUsuario(idUsuario).collect { lista ->
                     val reservasFiltradas = lista.filter { reserva ->
-                        !reserva.fechaActividad.isBefore(LocalDate.now())
+                        !reserva.fechaActividad.isBefore(LocalDate.now()) && reserva.estado.equals(
+                            EstadoReserva.APROBADA)
                     }.sortedBy { it.fechaActividad }
                     _uiState.update {
                         it.copy(

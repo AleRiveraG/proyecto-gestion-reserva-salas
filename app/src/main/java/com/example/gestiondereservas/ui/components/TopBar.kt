@@ -1,10 +1,12 @@
 
 package com.example.gestiondereservas.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Notifications
@@ -14,7 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.gestiondereservas.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,25 +37,20 @@ fun TopBar(
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically
-            ) { /*
-                Image(
-                    painter = painterResource(id = R.drawable.logov4),
-                    contentDescription = "Logo Duoc UC",
-                    modifier = Modifier.size(60.dp)
-                        .clip(),
-                    //colorFilter = ColorFilter.tint(Color.White)
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-                */
+            ) {
                 Text(
-                    text = "Reserva",
-                    color = MaterialTheme.colorScheme.secondary
+                    text = "Espacio",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 24.sp
                 )
-
                 Text(
-                    text = "Salas",
-                    color = MaterialTheme.colorScheme.tertiary
+                    text = "360",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    fontSize = 24.sp
                 )
             }
         },

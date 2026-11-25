@@ -49,8 +49,8 @@ class GestionReservasViewModel(
     private fun observarDatos() {
         viewModelScope.launch {
             while (isActive) {
-                delay(10000)
                 cargarDatos()
+                delay(10000)
             }
         }
     }

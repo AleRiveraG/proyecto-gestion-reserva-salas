@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -132,45 +133,45 @@ fun Contenido(reservas: List<ReservaResponse>,
               onObtenerDocumento: suspend (Long) -> String
 
 ) {
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.secondary)
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
+            .background(MaterialTheme.colorScheme.secondary),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(
-            "Gestión de Reservas",
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
-        )
+        item {
+            Column {
+                Text(
+                    "Gestión de Reservas",
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
 
-        Text(
-            "Valida las solicitudes de reservas",
-            color = Color(0xFF3B3B3B),
-            fontSize = 12.sp
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Contador(pendientes, aprobadas, rechazadas)
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(reservas) { reserva ->
-                Reserva(
-                    reserva,
-                    onAprobar,
-                    onRechazar,
-                    onBuscarSala,
-                    onObtenerDocumento
+                Text(
+                    "Valida las solicitudes de reservas",
+                    color = Color(0xFF3B3B3B),
+                    fontSize = 12.sp
                 )
             }
+        }
+
+        item {
+            Contador(pendientes, aprobadas, rechazadas)
+        }
+
+        items(
+            items = reservas,
+            key = { it.idReserva }
+        ) { reserva ->
+            Reserva(
+                reserva,
+                onAprobar,
+                onRechazar,
+                onBuscarSala,
+                onObtenerDocumento
+            )
         }
     }
 }

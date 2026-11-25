@@ -1841,92 +1841,95 @@ fun SeleccionarHora(titulo: String,
                     onHoraChange: (String) -> Unit,
                     horaError: Boolean
 ) {
-    var mostrar by remember { mutableStateOf(false) }
+        var mostrar by remember { mutableStateOf(false) }
 
-    Column{
-        Text(text = titulo,
-            color = MaterialTheme.colorScheme.primary,
-            fontSize = 14.sp)
+        Column{
+            Text(text = titulo,
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 14.sp)
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = { mostrar = !mostrar })
-        ) {
-            OutlinedTextField(
-                value = hora,
-                onValueChange = { },
-                readOnly = true,
-                isError = horaError,
-                supportingText = {
-                    if(horaError) {
-                        Text("Hora seleccionada invalida. Ingrese nuevamente", color = MaterialTheme.colorScheme.error)
-                    }
-                },
-                trailingIcon = {
-                    IconButton(onClick = { mostrar = !mostrar }) {
-                        Icon(
-                            painter = painterResource(R.drawable.clock),
-                            contentDescription = "Icono calendario",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                },
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.primary,
-                    unfocusedTextColor = MaterialTheme.colorScheme.primary
-                )
-            )
-        }
-
-        if (mostrar) {
-            val timePickerState = rememberTimePickerState(
-                initialHour = 12,
-                initialMinute = 0,
-                is24Hour = true
-            )
-            AlertDialog(
-                onDismissRequest = { mostrar = false },
-                title = { Text("Ingresar hora") },
-                text = {
-                    TimeInput(state = timePickerState,
-                        colors = TimePickerDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                            timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.secondary,
-                            timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.secondary
-                        )
+                    .fillMaxWidth()
+                    .clickable(onClick = { mostrar = !mostrar })
+            ) {
+                OutlinedTextField(
+                    value = hora,
+                    onValueChange = { },
+                    readOnly = true,
+                    isError = horaError,
+                    supportingText = {
+                        if(horaError) {
+                            Text("Hora seleccionada invalida. Ingrese nuevamente", color = MaterialTheme.colorScheme.error)
+                        }
+                    },
+                    trailingIcon = {
+                        IconButton(onClick = { mostrar = !mostrar }) {
+                            Icon(
+                                painter = painterResource(R.drawable.clock),
+                                contentDescription = "Icono calendario",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = MaterialTheme.colorScheme.primary,
+                        unfocusedTextColor = MaterialTheme.colorScheme.primary
                     )
-                },
+                )
+            }
 
-                confirmButton = {
-                    TextButton(onClick = {
-                        mostrar = false
-                        onHoraChange(
-                            String.format(
-                                Locale.getDefault(),
-                                "%02d:%02d",
-                                timePickerState.hour,
-                                timePickerState.minute
+            if (mostrar) {
+                val timePickerState = rememberTimePickerState(
+                    initialHour = 12,
+                    initialMinute = 0,
+                    is24Hour = true
+                )
+                AlertDialog(
+                    onDismissRequest = { mostrar = false },
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    title = { Text("Ingresar hora") },
+                    text = {
+                        TimeInput(state = timePickerState,
+                            colors = TimePickerDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.secondary,
+                                timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.secondary,
+                                timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.secondary,
+                                timeSelectorUnselectedContentColor = MaterialTheme.colorScheme.primary,
+                                timeSelectorSelectedContentColor = MaterialTheme.colorScheme.primary
                             )
                         )
-                    }
-                    ) {
-                        Text("Aceptar",
-                            color = MaterialTheme.colorScheme.primary)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { mostrar = false }) {
-                        Text("Cancelar",
-                            color = MaterialTheme.colorScheme.primary)
-                    }
-                },
-            )
+                    },
+
+                    confirmButton = {
+                        TextButton(onClick = {
+                            mostrar = false
+                            onHoraChange(
+                                String.format(
+                                    Locale.getDefault(),
+                                    "%02d:%02d",
+                                    timePickerState.hour,
+                                    timePickerState.minute
+                                )
+                            )
+                        }
+                        ) {
+                            Text("Aceptar",
+                                color = MaterialTheme.colorScheme.primary)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { mostrar = false }) {
+                            Text("Cancelar",
+                                color = MaterialTheme.colorScheme.primary)
+                        }
+                    },
+                )
+            }
         }
     }
-}
 
 @Composable
 fun Publico(titulo: String,
@@ -2119,7 +2122,7 @@ fun CampoArchivo(titulo: String,
 
         Box(
             modifier = Modifier.fillMaxWidth()
-                .clickable(onClick = { onSeleccionarPdf() })
+                .clickable(onClick = { onSeleccionarPdf() }),
         ) {
             OutlinedTextField(
                 value = nombreArchivo,
@@ -2133,7 +2136,7 @@ fun CampoArchivo(titulo: String,
                 },
                 readOnly = true,
                 enabled = false,
-                placeholder = { Text("Seleccionar archivos - máx 5 MB, hasta 20",
+                placeholder = { Text("Seleccionar archivos - máx 5 MB",
                     color = MaterialTheme.colorScheme.primary.copy(0.6f),
                     fontSize = 12.sp) },
                 trailingIcon = {
@@ -2150,10 +2153,8 @@ fun CampoArchivo(titulo: String,
                     .height(120.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = TextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.primary,
-                    unfocusedTextColor = MaterialTheme.colorScheme.primary,
-                    unfocusedContainerColor = Color(0xFFF5F5F5),
-                    focusedContainerColor = Color(0xFFF5F5F5)
+                    disabledContainerColor = MaterialTheme.colorScheme.secondary,
+                    disabledTextColor = MaterialTheme.colorScheme.primary
                 )
             )
         }

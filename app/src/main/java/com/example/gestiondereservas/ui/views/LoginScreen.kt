@@ -314,7 +314,7 @@ fun LoginBody(
                                 .fillMaxWidth()
                                 .clip(formaRol)
                                 .background(
-                                    if (esSeleccionado) Color(0xFFECE6F0) else Color.White
+                                    if (esSeleccionado) Color(0xFFE8E8E8) else Color.White
                                 )
                                 .border(
                                     BorderStroke(

@@ -85,16 +85,12 @@ private fun Contenido(onAtras: () -> Unit,
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        LazyColumn(
+        Column (
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(listaAuditorias) { auditoria ->
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    AuditoriaCard(auditoria)
-                }
+            listaAuditorias.forEach { auditoria ->
+                AuditoriaCard(auditoria)
+                Spacer(modifier = Modifier.height(8.dp))
             }
         }
 

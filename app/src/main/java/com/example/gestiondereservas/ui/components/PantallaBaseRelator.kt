@@ -180,7 +180,7 @@ fun PantallaBaseRelator(
                                 scope.launch {
                                     try {
                                         val reservas = withContext(Dispatchers.IO) {
-                                            reservaRepository.obtenerReservasAprobadas()
+                                            reservaRepository.obtenerReservaPorIdUsuario(idUsuario)
                                         }
 
                                         if (reservas.isNotEmpty()) {
