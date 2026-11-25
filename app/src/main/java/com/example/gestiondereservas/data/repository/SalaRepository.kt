@@ -35,14 +35,6 @@ class SalaRepository(
     suspend fun codigoDisponible(codigo: String, excluirId: Long): Boolean =
         apiService.codigoDisponible(codigo.trim(), excluirId)
 
-    /*
-    suspend fun sembrarSiVacio() {
-        if (dao.contarSalas() > 0) return
-        DatosPrueba.salas.forEach { (sala, equipos) -> dao.guardar(sala, equipos) }
-    }
-
-     */
-
     suspend fun listarSalas(): List<SalaResponse> {
         return apiService.listar()
     }

@@ -93,4 +93,41 @@ dependencies {
     implementation(libs.okhttp.logging)
     implementation("com.squareup.retrofit2:converter-scalars:2.11.0")
 
+    //MockK
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+    testImplementation("io.mockk:mockk-jvm:1.14.11")
+
+    //Kotest
+    testImplementation("io.kotest:kotest-runner-junit5:6.2.6")
+    testImplementation("io.kotest:kotest-assertions-core:6.2.6")
+
+    //JUnit
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.14.3")
+
+    // Compose UI Test
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.2")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.2")
+
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.material3)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    tasks.withType<Test>().configureEach {
+        useJUnitPlatform()
+    }
+
+
 }

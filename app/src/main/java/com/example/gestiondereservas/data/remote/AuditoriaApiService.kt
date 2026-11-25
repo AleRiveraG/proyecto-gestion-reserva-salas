@@ -18,12 +18,12 @@ interface AuditoriaApiService {
         @Body auditoria: AuditoriaDto
     ): AuditoriaResponse
 
-    @GET("apí/auditoria/tipo/{tipo}")
+    @GET("api/auditoria/tipo/{tipo}")
     suspend fun obtenerPorTipo(
         @Path("tipo") tipo: String
     ): List<AuditoriaResponse>
 
-    @GET("apí/auditoria/fecha/{fecha}")
+    @GET("api/auditoria/fecha/{fecha}")
     suspend fun obtenerPorFecha(
         @Path("fecha") fecha: LocalDate
     ): List<AuditoriaResponse>
