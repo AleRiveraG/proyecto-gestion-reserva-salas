@@ -56,8 +56,8 @@ class HorarioRepository(
 
         return horariosDia.any { existente ->
             existente.id != excluirId &&
-                    nuevoInicio < existente.horaInicio.toSecondOfDay() / 60 &&
-                    nuevoFin > existente.horaTermino.toSecondOfDay() / 60
+                    nuevoInicio < existente.horaTermino.toSecondOfDay() / 60 &&
+                    nuevoFin > existente.horaInicio.toSecondOfDay() / 60
         }
     }
 
