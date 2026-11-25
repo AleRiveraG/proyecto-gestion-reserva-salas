@@ -83,9 +83,11 @@ import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.TimePickerDefaults
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gestiondereservas.data.remote.RetrofitClient
 import com.example.gestiondereservas.data.remote.SessionManager
 import com.example.gestiondereservas.data.remote.dto.AuditoriaDto
@@ -158,9 +160,6 @@ fun ReservasScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
     var tipoActividad by remember { mutableStateOf("") }
     var tieneValidacion by remember { mutableStateOf("") }
     var organizador by remember { mutableStateOf("") }
-    var nombreResponsable by remember { mutableStateOf("") }
-    var telefonoResponsable by remember { mutableStateOf("") }
-    var correoResponsable by remember { mutableStateOf("") }
 
     var fechaActividad by remember { mutableStateOf(fechaB ?: "") }
     var horaInicio by remember { mutableStateOf(horaB ?: "") }
@@ -480,6 +479,7 @@ fun ContentPaso1(nombre: String,
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
+            .imePadding()
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -704,6 +704,7 @@ fun ContentPaso2(fechaActividad:String,
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
+            .imePadding()
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -993,6 +994,7 @@ fun ContentPaso3(complemento: String,
             .fillMaxSize()
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
+            .imePadding()
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

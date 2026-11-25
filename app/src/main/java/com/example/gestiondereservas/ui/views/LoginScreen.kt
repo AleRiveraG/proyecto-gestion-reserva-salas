@@ -18,14 +18,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -594,7 +597,6 @@ fun LoginScreen(
         "supervisor" -> {
             val supervisorVm: GestionReservasViewModel = rememberGestionReservasViewModel()
             SupervisorScreen(
-                idUsuario = 2L,
                 onHorarios = {},
                 onGestionSalas = {},
                 onAuditoria = {},
@@ -610,7 +612,9 @@ fun LoginScreen(
         LoginBody(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
+                .imePadding(),
             estaCargando = estaCargando,
             mensajeErrorGeneral = mensajeErrorGeneral,
             usuariosRegistrados = usuariosRegistrados,

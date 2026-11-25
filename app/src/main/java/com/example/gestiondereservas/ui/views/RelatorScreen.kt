@@ -41,6 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.gestiondereservas.R
 import com.example.gestiondereservas.data.remote.SessionManager
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
@@ -58,9 +59,12 @@ fun RelatorScreen(viewModel: ReservaViewModel = rememberReservaViewModel(),
                   onReservasRelator: () -> Unit,
                   onActividad: (Long) -> Unit)
 {
-    val reservas by viewModel.reservas.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val sala by viewModel.sala.collectAsState()
+
+    val reservas = uiState.reservas
     val reserva = reservas.firstOrNull()
+
 
     val sesion = remember(SessionManager.nombre) {
         SessionManager.nombre

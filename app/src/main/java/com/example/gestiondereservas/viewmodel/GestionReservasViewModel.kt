@@ -10,6 +10,11 @@ import kotlinx.coroutines.launch
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
+
 
 class GestionReservasViewModel(
     private val repository: ReservaRepository,
@@ -27,10 +32,10 @@ class GestionReservasViewModel(
     private val totalPendientes = MutableStateFlow(0L)
     val pendientes: StateFlow<Long> = totalPendientes.asStateFlow()
 
-    init {
-        cargarDatos()
-    }
 
+    init {
+        observarDatos()
+    }
 
     fun cargarDatos() {
         viewModelScope.launch {
@@ -38,6 +43,15 @@ class GestionReservasViewModel(
             totalAprobadas.value = repository.obtenerAprobadas()
             totalRechazadas.value = repository.obtenerRechazadas()
             totalPendientes.value = repository.obtenerPendiente()
+        }
+    }
+
+    private fun observarDatos() {
+        viewModelScope.launch {
+            while (isActive) {
+                delay(10000)
+                cargarDatos()
+            }
         }
     }
 

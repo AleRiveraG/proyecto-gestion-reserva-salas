@@ -7,9 +7,12 @@ import com.example.gestiondereservas.data.remote.dto.ReporteResponse
 import com.example.gestiondereservas.data.remote.dto.ReservaResponse
 import com.example.gestiondereservas.data.remote.dto.SalaResponse
 import com.example.gestiondereservas.data.room.entidades.EstadoReserva
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.isActive
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import java.time.LocalDate
@@ -121,10 +124,14 @@ class ReservaRepository(
         return  reservas
     }
 
-    suspend fun observarReservasAprobadas(): Flow<List<ReservaResponse>> =
+     fun observarReservasAprobadas(): Flow<List<ReservaResponse>> =
         flow {
-            while (true) {
+            while (currentCoroutineContext().isActive) {
                 emit(api.obtenerReservasPorEstado(EstadoReserva.APROBADA))
+                delay(10000)
             }
         }.distinctUntilChanged()
-    }
+}
+
+
+

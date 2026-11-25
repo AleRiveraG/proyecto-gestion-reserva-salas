@@ -9,6 +9,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -32,6 +33,11 @@ sealed interface ReservaState {
     ): ReservaState
 }
 
+data class ReservasUiState(
+    val reservas: List<ReservaResponse> = emptyList(),
+    val estaCargando: Boolean = true,
+    val error: String? = null
+)
 
 class ReservaViewModel(
     private val repository: ReservaRepository
@@ -50,8 +56,40 @@ class ReservaViewModel(
     private val _horarioDisponible = MutableStateFlow(false)
     val horarioDisponible: StateFlow<Boolean> = _horarioDisponible.asStateFlow()
 
+    private val _uiState = MutableStateFlow(ReservasUiState(estaCargando = true))
+    val uiState: StateFlow<ReservasUiState> = _uiState.asStateFlow()
+
     init {
+        observarReservas()
         cargarSalas()
+    }
+
+    private fun observarReservas() {
+        viewModelScope.launch {
+            try {
+                repository.observarReservasAprobadas().collect { lista ->
+                    val reservasFiltradas = lista.filter { reserva ->
+                        !reserva.fechaActividad.isBefore(LocalDate.now())
+                    }.sortedBy { it.fechaActividad }
+                    _uiState.update {
+                        it.copy(
+                            reservas = reservasFiltradas,
+                            estaCargando = false,
+                            error = null
+                        )
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        estaCargando = false,
+                        error = e.message
+                    )
+                }
+            }
+        }
     }
 
     fun registrarReserva(
