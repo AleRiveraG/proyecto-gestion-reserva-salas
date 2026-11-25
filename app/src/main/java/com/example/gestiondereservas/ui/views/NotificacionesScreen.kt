@@ -260,7 +260,7 @@ fun NotificacionesScreen(
                                 }
 
                                 navController.navigate(
-                                    "baseSupervisor/reservas"
+                                    "gestionReserva"
                                 ) {
                                     launchSingleTop = true
                                 }
